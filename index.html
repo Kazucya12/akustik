@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id" data-t="dark"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Midnight Acoustic - Musik gratis, tanpa iklan</title>
+<meta name="description" content="Midnight Acoustic: pemutar musik dan video gratis, tanpa iklan, bisa offline. Lirik otomatis, equalizer, dan playlist.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Midnight Acoustic"><meta property="og:locale" content="id_ID"><meta property="og:title" content="Midnight Acoustic - Musik gratis, tanpa iklan"><meta property="og:description" content="Putar lagu penuh dari Audius dan video YouTube, lengkap dengan lirik otomatis, equalizer, dan mode offline. Pasang di layar utama.">
+<meta property="og:url" content="https://gema-lyart.vercel.app/"><meta property="og:image" content="https://gema-lyart.vercel.app/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Midnight Acoustic - Musik gratis, tanpa iklan"><meta name="twitter:description" content="Pemutar musik dan video gratis dengan lirik otomatis dan mode offline."><meta name="twitter:image" content="https://gema-lyart.vercel.app/og.png">
+
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#060928"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="web.css"></head><body><div id="app"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div id="v"></div>
+<div class="nav" id="nav"></div><div class="ov" id="sp"></div><div class="ov" id="pl"></div>
+<div class="ov" id="vo" style="z-index:22"><div class="hd"><button class="ib g" onclick="ovc()">‹</button><h3>Video</h3><button class="ib g" onclick="vBg()" title="Mode audio">🎧</button></div>
+<div class="vbox"><div id="player"></div></div>
+<h3 id="vtt" style="margin-top:12px">Pilih video</h3><small id="vch">Cari atau tempel link YouTube</small>
+<div class="ctl" style="margin:8px 0"><button onclick="vNext(-1)">&#9198;</button><button id="vsv" onclick="vSave()"></button><button onclick="vNext(1)">&#9197;</button></div>
+<div class="srch"><input id="vq" placeholder="Cari video atau tempel link YouTube" onkeydown="if(event.key=='Enter')vGo()"><button onclick="vGo()" style="color:var(--p2);font-weight:700">Cari</button></div>
+<div id="vr" style="margin-top:12px"></div></div><div class="ov" id="kr"></div>
+<div class="mv" id="mv"><div style="flex:1;min-width:0"><b id="mvt" style="display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></b><small>Mode audio · YouTube</small></div><button class="ib g" id="mvp" onclick="vTog()"></button><button class="ib g" onclick="vBack()">▢</button><button class="ib g" onclick="vOff()">✕</button></div><div id="toast"></div>
+<input type="file" id="fi" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac,.opus" multiple hidden onchange="addF(this.files);this.value=''">
+<input type="file" id="fbk" accept=".json,application/json" hidden onchange="bkImp(this.files[0]);this.value=''">
+<input type="file" id="fpl" accept=".json,application/json" hidden onchange="plImp(this.files[0]);this.value=''">
+<input type="file" id="fd" webkitdirectory multiple hidden onchange="addF(this.files);this.value=''"></div>
+<script src="app.js"></script><script src="extra.js"></script><script src="extra2.js"></script><script src="web.js"></script></body></html>

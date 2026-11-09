@@ -1,0 +1,7 @@
+{
+  "name": "midnight-acoustic",
+  "version": "3.3.0",
+  "private": true,
+  "description": "Midnight Acoustic - pemutar musik dan video",
+  "engines": { "node": ">=18" }
+}

@@ -1,6 +1,6 @@
 // /api/music?src=all|audius|jamendo|archive|radio|custom&q=...  (&trending=1 &genre= &cc= &tag=)
 // Mengembalikan array lagu: { id, title, artist, img, url, dl? }
-const UA = 'MidnightAcoustic/3.3';
+const UA = 'MidnightAcoustic/3.4';
 const AUD = 'https://api.audius.co/v1';
 const RB = ['https://de1.api.radio-browser.info', 'https://nl1.api.radio-browser.info', 'https://at1.api.radio-browser.info'];
 
@@ -83,12 +83,12 @@ async function jamendo(q, trending) {
 async function archive(q, trending) {
   const qq = trending || !q ? 'collection:opensource_audio' : `(${q.replace(/[()"\\]/g, ' ')}) AND mediatype:audio`;
   const u = 'https://archive.org/advancedsearch.php?q=' + encodeURIComponent(qq) +
-    '&fl[]=identifier&fl[]=title&fl[]=creator&rows=10&page=1&output=json&sort[]=' + encodeURIComponent('downloads desc');
+    '&fl[]=identifier&fl[]=title&fl[]=creator&rows=6&page=1&output=json&sort[]=' + encodeURIComponent('downloads desc');
   const j = await jget(u);
   const docs = (j.response && j.response.docs) || [];
   const out = await Promise.all(docs.map(async (d) => {
     try {
-      const m = await jget(`https://archive.org/metadata/${encodeURIComponent(d.identifier)}`, {}, 6000);
+      const m = await jget(`https://archive.org/metadata/${encodeURIComponent(d.identifier)}`, {}, 3500);
       const files = (m.files || []).filter((f) => f && f.name);
       const f = files.find((x) => /\.mp3$/i.test(x.name)) || files.find((x) => /\.(ogg|m4a)$/i.test(x.name));
       if (!f) return null;
@@ -149,7 +149,8 @@ async function custom(q) {
 
 /* ---------- Gabungan ---------- */
 async function all(q, trending, genre) {
-  const jobs = [audius(q, trending, genre), archive(q, trending)];
+  const slow = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r([]), ms))]); // sumber lambat tidak menahan hasil lain
+  const jobs = [audius(q, trending, genre), slow(archive(q, trending), 5000)];
   if (process.env.JAMENDO_CLIENT_ID) jobs.splice(1, 0, jamendo(q, trending));
   const rs = (await Promise.allSettled(jobs)).map((r) => (r.status === 'fulfilled' ? r.value : []));
   const out = [], seen = new Set();
@@ -188,3 +189,4 @@ module.exports = async (req, res) => {
     res.status(502).json({ error: 'Gagal mengambil data dari sumber', detail: String((e && e.message) || e).slice(0, 120) });
   }
 };
+      

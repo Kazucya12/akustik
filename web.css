@@ -58,3 +58,9 @@ body.selm #v,body.selm .ov{padding-bottom:230px}
 @media (min-width:1500px){:root{--cw:1180px;--sw:272px}}
 /* tablet / jendela sempit: tetap tampilan HP tetapi tidak terpotong 430px */
 @media (min-width:600px) and (max-width:899px){#app{max-width:560px}}
+
+/* v3.4: tablet (600-899px) sedikit lebih lebar, fokus keyboard terlihat */
+@media (min-width:600px) and (max-width:899px){#app{max-width:560px}}
+:focus-visible{outline:2px solid var(--p2);outline-offset:2px;border-radius:8px}
+.rw,.cd,.pcard{transition:transform .16s,background .2s,box-shadow .2s}
+@media (hover:hover){.rw:hover{background:var(--c)}}

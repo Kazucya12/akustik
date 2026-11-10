@@ -17,11 +17,13 @@ const MAX_OTP_TRY = 5;
 const MAX_LOGIN_FAIL = 8;            // per 15 menit per akun
 
 /* ---------- Redis (Upstash REST, tanpa library) ---------- */
+const PREFIX = 'ma:'; // awalan kunci supaya aman dipakai bersama aplikasi lain di database yang sama
 async function rd(...cmd) {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const tok = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (!url || !tok) { const e = new Error('nodb'); e.nodb = 1; throw e; }
-  const r = await fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(cmd.map(String)) });
+  const c = cmd.map(String); c[1] = PREFIX + c[1]; // semua perintah di sini memakai kunci di argumen ke-2
+  const r = await fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(c) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || j.error) throw new Error('redis: ' + (j.error || r.status));
   return j.result;

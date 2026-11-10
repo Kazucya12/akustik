@@ -18,7 +18,7 @@
   document.addEventListener('touchstart',function(e){
     ok=0;if(e.touches.length!=1||blocked())return;
     var t=e.target;if(!t.closest||!t.closest('#v,#nav'))return;
-    if(t.closest('input,textarea,select,[contenteditable]'))return;
+    if(t.closest('input,textarea,select,[contenteditable],.rw,#mp'))return;
     if(scrollsX(t))return;
     var p=e.touches[0];x0=p.clientX;y0=p.clientY;t0=Date.now();ok=1;
   },{passive:true});

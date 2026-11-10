@@ -41,7 +41,7 @@
     lists.hl=items.map(function(x){return x.t});
     if(!items.length)h+='<div class="em">Belum ada riwayat. Lagu yang kamu putar akan muncul di sini.</div>';
     else{var g='';items.forEach(function(x,j){var k=dk(new Date(x.ts));if(k!=g){g=k;h+='<small style="display:block;margin:12px 0 4px;color:var(--p2);font-weight:700">'+label(k)+'</small>'}h+=row('hl',x.t,j)});
-      h+='<button class="btn g" style="margin-top:16px" onclick="if(confirm(\'Hapus semua riwayat lagu?\')){ma3Clr()}">Hapus Riwayat</button>'}
+      h+='<button class="btn g" style="margin-top:16px" onclick="uiConfirm(\'Semua riwayat lagu akan dihapus.\',{title:\'Hapus riwayat?\',ok:\'Hapus\',danger:1}).then(function(o){if(o)ma3Clr()})">Hapus Riwayat</button>'}
     sub(shd('Riwayat &amp; Mingguan')+h)};
   window.ma3Clr=function(){hlog=[];ls.set('hlog',hlog);goHist()};
 })();

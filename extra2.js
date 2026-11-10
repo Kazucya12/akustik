@@ -56,7 +56,7 @@ async function selDel(){
   const a=[...SEL.m.values()];
   const loc=a.filter(t=>t.loc&&songs.some(s=>s.id==t.id)),vs=a.filter(t=>t.yt&&vids.some(v=>v.id==t.id));
   if(!loc.length&&!vs.length){toast('Hanya lagu di perangkat dan video tersimpan yang bisa dihapus');return}
-  if(!confirm('Hapus '+(loc.length+vs.length)+' item dari daftar? Lagu di perangkat hanya dihapus dari aplikasi.'))return;
+  if(!await uiConfirm('Lagu di perangkat hanya dihapus dari aplikasi, file aslinya tidak disentuh.',{title:'Hapus '+(loc.length+vs.length)+' item?',ok:'Hapus',danger:1}))return;
   for(const t of loc){try{await tx('readwrite',o=>o.delete(t.id))}catch(e){}if(cur&&cur.id==t.id){A.pause();cur=null;clp()}}
   const ids=new Set(loc.map(t=>t.id));songs=songs.filter(s=>!ids.has(s.id));
   if(vs.length){const vi2=new Set(vs.map(t=>t.id));vids=vids.filter(v=>!vi2.has(v.id));ls.set('vids',vids)}
@@ -79,9 +79,9 @@ function selPl(){
   sheet.innerHTML=`<div class="ssi"><h3>Tambah ke playlist</h3>${pls.map((p,i)=>`<div class="rw" onclick="selPlGo(${i})"><img src="${esc(cov(p.img?{img:p.img}:(p.tr.map(rs).filter(Boolean)[0]||{h:260+i*25})))}"><div><b>${esc(p.n)}</b><small>${p.tr.length} lagu</small></div></div>`).join('')}<div class="rw" onclick="selPlGo(-1)"><div><b>＋ Playlist baru</b></div></div><button class="btn g" style="margin-top:10px" onclick="$('#ss').classList.remove('on')">Batal</button></div>`;
   sheet.classList.add('on');
 }
-window.selPlGo=function(i){
+window.selPlGo=async function(i){
   const a=pick('pl');if(!a.length)return;
-  if(i<0){const n=(prompt('Nama playlist:')||'').trim().slice(0,60);if(!n)return;pls.push({n,tr:[]});i=pls.length-1}
+  if(i<0){const n=((await uiPrompt('Beri nama untuk playlist barumu.','',{title:'Buat playlist',placeholder:'Contoh: Santai sore',ok:'Buat',max:60}))||'').trim().slice(0,60);if(!n)return;pls.push({n,tr:[]});i=pls.length-1}
   const p=pls[i],have=new Set(p.tr.map(x=>x.id));let n=0;
   a.forEach(t=>{if(!have.has(t.id)){p.tr.push(svt(t));have.add(t.id);n++}});
   ls.set('pls',pls);sheet.classList.remove('on');toast(n+' lagu masuk ke '+p.n);selTog();

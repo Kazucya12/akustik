@@ -1,10 +1,11 @@
+
 /* ===== v3.1: sumber online campuran, pencarian gabungan + riwayat, halaman Artis, edit playlist, radio ===== */
 (function(){
 /* Migrasi sekali: pengguna lama yang masih di Audius dipindah ke "Semua" */
 if(!ls.get('v31',0)){ls.set('v31',1);if(cfg.src=='audius'){cfg.src='all';ls.set('cfg',cfg)}}
 smode='a';
 
-const SRC=[['all','Semua'],['audius','Audius'],['jamendo','Jamendo'],['archive','Arsip'],['radio','Radio']];
+const SRC=[['all','Musik'],['radio','Radio']];
 const GENERIC=/^(Lagu Saya|Link kustom|YouTube|Tidak diketahui|Radio)$/i;
 const uniq=a=>{const s=new Set();return a.filter(t=>t&&t.id!=null&&!s.has(t.id)&&s.add(t.id))};
 const mineAll=()=>uniq([...songs,...favs.map(rs),...hist.map(rs),...pls.flatMap(p=>p.tr.map(rs))]).filter(t=>!t.yt);

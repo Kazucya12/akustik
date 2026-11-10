@@ -117,7 +117,7 @@ async function matchOne(w){
 }
 window.impOpen=function(){
   clp();
-  sub(`${shd('Impor Playlist')}<p style="color:var(--mu);font-size:13px;margin:4px 0 12px">Tempel link playlist atau album Spotify, atau link playlist YouTube. Lagu dicocokkan ke versi yang bisa diputar penuh (Audius). Playlist harus publik.</p><input class="in" id="iu" placeholder="open.spotify.com/playlist/… atau youtube.com/playlist?list=…"><div style="color:var(--mu);font-size:12px;text-align:center;margin:12px 0">atau tempel daftar lagu, satu per baris</div><textarea class="in" id="it" rows="6" placeholder="Judul - Artis"></textarea><button class="btn" id="imb" style="margin-top:12px" onclick="impRun()">Mulai Impor</button><div id="ip" style="margin-top:14px"></div>`);
+  sub(`${shd('Impor Playlist')}<p style="color:var(--mu);font-size:13px;margin:4px 0 12px">Tempel link playlist atau album Spotify, atau link playlist YouTube. Lagu dicocokkan ke versi yang bisa diputar penuh. Playlist harus publik.</p><input class="in" id="iu" placeholder="open.spotify.com/playlist/… atau youtube.com/playlist?list=…"><div style="color:var(--mu);font-size:12px;text-align:center;margin:12px 0">atau tempel daftar lagu, satu per baris</div><textarea class="in" id="it" rows="6" placeholder="Judul - Artis"></textarea><button class="btn" id="imb" style="margin-top:12px" onclick="impRun()">Mulai Impor</button><div id="ip" style="margin-top:14px"></div>`);
 };
 let busy=0;
 window.impRun=async function(){

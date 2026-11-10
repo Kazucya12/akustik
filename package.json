@@ -1,8 +1,11 @@
 {
   "name": "midnight-acoustic",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "private": true,
   "description": "Midnight Acoustic - pemutar musik dan video",
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  },
   "engines": {
     "node": ">=18"
   }

@@ -119,7 +119,7 @@
     var e=document.createElement('div');e.id='lg';e.innerHTML='<div class="lgc"></div>';
     $i('app').appendChild(e);view();
   };
-  window.lgOut=function(){if(!confirm('Keluar dari akun? Data lagu dan playlist di perangkat ini tetap ada.'))return;
+  window.lgOut=async function(){if(!await uiConfirm('Data lagu dan playlist di perangkat ini tetap ada.',{title:'Keluar dari akun?',ok:'Keluar',danger:1,icon:'👋'}))return;
     rm(KEY);rm(SKIP);toast('Berhasil keluar');refresh()};
   /* baris akun di halaman Profil */
   function inject(){

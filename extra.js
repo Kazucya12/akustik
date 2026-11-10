@@ -36,7 +36,7 @@ doSearch=async function(s){
   if(smode!='a'){await _ds(s);if(lres&&lres.length)shAdd(s);shR();return}
   lq=s;const r=$('#res');if(!r)return;
   if(!s.trim()){lres=null;agH='';r.innerHTML='';shR();return}
-  r.innerHTML='<div class="em">Mencari…</div>';shR();
+  r.innerHTML=skel6(6);shR();
   const k=s.trim().toLowerCase();
   const loc=mineAll().filter(t=>(t.title+' '+t.artist).toLowerCase().includes(k)).slice(0,8);
   const [on,vd]=await Promise.allSettled([srch(s),ytSearch(s)]);
@@ -56,7 +56,7 @@ window.setSrc=k=>{cfg.src=k;ls.set('cfg',cfg);lres=null;agH='';go('explore');if(
 /* ---------- Radio ---------- */
 const RD=[['ID','','Indonesia'],['','','Dunia'],['','pop','Pop'],['','rock','Rock'],['','jazz','Jazz'],['','news','Berita']];
 let rdSel=0,rdRes=null;
-const rdBody=()=>rdRes=='load'?'<div class="em">Memuat stasiun…</div>':rdRes=='err'?'<div class="em">Daftar radio belum tersedia. Coba lagi nanti.</div>':Array.isArray(rdRes)?(rdRes.length?rows('rd',rdRes):'<div class="em">Tidak ada stasiun.</div>'):'';
+const rdBody=()=>rdRes=='load'?skel6(5):rdRes=='err'?'<div class="em">Daftar radio belum tersedia. Coba lagi nanti.</div>':Array.isArray(rdRes)?(rdRes.length?rows('rd',rdRes):'<div class="em">Tidak ada stasiun.</div>'):'';
 function rdR(){const e=$('#rd');if(e)e.innerHTML=rdBody();document.querySelectorAll('.rdc').forEach(x=>x.classList.toggle('a',+x.dataset.i==rdSel))}
 window.rdGo=async function(i){
   rdSel=i;rdRes='load';rdR();const c=RD[i];
@@ -116,9 +116,9 @@ window.openPl=function(i,keep){
   if(!p.tr.length)b='<div class="em">Playlist kosong. Buka pemutar lalu ketuk + untuk menambah lagu.</div>';
   else if(plEd)b=p.tr.map((x,j)=>{const t=a[j];return`<div class="rw" style="cursor:default"><img src="${esc(cov(t||{h:200}))}"><div><b>${esc(t?t.title:'Lagu tidak ditemukan')}</b><small>${esc(t?t.artist:'')}</small></div><button class="ib" style="color:var(--mu)" onclick="plMv(${i},${j},-1)">▲</button><button class="ib" style="color:var(--mu)" onclick="plMv(${i},${j},1)">▼</button><button class="ib" style="color:var(--mu)" onclick="plRm(${i},${j})">${ic('x',18)}</button></div>`}).join('');
   else b=rows('pp',a.filter(Boolean));
-  sub(hd+b+`<button class="btn g" style="margin-top:14px" onclick="if(confirm('Hapus playlist?')){pls.splice(${i},1);ls.set('pls',pls);csp()}">Hapus Playlist</button>`);
+  sub(hd+b+`<button class="btn g" style="margin-top:14px" onclick="plDel(${i})">Hapus Playlist</button>`);
 };
-window.plRn=i=>{const p=pls[i];if(!p)return;const n=(prompt('Nama playlist:',p.n)||'').trim().slice(0,60);if(n){p.n=n;plSave();openPl(i,1)}};
+window.plRn=async i=>{const p=pls[i];if(!p)return;const n=((await uiPrompt('Masukkan nama baru playlist.',p.n,{title:'Ubah nama playlist',max:60}))||'').trim().slice(0,60);if(n){p.n=n;plSave();openPl(i,1)}};
 window.plMv=(i,j,d)=>{const t=pls[i].tr,k=j+d;if(k<0||k>=t.length)return;[t[j],t[k]]=[t[k],t[j]];plSave();openPl(i,1)};
 window.plRm=(i,j)=>{pls[i].tr.splice(j,1);plSave();openPl(i,1)};
 window.plSt=(i,m)=>{

@@ -14,6 +14,7 @@ async function jget(url, opt = {}, ms = 8000) {
   } finally { clearTimeout(t); }
 }
 const httpsOnly = (u) => (typeof u === 'string' && /^https:\/\//i.test(u) ? u : '');
+const cleanT = (v) => { const s = String(v == null ? '' : v); const r = s.replace(/\s*[\(\[][^\)\]]*\b(audius|jamendo)\b[^\)\]]*[\)\]]/ig, '').replace(/\s*[-–|]\s*(audius|jamendo)\s*$/i, '').trim(); return r || s; };
 const clip = (s, n) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, n);
 
 /* ---------- Audius ---------- */
@@ -47,7 +48,7 @@ const mapAudius = (a) => (Array.isArray(a) ? a : [])
   .filter((t) => t && t.id && t.is_streamable !== false && !t.is_delete && !t.is_stream_gated)
   .map((t) => ({
     id: 'a' + t.id,
-    title: clip(t.title, 200) || 'Tanpa judul',
+    title: clip(cleanT(t.title), 200) || 'Tanpa judul',
     artist: clip(t.user && t.user.name, 100) || 'Tidak diketahui',
     img: httpsOnly(t.artwork && (t.artwork['480x480'] || t.artwork['150x150'] || t.artwork['1000x1000'])),
     url: `${AUD}/tracks/${t.id}/stream?${APP}`,
@@ -72,7 +73,7 @@ async function jamendo(q, trending) {
   const j = await jget(base + (trending || !q ? '&order=popularity_week' : '&search=' + encodeURIComponent(q)));
   return (j.results || []).filter((t) => t.audio).map((t) => ({
     id: 'j' + t.id,
-    title: clip(t.name, 200) || 'Tanpa judul',
+    title: clip(cleanT(t.name), 200) || 'Tanpa judul',
     artist: clip(t.artist_name, 100) || 'Tidak diketahui',
     img: httpsOnly(t.image || t.album_image),
     url: httpsOnly(t.audio),

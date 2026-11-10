@@ -44,6 +44,7 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
    - `SOUNDSTAT_API_KEY` (wajib untuk Rekomendasi Suasana)
    - `AUDIUS_API_KEY` (opsional, dipakai saat mencari lagu di Audius)
    - `JAMENDO_CLIENT_ID` (opsional, gratis di devportal.jamendo.com; tanpa ini sumber Jamendo dilewati)
+   - `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `AUTH_SECRET` (wajib untuk login Gmail, lihat bagian v3.5)
    - `MUSIC_API_URL` dan `MUSIC_API_KEY` (opsional, untuk sumber "API server sendiri")
 4. Redeploy supaya variabel terbaca.
 
@@ -68,3 +69,14 @@ Rekomendasi di Home memanggil `/api/soundstat`. SoundStat hanya mengembalikan da
 ## Tambahan v3.3: tampilan website
 - `web.css`: layout desktop (lebar ≥ 900px): navigasi jadi sidebar kiri, konten di tengah, mini player jadi bar bawah, panel pemutar/lirik menyisakan sidebar, hover mouse. Tampilan HP tidak berubah
 - `web.js`: pintasan keyboard: Spasi/K putar-jeda, ←/→ mundur/maju 5 detik, N/P lagu berikutnya/sebelumnya, `/` buka pencarian, Esc tutup panel
+
+## Tambahan v3.5: daftar dan masuk
+- `extra4.js` (layar Masuk/Daftar/Lupa password + baris akun di Profil) dan `api/auth.js`.
+- Daftar: username, Gmail, password (min. 8). Kode 6 digit dikirim ke Gmail untuk verifikasi (berlaku 10 menit). Masuk: username atau Gmail + password. Lupa password: kode lewat Gmail, lalu password baru (sesi lama otomatis tidak berlaku). Sesi 30 hari. Ada tombol "Lanjut tanpa masuk".
+- Password disimpan sebagai hash scrypt (bukan teks asli). Percobaan login salah dibatasi (8x per 15 menit per akun), kode salah maksimal 5x.
+- Setup di Vercel:
+  1. Project > Storage (atau Marketplace) > Upstash Redis > Create > Connect Project. Variabel `UPSTASH_REDIS_REST_URL` dan `UPSTASH_REDIS_REST_TOKEN` (atau `KV_REST_API_*`) terisi otomatis.
+  2. Settings > Environment Variables: `GMAIL_USER` (Gmail pengirim), `GMAIL_APP_PASSWORD` (myaccount.google.com/apppasswords, wajib verifikasi 2 langkah aktif), `AUTH_SECRET` (`openssl rand -hex 32`).
+  3. Redeploy.
+- Gmail membatasi pengiriman (sekitar 500 email/hari untuk akun biasa).
+- Sesi disimpan di kunci `mx_auth` dan tidak ikut Cadangan Data. Data lagu/playlist masih tersimpan di perangkat, belum disinkron lewat akun.

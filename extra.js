@@ -33,6 +33,23 @@ function shR(){const e=$('#sh');if(e)e.innerHTML=shHtml()}
 
 const _ds=doSearch;
 doSearch=async function(s){
+  if(smode=='m'){
+    await _ds(s);
+    if(lq!==s||smode!='m')return;
+    const r0=$('#res');
+    if(r0&&s.trim()&&r0.querySelectorAll('.rw').length<6){
+      try{
+        const yv=(await ytSearch(s)).slice(0,10);
+        if(lq===s&&smode=='m'&&yv.length){
+          const had=r0.querySelector('.rw');
+          r0.innerHTML=(had?r0.innerHTML:'')+'<div class="sec"><h3>Video YouTube</h3></div>'+rows('sf',yv);
+          lres=null;
+        }
+      }catch(e){}
+    }
+    if(r0&&r0.querySelector('.rw'))shAdd(s);
+    shR();return;
+  }
   if(smode!='a'){await _ds(s);if(lres&&lres.length)shAdd(s);shR();return}
   lq=s;const r=$('#res');if(!r)return;
   if(!s.trim()){lres=null;agH='';r.innerHTML='';shR();return}
@@ -41,10 +58,10 @@ doSearch=async function(s){
   const loc=mineAll().filter(t=>(t.title+' '+t.artist).toLowerCase().includes(k)).slice(0,8);
   const [on,vd]=await Promise.allSettled([srch(s),ytSearch(s)]);
   if(lq!==s||smode!='a')return;
-  const o=on.status=='fulfilled'?on.value.slice(0,20):[],v=vd.status=='fulfilled'?vd.value.slice(0,5):[];
+  const o=on.status=='fulfilled'?on.value.slice(0,20):[],v=vd.status=='fulfilled'?vd.value.slice(0,o.length<8?15:5):[];
   lres=null;
   const sec=t=>`<div class="sec"><h3>${t}</h3></div>`;
-  agH=(loc.length?sec('Di Library')+rows('sl',loc):'')+(o.length?sec('Musik Online')+rows('sr',o):'')+(v.length?sec('Video')+rows('sv',v):'');
+  agH=(loc.length?sec('Di Library')+rows('sl',loc):'')+(o.length?sec('Musik Online')+rows('sr',o):'')+(v.length?sec(o.length<8?'Video YouTube':'Video')+rows('sv',v):'');
   if(!agH)agH=on.status=='rejected'?'<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber.</div>':'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>';
   else shAdd(s);
   r.innerHTML=agH;shR();

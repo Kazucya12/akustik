@@ -1,6 +1,6 @@
 // Service worker: cangkang aplikasi tersimpan supaya bisa dibuka offline. /api dan sumber luar tidak disentuh.
 // v3.5: login Gmail (extra4.js). v3.4: cache-first (buka instan), file diperbarui diam-diam di latar belakang.
-const C = 'ma-v3.6.0';
+const C = 'ma-v3.6.2';
 const SHELL = ['./', 'index.html', 'style.css', 'web.css', 'dialog.js', 'app.js', 'extra.js', 'extra2.js', 'extra3.js', 'extra4.js', 'extra5.js', 'extra6.js', 'web.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 self.addEventListener('install', (e) => {
   // addAll gagal total kalau satu file hilang, jadi tiap file dicoba sendiri

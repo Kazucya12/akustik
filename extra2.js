@@ -119,6 +119,16 @@ window.impOpen=function(){
   clp();
   sub(`${shd('Impor Playlist')}<p style="color:var(--mu);font-size:13px;margin:4px 0 12px">Tempel link playlist atau album Spotify, atau link playlist YouTube. Lagu dicocokkan ke versi yang bisa diputar penuh. Playlist harus publik.</p><input class="in" id="iu" placeholder="open.spotify.com/playlist/… atau youtube.com/playlist?list=…"><div style="color:var(--mu);font-size:12px;text-align:center;margin:12px 0">atau tempel daftar lagu, satu per baris</div><textarea class="in" id="it" rows="6" placeholder="Judul - Artis"></textarea><button class="btn" id="imb" style="margin-top:12px" onclick="impRun()">Mulai Impor</button><div id="ip" style="margin-top:14px"></div>`);
 };
+const ytKey=w=>'impyt:'+clean(w.title+' '+w.artist);
+async function ytFind(w){
+  const k=ytKey(w);
+  try{const c=JSON.parse(localStorage.getItem(k)||'null');if(c&&c.vid)return mkV(c.vid,c.title,c.artist)}catch(e){}
+  const q=((w.title+' '+w.artist).trim()).slice(0,90);
+  const a=await ytSearch(q);
+  const t=a&&a[0];
+  if(t){try{localStorage.setItem(k,JSON.stringify({vid:t.vid,title:t.title,artist:t.artist}))}catch(e){}}
+  return t||null;
+}
 let busy=0;
 window.impRun=async function(){
   if(busy)return;
@@ -145,10 +155,17 @@ window.impRun=async function(){
     const res=new Array(items.length);let done=0,idx=0;
     const worker=async()=>{while(idx<items.length){const k=idx++;try{res[k]=await matchOne(items[k])}catch(e){res[k]=null}done++;prog('Mencocokkan '+done+' dari '+items.length+'…',done/items.length*100)}};
     await Promise.all([worker(),worker(),worker(),worker()]);
+    const ytf=new Array(items.length);
+    const miss=[];items.forEach((w,k)=>{if(!res[k]&&!(from=='youtube'&&w.id))miss.push(k)});
+    if(miss.length){
+      const cap=miss.slice(0,40);let j=0,d2=0,stop=0;
+      const w2=async()=>{while(j<cap.length&&!stop){const k=cap[j++];try{ytf[k]=await ytFind(items[k])}catch(e){if(e&&(e.status==501||e.status==429||e.status==404))stop=1}d2++;prog('Mencari versi YouTube '+d2+' dari '+cap.length+'…',d2/cap.length*100)}};
+      await Promise.all([w2(),w2()]);
+    }
     const tr=[],seen=new Set(),skipped=[];let m=0,v=0;
     items.forEach((w,k)=>{
       let t=res[k];
-      if(t)m++;else if(from=='youtube'&&w.id){t=mkV(w.id,w.rt,w.ra);v++}
+      if(t)m++;else if(from=='youtube'&&w.id){t=mkV(w.id,w.rt,w.ra);v++}else if(ytf[k]){t=ytf[k];v++}
       if(!t){skipped.push(w.title+(w.artist?' - '+w.artist:''));return}
       if(seen.has(t.id))return;seen.add(t.id);tr.push(svt(t));
     });

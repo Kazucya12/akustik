@@ -80,3 +80,17 @@ Rekomendasi di Home memanggil `/api/soundstat`. SoundStat hanya mengembalikan da
   3. Redeploy.
 - Gmail membatasi pengiriman (sekitar 500 email/hari untuk akun biasa).
 - Sesi disimpan di kunci `mx_auth` dan tidak ikut Cadangan Data. Data lagu/playlist masih tersimpan di perangkat, belum disinkron lewat akun.
+
+
+## Integrasi YouTube Music melalui MusicAPI
+
+Fitur ini menambahkan koneksi akun YouTube Music dari halaman Profil, lalu membaca profil, playlist, dan lagu yang disukai. Ini **bukan pemutar audio YouTube Music**; MusicAPI pada integrasi ini dipakai untuk membaca library/playlist. Pemutaran lagu yang sudah ada di aplikasi tetap memakai sumber audio yang tersedia.
+
+### Pengaturan Vercel
+1. Buat API key di dashboard MusicAPI dan salin `Client ID` serta `Client Secret`.
+2. Tambahkan Environment Variables: `MUSICAPI_CLIENT_ID`, `MUSICAPI_CLIENT_SECRET`, dan `MUSICAPI_SLUG` (slug akun pada hosted auth, misalnya `you`).
+3. Tambahkan URL callback berikut ke daftar `returnUrl` yang diizinkan di dashboard MusicAPI: `https://DOMAIN-ANDA/?musicapi_callback=1` (ganti DOMAIN-ANDA dengan domain Vercel aplikasi).
+4. Redeploy project.
+5. Buka Profil > Hubungkan YouTube Music, lalu selesaikan persetujuan akun Google.
+
+Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah memasukkannya ke `app.js`, `musicapi.js`, atau HTML. UUID koneksi disimpan pada perangkat yang menghubungkan akun.

@@ -34,7 +34,7 @@ function graph(){if(ac)return;ac=new(window.AudioContext||window.webkitAudioCont
 bs=mk('lowshelf',120);flt=[60,230,910,3600,8000,14000].map(f=>mk('peaking',f));tb=mk('highshelf',9000);an=ac.createAnalyser();an.fftSize=128;n.connect(an);const cm=ac.createDynamicsCompressor();cm.knee.value=24;cm.attack.value=.01;cm.release.value=.25;window._cm=cm;an.connect(cm);cm.connect(ac.destination);nvA();ap()}
 function ap(){if(!ac)return;flt.forEach((x,i)=>x.gain.value=eq.on?eq.v[i]:0);bs.gain.value=eq.on?eq.bass:0;tb.gain.value=eq.on?eq.treb:0}
 function play(list,i){q=[...list];qi=i;cur=q[qi];A.pause();B.pause();cur._pt=0;cur._cn=0;cur._xf=0;lastCt=0;
-if(cur.rec&&!cur.url){const t=cur;toast('Mencari versi yang bisa diputar\u2026');resolveRec(t).then(ok=>{if(cur!==t)return;if(ok){rrec();play(q,qi)}else{toast('Belum ada versi lagu ini'+(q.length>1?', lanjut ke berikutnya':''));if(q.length>1&&fq<q.length){fq++;nxt(1)}else fq=0}});return}
+if(cur.rec&&!cur.url){const t=cur;toast('Mencari versi yang bisa diputar\u2026');resolveRec(t).then(ok=>{if(cur!==t)return;if(ok){rrec();if(t.yt)playV(q,qi);else play(q,qi)}else{toast('Belum ada versi lagu ini'+(q.length>1?', lanjut ke berikutnya':''));if(q.length>1&&fq<q.length){fq++;nxt(1)}else fq=0}});return}
 fq=0;ab={a:null,b:null};A.volume=B.volume=1;
 if(cur.loc){graph();ac.resume();act=A;A.src=urlOf(cur);A.play().catch(()=>toast('Gagal memutar file ini'))}
 else{act=B;B.src=cur.url;B.play().catch(()=>toast('Gagal memutar lagu ini. Coba lagu lain.'))}
@@ -200,7 +200,9 @@ function krRender(){const t=cur;if(!t)return;const p=!act.paused;$('#kr').innerH
 async function resolveRec(t){try{const W=s=>new Set(String(s||'').toLowerCase().replace(/\(.*?\)|\[.*?\]/g,' ').split(/[^\p{L}\p{N}]+/u).filter(w=>w.length>1)),qq=(t.title+' '+(t.artist&&t.artist!='Tidak diketahui'?t.artist:'')).trim().slice(0,80);
 const r=await fetch('/api/music?src=audius&q='+encodeURIComponent(qq));if(!r.ok)throw 0;const a=arrOf(await r.json()),tw=W(t.title),aw=W(t.artist);let best=null,bs=0;
 for(const c of a){if(!c||!c.url)continue;const cw=W(c.title+' '+c.artist);let n=0,m=0;tw.forEach(w=>{if(cw.has(w))n++});aw.forEach(w=>{if(cw.has(w))m++});const ts=tw.size?n/tw.size:0,as=aw.size?m/aw.size:0,s=ts>=.7?ts+as:0;if(s>bs){bs=s;best=c}}
-if(best){t.url=best.url;t.img=t.img||best.img;t.dl=best.dl;t.sn=best.sn;t.nf=0;return true}}catch(e){}t.nf=1;return false}
+if(best){t.url=best.url;t.img=t.img||best.img;t.dl=best.dl;t.sn=best.sn;t.nf=0;return true}}catch(e){}
+try{const y=await ytSearch(qq),v=y&&y[0];if(v){Object.assign(t,{yt:1,vid:v.vid,img:t.img||v.img,rec:0,nf:0});return true}}catch(e){}
+t.nf=1;return false}
 function rrec(){const e=$('#rec');if(e)e.innerHTML=recHtml()}
 async function autoRadio(force){const t=cur;if(!t||t.loc||t.radio||t.yt||(t.rec&&!t.url))return;if(!force&&cfg.ar===false)return;toast('Memutar lagu serupa…');
 try{const r=await fetch('/api/music?src=audius&q='+encodeURIComponent(/^(Tidak diketahui|Lagu Saya)$/i.test(t.artist)?t.title:t.artist));if(!r.ok)throw 0;const a=arrOf(await r.json()).filter(x=>x&&x.url&&x.id!=t.id).map(x=>({...x,h:hh(x.title)}));for(let i=a.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[a[i],a[k]]=[a[k],a[i]]}if(!a.length||(!force&&cur!==t))return;play(a.slice(0,15),0)}catch(e){}}

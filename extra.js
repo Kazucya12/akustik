@@ -3,7 +3,7 @@
 (function(){
 /* Migrasi sekali: pengguna lama yang masih di Audius dipindah ke "Semua" */
 if(!ls.get('v31',0)){ls.set('v31',1);if(cfg.src=='audius'){cfg.src='all';ls.set('cfg',cfg)}}
-smode='a';
+smode='m';
 
 const SRC=[['all','Musik'],['radio','Radio']];
 const GENERIC=/^(Lagu Saya|Link kustom|YouTube|Tidak diketahui|Radio)$/i;
@@ -37,16 +37,6 @@ doSearch=async function(s){
     await _ds(s);
     if(lq!==s||smode!='m')return;
     const r0=$('#res');
-    if(r0&&s.trim()&&r0.querySelectorAll('.rw').length<6){
-      try{
-        const yv=(await ytSearch(s)).slice(0,10);
-        if(lq===s&&smode=='m'&&yv.length){
-          const had=r0.querySelector('.rw');
-          r0.innerHTML=(had?r0.innerHTML:'')+'<div class="sec"><h3>Video YouTube</h3></div>'+rows('sf',yv);
-          lres=null;
-        }
-      }catch(e){}
-    }
     if(r0&&r0.querySelector('.rw'))shAdd(s);
     shR();return;
   }

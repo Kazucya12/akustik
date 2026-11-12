@@ -99,3 +99,8 @@ body.selm #v,body.selm .ov{padding-bottom:230px}
 #pl .btn-vid-watch:active {
   transform: scale(0.96);
 }
+
+/* FIX: pencarian online audio-first; sembunyikan pilihan mode/genre/radio.
+   Tombol Video pada pemutar lagu tetap aktif untuk membuka video terkait. */
+.search-hint{margin:8px 2px 16px;color:var(--mu);font-size:12px}
+#tgc,.chips.genres,.genre-filter,.radio-filter,.video-search-toggle{display:none!important}

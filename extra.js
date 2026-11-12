@@ -3,7 +3,7 @@
 (function(){
 /* Migrasi sekali: pengguna lama yang masih di Audius dipindah ke "Semua" */
 if(!ls.get('v31',0)){ls.set('v31',1);if(cfg.src=='audius'){cfg.src='all';ls.set('cfg',cfg)}}
-smode='m';
+smode='a';
 
 const SRC=[['all','Musik'],['radio','Radio']];
 const GENERIC=/^(Lagu Saya|Link kustom|YouTube|Tidak diketahui|Radio)$/i;

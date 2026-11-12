@@ -64,5 +64,37 @@
     _ms();
     lastI=-2;lastId='';
     try{if(on()&&cur&&!cur.radio&&typeof fetchLy==='function')fetchLy(cur)}catch(e){}
+    /* banner "Sedang diputar" di dalam aplikasi (gaya iPhone), sekali per lagu */
+    try{
+      if(cfg.npn!==0&&cur&&cur.id!==bannerId){
+        bannerId=cur.id;
+        if(!pm)toast('Sedang diputar: '+cur.title+(cur.artist?' - '+cur.artist:''),cur.img||undefined);
+      }
+    }catch(e){}
   };
+  var bannerId='';
+
+  /* ---------- Tombol "Coba notifikasi" di Profil ---------- */
+  window.notifTest=function(){
+    toast('Notifikasi dalam aplikasi aktif. Ini contoh banner dari Loopify.');
+    try{
+      if(!('Notification' in window)){toast('Browser ini tidak mendukung notifikasi sistem');return}
+      if(Notification.permission==='default'){askPerm();return}
+      if(Notification.permission==='denied'){toast('Notifikasi diblokir. Aktifkan lewat pengaturan situs di browser');return}
+      sysNotify('Loopify','Notifikasi sistem berfungsi.','loopify-test');
+    }catch(e){}
+  };
+  function addBtn(){
+    var v=document.getElementById('v');if(!v||v.querySelector('[data-notif]'))return;
+    var hs=v.querySelectorAll('h3'),h=null;
+    for(var i=0;i<hs.length;i++)if(/Pengingat waktu dengar/.test(hs[i].textContent)){h=hs[i];break}
+    if(!h)return;
+    var sec=h.closest('.sec')||h.parentNode,box=document.createElement('div');
+    box.setAttribute('data-notif','1');box.style.margin='8px 0 4px';
+    box.innerHTML='<button class="btn g" style="width:100%" onclick="notifTest()">Coba notifikasi</button>';
+    sec.parentNode.insertBefore(box,sec);
+  }
+  var vv=document.getElementById('v');
+  if(vv&&window.MutationObserver)new MutationObserver(function(){addBtn()}).observe(vv,{childList:true,subtree:false});
+  setTimeout(addBtn,300);
 })();

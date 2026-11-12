@@ -70,8 +70,8 @@ const row=(k,t,i,del)=>`<div class="rw" onclick="P('${k}',${i})"><img loading="l
 const rows=(k,a,del)=>(lists[k]=a,a.map((t,i)=>row(k,t,i,del)).join(''));
 function P(k,i){const t=lists[k][i];if(t.rec){play(lists[k],i);openP();return}if(t.yt){const bg=!['vr','vd','sv'].includes(k);if(bg)vsh=0;playV(lists[k],i,bg);if(bg)openP()}else{play(lists[k],i);openP()}}
 let lq='',lres=null,lt='sg',pg='home',dt,smode='m';
-async function doSearch(s){lq=s;const r=$('#res');if(!s.trim()){lres=null;r.innerHTML='';return}r.innerHTML=skel6(6);
-try{lres=smode=='v'?await ytSearch(s):await srch(s);r.innerHTML=lres.length?rows('sr',lres):'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>'}catch(e){r.innerHTML='<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber di Pengaturan.</div>'}}
+async function doSearch(s){smode='m';lq=s;const r=$('#res');if(!s.trim()){lres=null;r.innerHTML='';return}r.innerHTML=skel6(6);
+try{smode='m';lres=await srch(s);r.innerHTML=lres.length?rows('sr',lres):'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>'}catch(e){r.innerHTML='<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber di Pengaturan.</div>'}}
 const onS=v=>{clearTimeout(dt);dt=setTimeout(()=>doSearch(v),500)};
 function link(){const u=$('#lk').value.trim();if(!u)return;const y=ytId(u);if(y){vAdd(y);return}const t={id:'l'+Date.now(),title:decodeURIComponent(u.split('/').pop().split('?')[0])||'Lagu dari link',artist:'Link kustom',url:u,h:hh(u)};play([t],0);openP()}
 /* ===== Halaman ===== */
@@ -89,10 +89,10 @@ ${songs.length?`<div class="sec"><h3>Baru Ditambahkan</h3><a onclick="go('librar
 :`<div class="pcard em" style="margin-top:18px">${ic('music',34)}<br><b style="color:var(--tx);font-size:14px">Belum ada lagu</b><br>Izinkan akses ke file musik di perangkatmu. Lagu yang kamu pilih tersimpan dan muncul otomatis di daftar setiap aplikasi dibuka.<div style="margin-top:14px">${addBtns}</div></div>`}
 ${rec.length?`<div class="sec"><h3>Terakhir Diputar</h3></div>${rows('rc',rec)}`:''}${vids.length?`<div class="sec"><h3>Video Tersimpan</h3><a onclick="lt='vd';go('library')">Lihat Semua</a></div><div class="hs">${(lists.hv=vids.slice(0,10)).map((t,i)=>`<div class="cd" onclick="P('hv',${i})"><img src="${esc(cov(t))}"><b>${esc(t.title)}</b><small>${esc(t.artist)}</small></div>`).join('')}</div>`:''}`},
 explore(){const src='Lagu penuh';if(!trRes)trend(tg);return`<div class="srch">${ic('search',18)}<input id="qi" placeholder="Cari musik, artis, atau album…" value="${esc(lq)}" oninput="onS(this.value)"><button class="ib" onclick="vSr()">🎤</button></div>
-<div class="chips"><span class="chip ${smode=='m'?'a':''}" onclick="smode='m';go('explore')">Musik</span><span class="chip ${smode=='v'?'a':''}" onclick="smode='v';go('explore')">Video</span></div><div class="chips">${['Pop','Rock','Indie','Jazz','EDM'].map(c=>`<span class="chip" onclick="qs('${c}')">${c}</span>`).join('')}</div>
+<div class="search-hint">Hasil pencarian online menampilkan audio. Video bisa dibuka dari pemutar lagu.</div>
 <div id="res">${lres?rows('sr',lres):''}</div>
-<div class="sec"><h3>Trending Minggu Ini</h3></div><div class="chips" id="tgc">${tgChips()}</div><div id="tr">${trBody()}</div>
-<div class="sec"><h3>Genre Populer</h3></div><div class="gg">${gen.map(g=>`<div class="gt" style="background:linear-gradient(160deg,hsla(${g[1]},80%,58%,.9),hsla(${g[1]+30},70%,25%,.9))" onclick="qs('${g[0]}')">${g[0]}</div>`).join('')}</div>
+<div class="sec"><h3>Trending Minggu Ini</h3></div><div id="tr">${trBody()}</div>
+
 <div class="sec"><h3>Putar dari Link</h3></div><div style="display:flex;gap:8px"><input class="in" id="lk" placeholder="Link .mp3 atau link YouTube"><button class="btn" style="width:90px" onclick="link()">Putar</button></div><small style="display:block;margin-top:10px">Sumber pencarian: ${src}. Ubah di Pengaturan.</small>`},
 library(){const T=[['sg','Lagu'],['ar','Artis'],['pl','Playlist'],['fav','Favorit'],['vd','Video']];let b='';
 if(lt=='sg')b=addBtns+lsBar()+`<div style="height:10px"></div>`+(songs.length?`<div id="sgl">${rows('sg',sgList(),1)}</div>`:'<div class="em">Belum ada lagu. Tambahkan file musik atau pindai satu folder sekaligus.</div>');
@@ -288,11 +288,49 @@ function tgSet(g){tg=g;cfg.tg=g;ls.set('cfg',cfg);trRes=null;trBusy=null;trR();t
 function trRetry(){trRes=null;trBusy=null;trR();trend(tg)}
 const RC=[['mood:happy','😊 Senang'],['mood:sad','😢 Sendu'],['mood:energetic','⚡ Semangat'],['mood:relaxed','😌 Santai'],['mood:danceable','💃 Joget'],['activity:workout','🏋 Olahraga'],['activity:study','📚 Belajar'],['activity:focus','🎯 Fokus'],['activity:party','🎉 Pesta'],['activity:sleep','😴 Tidur'],['time:morning','🌅 Pagi'],['time:afternoon','☀ Siang'],['time:evening','🌇 Sore'],['time:night','🌙 Malam']];
 let recSel=(()=>{const h=new Date().getHours();return 'time:'+(h<11?'morning':h<15?'afternoon':h<18?'evening':'night')})();
-async function recFetch(k,fresh){recBusy=k;const [ty,va]=k.split(':');let res;try{const r=await fetch('/api/soundstat?type='+ty+'&value='+va+(fresh?'&r='+Date.now():''));if(r.status==501)res={err:'Rekomendasi belum diaktifkan di server (isi SOUNDSTAT_API_KEY di Vercel).'};else if(!r.ok)throw 0;else res=arrOf(await r.json()).map(x=>({...x,rec:1,h:hh(x.title)}))}catch(e){res={err:'Rekomendasi belum bisa dimuat. Coba lagi nanti.'}}
-recC[k]=res;if(recBusy===k)recBusy='';if(recSel==k)rrec()}
+const REC_TERMS={
+ 'mood:happy':'feel good upbeat happy pop',
+ 'mood:sad':'sad mellow emotional acoustic',
+ 'mood:energetic':'high energy rock electronic workout',
+ 'mood:relaxed':'chill ambient lo fi acoustic',
+ 'mood:danceable':'dance electronic dance pop',
+ 'activity:workout':'workout high energy rock',
+ 'activity:study':'lofi instrumental focus study',
+ 'activity:focus':'instrumental ambient focus',
+ 'activity:party':'party dance pop electronic',
+ 'activity:sleep':'sleep calm piano ambient',
+ 'time:morning':'morning acoustic uplifting',
+ 'time:afternoon':'feel good pop chill',
+ 'time:evening':'sunset mellow indie acoustic',
+ 'time:night':'late night chill rnb ambient'
+};
+async function recFallback(k){
+ const term=REC_TERMS[k]||'chill popular music';
+ const parts=term.split(' ').slice(0,3);
+ const jobs=[term,parts.join(' ')].map(q=>fetch('/api/music?src=audius&q='+encodeURIComponent(q)).then(r=>{if(!r.ok)throw 0;return r.json()}));
+ const settled=await Promise.allSettled(jobs),seen=new Set(),out=[];
+ settled.forEach(x=>{if(x.status!=='fulfilled')return;arrOf(x.value).forEach(t=>{
+   if(!t||!t.url||seen.has(String(t.id)))return;
+   seen.add(String(t.id));out.push({...t,rec:1,h:hh(t.title)});
+ })});
+ return out.slice(0,16);
+}
+async function recFetch(k,fresh){
+ recBusy=k;let res;
+ try{
+  const [ty,va]=k.split(':');
+  const r=await fetch('/api/soundstat?type='+ty+'&value='+va+(fresh?'&r='+Date.now():''));
+  if(r.ok)res=arrOf(await r.json()).map(x=>({...x,rec:1,h:hh(x.title)}));
+  if(!res||!res.length)res=await recFallback(k);
+ }catch(e){try{res=await recFallback(k)}catch(_){res=[]}}
+ if(!res)res=[];
+ recC[k]=res;
+ if(recBusy===k)recBusy='';
+ if(recSel==k)rrec();
+}
 function recHtml(){const c=recC[recSel];if(!c){if(recBusy!=recSel)recFetch(recSel);return'<div class="em">Mencari lagu yang pas…</div>'}
 if(c.err)return`<div class="em">${esc(c.err)}<br><a style="color:var(--p2)" onclick="recGo('${recSel}',1)">Coba lagi</a></div>`;
-if(!c.length)return'<div class="em">Belum ada rekomendasi.</div>';
+if(!c.length)return`<div class="em">Rekomendasi belum tersedia untuk suasana ini. <a style="color:var(--p2)" onclick="recGo('${recSel}',1)">Coba lagi</a></div>`;
 return`<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn" onclick="recAll()">▶ Putar Semua</button><button class="btn g" onclick="recGo(recSel,1)">↻ Segarkan</button></div>${rows('rcm',c)}`}
 function recGo(k,fresh){recSel=k;if(fresh)delete recC[k];document.querySelectorAll('.rcc').forEach(x=>x.classList.toggle('a',x.dataset.k==k));rrec()}
 function recAll(){const c=recC[recSel];if(c&&c.length){play(c,0);openP()}}
@@ -372,7 +410,7 @@ const v1=v=>typeof v=='number'?v:"'"+v+"'";
 const ch=(k,arr)=>`<div class="chips">${arr.map(x=>`<span class="chip ${(cfg[k]==null?arr[0][2]:cfg[k])==x[0]?'a':''}" onclick="cfgSet('${k}',${v1(x[0])})">${x[1]}</span>`).join('')}</div>`;
 sub(shd('Pengaturan')+`<div class="ft" onclick="setName()"><span>👤</span><div>Nama<br><small>${esc(nm())}</small></div></div>
 <div class="sec"><h3>Tema</h3></div>${ch('theme',[['auto','Otomatis'],['dark','Gelap'],['light','Terang'],['amoled','AMOLED']])}
-<div class="sec"><h3>Jenis musik</h3></div>${ch('src',[['all','Musik'],['radio','Radio']])}
+
 <div class="sec"><h3>Pemutar</h3></div>${sw('fade','Transisi halus','Fade in/out di awal dan akhir lagu')}${sw('nv','Normalisasi volume','Meratakan volume lagu dari perangkat')}${sw('ar','Putar otomatis serupa','Saat antrean lagu online habis')}
 <div class="sec"><h3>Ukuran lirik</h3></div>${ch('lf',[[.85,'Kecil'],[1,'Normal'],[1.2,'Besar'],[1.4,'Sangat besar']])}
 <div class="sec"><h3>Pengingat waktu dengar</h3></div>${ch('rem',[[0,'Mati'],[30,'30 mnt'],[60,'60 mnt'],[90,'90 mnt'],[120,'120 mnt']])}

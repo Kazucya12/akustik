@@ -51,7 +51,7 @@ doSearch=async function(s){
   const o=on.status=='fulfilled'?on.value.slice(0,20):[],v=vd.status=='fulfilled'?vd.value.slice(0,o.length<8?15:5):[];
   lres=null;
   const sec=t=>`<div class="sec"><h3>${t}</h3></div>`;
-  agH=(loc.length?sec('Di Library')+rows('sl',loc):'')+(o.length?sec('Musik Online')+rows('sr',o):'')+(v.length?sec(o.length<8?'Video YouTube':'Video')+rows('sv',v):'');
+  agH=(loc.length?sec('Di Library')+rows('sl',loc):'')+(o.length?sec('Musik Online')+rows('sr',o):'')+(v.length?sec('Video')+rows('sv',v):'');
   if(!agH)agH=on.status=='rejected'?'<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber.</div>':'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>';
   else shAdd(s);
   r.innerHTML=agH;shR();

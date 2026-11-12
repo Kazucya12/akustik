@@ -1,4 +1,4 @@
-/* Midnight Acoustic v3.6 - Urungkan hapus, geser baris, geser mini-player, fade sleep timer, crossfade,
+/* Loopify v3.6 - Urungkan hapus, geser baris, geser mini-player, fade sleep timer, crossfade,
    warna aksen, tampilan kosong, getar halus, kontrol layar kunci, kartu bagikan. Dimuat setelah extra5.js. */
 (function(){
   'use strict';
@@ -195,7 +195,7 @@
     _ms();if(!('mediaSession' in navigator)||!cur)return;
     try{
       if(cur.img&&/^(https?:|data:|blob:)/.test(cur.img)){
-        navigator.mediaSession.metadata=new MediaMetadata({title:cur.title,artist:cur.artist,album:'Midnight Acoustic',
+        navigator.mediaSession.metadata=new MediaMetadata({title:cur.title,artist:cur.artist,album:'Loopify',
           artwork:['96x96','128x128','192x192','256x256','384x384','512x512'].map(function(z){return{src:cur.img,sizes:z}})});
       }
       var h=function(n,f){try{navigator.mediaSession.setActionHandler(n,f)}catch(e){}};
@@ -294,7 +294,7 @@
     x.fillStyle='rgba(255,255,255,.72)';x.font='500 44px '+F;x.fillText(wrapTxt(x,t.artist||'',900,1)[0]||'',W/2,y+14);
     var seed=(typeof hh==='function'?hh(String(t.title||'')):7)||7,bw=16,gap=12,n=26,tw=n*bw+(n-1)*gap,bx=(W-tw)/2;
     x.fillStyle=acc;for(var i=0;i<n;i++){seed=(seed*1103515245+12345)&0x7fffffff;var bh=30+(seed%100)*1.1;x.globalAlpha=.55+(i%3)*.15;rr(x,bx+i*(bw+gap),1650-bh/2,bw,bh,8);x.fill()}x.globalAlpha=1;
-    x.fillStyle='rgba(255,255,255,.9)';x.font='700 36px '+F;x.fillText('Midnight Acoustic',W/2,1810);
+    x.fillStyle='rgba(255,255,255,.9)';x.font='700 36px '+F;x.fillText('Loopify',W/2,1810);
     x.fillStyle='rgba(255,255,255,.5)';x.font='500 28px '+F;x.fillText('Musik gratis, tanpa iklan',W/2,1856);
     return c;
   }
@@ -307,9 +307,9 @@
     root.addEventListener('mousedown',function(e){if(e.target===root)close()});
     root.querySelector('.c').onclick=close;
     root.querySelector('.o').onclick=function(){
-      var f=new File([blob],'midnight-acoustic.png',{type:'image/png'});
+      var f=new File([blob],'loopify.png',{type:'image/png'});
       if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:t.title,text:'Sedang mendengarkan '+t.title+' - '+t.artist}).catch(function(){});
-      else{var a=document.createElement('a');a.href=url;a.download='midnight-acoustic.png';document.body.appendChild(a);a.click();a.remove();toast('Gambar disimpan')}
+      else{var a=document.createElement('a');a.href=url;a.download='loopify.png';document.body.appendChild(a);a.click();a.remove();toast('Gambar disimpan')}
     };
     (document.getElementById('app')||document.body).appendChild(root);
     requestAnimationFrame(function(){requestAnimationFrame(function(){root.classList.add('on')})});

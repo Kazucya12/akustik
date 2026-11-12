@@ -77,11 +77,8 @@ const _ex=V.explore;
 V.explore=function(){
   let h=_ex.call(V);
   h=h.replace(/<small style="display:block;margin-top:10px">Sumber pencarian:[^<]*<\/small>/,'');
-  /* Pilihan hasil: Semua (musik + video YouTube diputar sebagai audio) atau Musik saja */
-  const md=smode=='m'?'m':'a';
-  const mchips=`<div class="chips" id="mdc">${[['a','Semua'],['m','Musik saja']].map(x=>`<span class="chip ${md==x[0]?'a':''}" onclick="setMode('${x[0]}')">${x[1]}</span>`).join('')}</div>`;
-  const mnote=md=='m'?'Hanya lagu audio. Video YouTube tidak ditampilkan.':'Musik dan video YouTube. Video diputar sebagai audio; untuk menonton, tekan tombol Video di pemutar.';
-  h=h.replace(/<div class="sec"><small>Hasil pencarian online[^<]*<\/small><\/div>/,mchips+`<div class="sec"><small>${mnote}</small></div>`);
+  /* Pilihan Semua/Musik saja disembunyikan: pencarian selalu mode Semua (musik + video YouTube diputar sebagai audio) */
+  h=h.replace(/<div class="sec"><small>Hasil pencarian online[^<]*<\/small><\/div>/,'');
   h=h.replace(/<div class="chips"><span class="chip [^"]*" onclick="smode='m';go\('explore'\)">Musik<\/span><span class="chip [^"]*" onclick="smode='v';go\('explore'\)">Video<\/span><\/div>/,
     `<div class="chips">${[['a','Semua'],['m','Musik'],['v','Video']].map(x=>`<span class="chip ${smode==x[0]?'a':''}" onclick="setMode('${x[0]}')">${x[1]}</span>`).join('')}</div>`+
     (smode!='v'?`<div class="chips">${SRC.map(x=>`<span class="chip ${cfg.src==x[0]?'a':''}" onclick="setSrc('${x[0]}')">${x[1]}</span>`).join('')}</div>`:''));

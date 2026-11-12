@@ -52,7 +52,7 @@ function fav(){if(!cur)return;favs=isF(cur)?favs.filter(x=>x.id!=cur.id):[...fav
 function dlc(){if(!cur)return;if(!cur.loc&&cur.dl===0){toast('Artis tidak mengizinkan unduhan lagu ini');return}if(!cur.loc&&cur.dl===1){dlOff(cur);return}if(!cur.loc){window.open(cur.url,'_blank');return}const a=document.createElement('a');a.href=urlOf(cur);a.download=cur.title;a.click()}
 async function addPl(){if(!cur)return;if(!pls.length){toast('Buat playlist dulu di Library');return}const k=await uiPick('Tambah ke playlist',pls.map(p=>p.n));const p=k==null?null:pls[k];if(p){p.tr.push(svt(cur));ls.set('pls',pls);toast('Masuk ke '+p.n)}}
 function addLy(){clp();sub(`${shd('Lirik')}<textarea class="in" id="lt" rows="14" placeholder="Tempel lirik di sini">${esc(lyc[cur.id]||'')}</textarea><button class="btn" style="margin-top:12px" onclick="lyc[cur.id]=$('#lt').value;ls.set('ly',lyc);csp0();openP()">Simpan</button>`)}
-function rp(){const t=cur;if(!t)return;const p=!act.paused,L=lyc[t.id];lyI=-1;if(pm&&!L)fetchLy(t);const AL=ly2[t.id];
+function rp(){const t=cur;if(!t)return;$('#pl').classList.toggle('ytm',!!t.yt);if(t.yt){rpY(t);return}const p=!act.paused,L=lyc[t.id];lyI=-1;if(pm&&!L)fetchLy(t);const AL=ly2[t.id];
 $('#pl').innerHTML=`<div class="hd"><button class="ib g" onclick="clp()">${ic('back')}</button><div class="seg"><b class="${pm?'':'a'}" onclick="pm=0;rp()">Lagu</b><b onclick="vFromSong()">Video</b><b class="${pm?'a':''}" onclick="pm=1;rp()">Lirik</b></div><button class="ib g" onclick="addPl()">${ic('plus')}</button></div>
 ${pm?`${lyHtml(t,L,AL)}<button class="btn g" style="margin-bottom:12px" onclick="addLy()">${L?'Ubah Lirik':'Tambah Lirik'}</button><button class="btn" style="margin-bottom:12px" onclick="openKr()">⛶ Layar Penuh</button>`:`<div class="disc"><img src="${esc(cov(t))}"></div>`}
 <h2 class="pt">${esc(t.title)}</h2><p class="pa" onclick="artistPg(cur&&cur.artist)" style="cursor:pointer">${esc(t.artist)} ›</p>
@@ -208,6 +208,25 @@ async function autoRadio(force){const t=cur;if(!t||t.loc||t.radio||t.yt||(t.rec&
 try{const r=await fetch('/api/music?src=audius&q='+encodeURIComponent(/^(Tidak diketahui|Lagu Saya)$/i.test(t.artist)?t.title:t.artist));if(!r.ok)throw 0;const a=arrOf(await r.json()).filter(x=>x&&x.url&&x.id!=t.id).map(x=>({...x,h:hh(x.title)}));for(let i=a.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[a[i],a[k]]=[a[k],a[i]]}if(!a.length||(!force&&cur!==t))return;play(a.slice(0,15),0)}catch(e){}}
 async function dlOff(t){const id='o'+t.id;if(songs.some(x=>x.id==id)){toast('Sudah tersimpan offline');return}toast('Menyimpan offline…');
 try{const r=await fetch(t.url);if(!r.ok)throw 0;const b=await r.blob(),s={id,loc:1,blob:b,title:t.title,artist:t.artist,h:hh(t.title),added:Date.now(),off:1};if(t.img)s.img=t.img;await tx('readwrite',o=>o.put(s));songs.push(s);toast('Tersimpan offline di Library');if(pg=='library'||pg=='home')go(pg)}catch(e){toast('Gagal menyimpan offline')}}
+
+/* ----- Tampilan pemutar ala YouTube Music (khusus lagu YouTube) ----- */
+var ytTab=0,ytRelL=[],ytRelFor='';
+const ytThumb=t=>{const i=vidOf(t);return i?'https://i.ytimg.com/vi/'+i+'/maxresdefault.jpg':(t.img||'')};
+function ytSplit(t){const z=String(t.title||'').replace(/\(.*?\)|\[.*?\]/g,' ').replace(/\b(official|lyric|lyrics|lirik|video|music|audio|mv|hd|hq|klip)\b/ig,' ').replace(/\s+/g,' ').trim(),m=z.split(/\s[-\u2013\u2014|]\s/);return m.length>1?{a:m[0].trim(),t:m.slice(1).join(' ').trim()}:{a:String(t.artist||'').trim(),t:z}}
+function ytTabSet(n){ytTab=n;pm=n==1?1:0;rp()}
+async function ytRel(){const t=cur;if(!t||ytRelFor==t.id)return;ytRelFor=t.id;ytRelL=[];const a=/^YouTube$/i.test(t.artist)?ytSplit(t).a:t.artist;try{const r=await ytSearch((a||'')+' lagu');ytRelL=r.filter(x=>x.id!=t.id).slice(0,15)}catch(e){ytRelFor=''}if(cur===t&&ytTab==2)rp()}
+async function ytMenu(){if(!cur)return;const k=await uiPick('Menu',[isF(cur)?'Hapus dari Favorit':'Tambah ke Favorit','Tambah ke playlist','Kecepatan '+rate+'x','Sleep timer','Bagikan','Simpan ke video']);if(k==null)return;if(k==0)fav();else if(k==1)addPl();else if(k==2){spd();if(act===yAct)yAct.playbackRate=rate;rp()}else if(k==3)goSl();else if(k==4)shareCard();else vSave()}
+function rpY(t){const p=!act.paused,L=lyc[t.id],AL=ly2[t.id],pl=$('#pl'),sc=pl.scrollTop;lyI=-1;if(ytTab==1&&!L)fetchLy(t);if(ytTab==2&&ytRelFor!=t.id)ytRel();
+const n=q.length,ord=[];for(let k=0;k<Math.min(n,40);k++)ord.push((qi+k)%n);
+const qr=ord.map((ix,k)=>{const u=q[ix];return `<div class="yr${k?'':' on'}" onclick="play(q,${ix})"><div class="yi"><img src="${esc(u.yt?u.img:cov(u))}" loading="lazy">${k?'':'<i class="eqb"><s></s><s></s><s></s></i>'}</div><div class="yt"><b>${esc(u.title)}</b><small>${esc(u.artist)}</small></div></div>`}).join('');
+const body=ytTab==1?`${lyHtml(t,L,AL)}<button class="btn g" style="margin:12px 0" onclick="addLy()">${L?'Ubah Lirik':'Tambah Lirik'}</button>`:ytTab==2?(ytRelFor==t.id&&ytRelL.length?rows('rl',ytRelL):'<div class="em">Memuat lagu serupa…</div>'):qr;
+pl.innerHTML=`<div class="yh"><button class="yb" onclick="clp()" style="transform:rotate(-90deg)">${ic('back')}</button><div class="ysw"><b class="a">🎧</b><b onclick="vFromSong()">▶</b></div><button class="yb" onclick="ytMenu()">⋮</button></div>
+<div class="yc"><img src="${esc(ytThumb(t))}" onerror="this.onerror=null;this.src='${esc(t.img||'')}'"><div class="yg"></div><div class="yn"><h2>${esc(t.title)}</h2><p onclick="artistPg(cur&&cur.artist)">${esc(t.artist)}</p></div></div>
+<div class="yp"><input type="range" id="sk" min="0" max="1000" value="0" oninput="if(isFinite(act.duration))act.currentTime=this.value/1000*act.duration"><div class="tm"><span id="ct">0:00</span><span id="du">0:00</span></div>
+<div class="ctl"><button style="opacity:${shuf?1:.55}" onclick="shuf=!shuf;rp()">${ic('shuffle')}</button><button onclick="nxt(-1)">${ic('prev',26,1)}</button><button class="m" onclick="toggle()">${ic(p?'pause':'play',30,1)}</button><button onclick="nxt()">${ic('next',26,1)}</button><button style="opacity:${rep?1:.55}" onclick="rep=(rep+1)%3;rp();toast(['Ulangi: mati','Ulangi semua','Ulangi satu lagu'][rep])">${ic('repeat')}</button></div></div>
+<div class="yq"><div class="yqh"><h3>Antrean · ${n} lagu</h3><button class="yb" onclick="addPl()">${ic('plus')}</button></div><div class="ych"><span class="chip${ytTab==0?' a':''}" onclick="ytTabSet(0)">Berikutnya</span><span class="chip${ytTab==1?' a':''}" onclick="ytTabSet(1)">Lirik</span><span class="chip${ytTab==2?' a':''}" onclick="ytTabSet(2)">Serupa</span></div>${body}</div>`;
+pl.scrollTop=sc;if(krOn())krRender();tick()}
+
 /* ----- Video YouTube ----- */
 const mkV=(id,title,artist)=>({id:'y'+id,yt:1,vid:id,title:String(title||'Video YouTube').slice(0,200),artist:String(artist||'YouTube').slice(0,100),img:'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg',h:hh(title||id)});
 const vidOf=t=>t.vid||(String(t.id).match(/[\w-]{11}$/)||[])[0];

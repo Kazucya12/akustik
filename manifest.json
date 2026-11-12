@@ -1,6 +1,6 @@
 {
-  "name": "Midnight Acoustic",
-  "short_name": "Midnight",
+  "name": "Loopify",
+  "short_name": "Loopify",
   "description": "Pemutar musik dan video",
   "start_url": "./",
   "scope": "./",

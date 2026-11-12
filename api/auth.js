@@ -63,10 +63,10 @@ async function sendMail(to, code, why) {
   const tr = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user, pass } });
   const label = why === 'reset' ? 'reset password' : 'verifikasi pendaftaran';
   await tr.sendMail({
-    from: '"Midnight Acoustic" <' + user + '>', to,
-    subject: 'Kode ' + label + ' Midnight Acoustic: ' + code,
+    from: '"Loopify" <' + user + '>', to,
+    subject: 'Kode ' + label + ' Loopify: ' + code,
     text: 'Kode ' + label + ' kamu: ' + code + '\n\nBerlaku 10 menit. Jangan bagikan kode ini. Abaikan email ini jika bukan kamu.',
-    html: '<div style="font-family:Arial,sans-serif;max-width:420px;margin:auto;padding:24px;background:#0b0f3a;color:#e9ecff;border-radius:16px"><h2 style="margin:0 0 8px">Midnight Acoustic</h2><p style="margin:0 0 16px;color:#9aa3e6">Kode ' + label + ' kamu:</p><div style="font-size:34px;letter-spacing:8px;font-weight:700;background:#161b5c;border-radius:12px;padding:14px;text-align:center">' + code + '</div><p style="margin:16px 0 0;color:#9aa3e6;font-size:12px">Berlaku 10 menit. Jangan bagikan kode ini. Abaikan email ini jika bukan kamu.</p></div>',
+    html: '<div style="font-family:Arial,sans-serif;max-width:420px;margin:auto;padding:24px;background:#0b0f3a;color:#e9ecff;border-radius:16px"><h2 style="margin:0 0 8px">Loopify</h2><p style="margin:0 0 16px;color:#9aa3e6">Kode ' + label + ' kamu:</p><div style="font-size:34px;letter-spacing:8px;font-weight:700;background:#161b5c;border-radius:12px;padding:14px;text-align:center">' + code + '</div><p style="margin:16px 0 0;color:#9aa3e6;font-size:12px">Berlaku 10 menit. Jangan bagikan kode ini. Abaikan email ini jika bukan kamu.</p></div>',
   });
 }
 

@@ -1,4 +1,4 @@
-/* Midnight Acoustic v3.5 - Daftar & Masuk (username/email + password, email diverifikasi kode Gmail). Dimuat setelah extra3.js.
+/* Loopify v3.5 - Daftar & Masuk (username/email + password, email diverifikasi kode Gmail). Dimuat setelah extra3.js.
    Sesi disimpan di localStorage kunci "mx_auth" (bukan awalan ma_), jadi tidak ikut Cadangan Data. */
 (function(){
   var KEY='mx_auth',SKIP='mx_authskip',tm=0,st={step:'login',email:'',busy:0};

@@ -60,3 +60,11 @@
 #isl .cb .lb svg{width:22px;height:22px}
 body.isl-on #toast{top:calc(max(10px,env(safe-area-inset-top)) + 52px)}
 @media (prefers-reduced-motion:reduce){#isl,#isl *{transition-duration:.01s!important;animation:none!important}}
+
+/* background island mengikuti cover lagu (sama seperti layar pemutar) */
+#isl .bgc{position:absolute;left:50%;top:0;width:var(--iw);margin-left:calc(var(--iw)/-2);height:286px;overflow:hidden;pointer-events:none;background:#000}
+#isl .bgc:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.62))}
+#isl .bgc img{position:absolute;left:-20%;top:-20%;width:140%;height:140%;object-fit:cover;filter:blur(26px) saturate(1.5);opacity:.95;transform:translateZ(0)}
+#isl .ic,#isl .ex{z-index:1}
+/* hapus banner notifikasi bawaan */
+#toast{display:none!important}

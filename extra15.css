@@ -68,3 +68,7 @@ body.isl-on #toast{top:calc(max(10px,env(safe-area-inset-top)) + 52px)}
 #isl .ic,#isl .ex{z-index:1}
 /* hapus banner notifikasi bawaan */
 #toast{display:none!important}
+
+/* ikon play tombol tengah nav: tepat di tengah lingkaran */
+.nav button.pbtn{justify-content:center;align-items:center;gap:0;padding:0}
+.nav button.pbtn svg{display:block;margin:0 0 0 2px}

@@ -1,4 +1,4 @@
-/* Midnight Acoustic v3.4 - Riwayat dengar + statistik mingguan (dimuat setelah extra2.js)
+/* Loopify v3.4 - Riwayat dengar + statistik mingguan (dimuat setelah extra2.js)
    Data disimpan lokal: ma_wk (detik per hari) dan ma_hlog (riwayat lagu, maks 300). Tidak mengubah data lama. */
 (function(){
   var DAY=86400000,HN=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];

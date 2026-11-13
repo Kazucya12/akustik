@@ -1,0 +1,43 @@
+/* Loopify v4.4 - Dynamic Island (notifikasi lagu diputar, gaya iPhone, interaktif) */
+#isl{position:absolute;top:max(10px,env(safe-area-inset-top));left:50%;z-index:75;width:124px;height:36px;border-radius:20px;background:#000;color:#fff;
+  transform:translate(-50%,-70px) scale(.7);opacity:0;pointer-events:none;overflow:hidden;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 10px 30px rgba(0,0,0,.45),0 0 28px var(--ic,rgba(109,93,252,.0));
+  transition:width .5s cubic-bezier(.32,1.25,.5,1),height .5s cubic-bezier(.32,1.25,.5,1),border-radius .5s cubic-bezier(.32,1.25,.5,1),transform .5s cubic-bezier(.32,1.25,.5,1),opacity .25s,box-shadow .5s}
+#isl.show{transform:translate(-50%,0) scale(1);opacity:1;pointer-events:auto}
+#isl.big{width:min(calc(100% - 20px),392px);height:158px;border-radius:38px;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 18px 50px rgba(0,0,0,.55),0 0 46px var(--ic,rgba(109,93,252,.35))}
+#isl.pop{animation:islPop .55s cubic-bezier(.34,1.56,.64,1)}
+@keyframes islPop{0%{transform:translate(-50%,0) scale(1)}40%{transform:translate(-50%,0) scale(1.12,.9)}100%{transform:translate(-50%,0) scale(1)}}
+#isl .ic{position:absolute;left:0;right:0;top:0;height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 7px;transition:opacity .2s}
+#isl.big .ic{opacity:0;pointer-events:none}
+#isl .ic img{width:24px;height:24px;border-radius:50%;object-fit:cover;background:#222}
+#isl .eq{display:flex;align-items:flex-end;gap:2px;height:14px}
+#isl .eq i{width:3px;border-radius:2px;background:var(--ia,#9a8cff);height:30%;transform-origin:bottom}
+#isl.pl .eq i{animation:islEq .9s ease-in-out infinite}
+#isl .eq i:nth-child(2){animation-delay:-.3s}#isl .eq i:nth-child(3){animation-delay:-.6s}#isl .eq i:nth-child(4){animation-delay:-.15s}
+@keyframes islEq{0%,100%{height:25%}50%{height:100%}}
+#isl .ex{position:absolute;inset:0;padding:16px 18px 14px;display:flex;flex-direction:column;gap:10px;opacity:0;pointer-events:none;transition:opacity .15s}
+#isl.big .ex{opacity:1;pointer-events:auto;transition:opacity .3s .15s}
+#isl .tp{display:flex;align-items:center;gap:12px;min-width:0}
+#isl .tp img{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:none;background:#222;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+#isl .tt{flex:1;min-width:0}
+#isl .tt b{display:block;color:#fff;font-weight:700;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden}
+#isl .tt #isla{display:block;font-size:12px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#isl .mq{display:inline-block;white-space:nowrap}
+#isl .mq.run{animation:islMq 9s linear infinite;padding-right:40px}
+@keyframes islMq{0%,12%{transform:translateX(0)}88%,100%{transform:translateX(var(--mx,0))}}
+#isl .tp .eq{height:18px;align-self:flex-start;margin-top:4px}
+#isl .sk{display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}
+#isl .sk em{font-style:normal;width:32px;flex:none}#isl .sk em:last-child{text-align:right}
+#isl .bar{flex:1;height:18px;display:flex;align-items:center;position:relative;touch-action:none;cursor:pointer}
+#isl .bar:before{content:"";position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.2);transition:height .15s}
+#isl .bar u{position:absolute;left:0;height:4px;width:100%;border-radius:3px;background:#fff;transform-origin:left;transform:scaleX(0);transition:height .15s}
+#isl .bar.drag:before,#isl .bar.drag u{height:8px}
+#isl.live .bar{pointer-events:none}#isl.live .bar u{transform:scaleX(1)!important;background:#ff4d6d}
+#isl .cb{display:flex;align-items:center;justify-content:center;gap:26px}
+#isl .cb button{width:44px;height:36px;display:grid;place-items:center;border-radius:18px;color:#fff;transition:transform .15s,background .15s}
+#isl .cb button:active{transform:scale(.86);background:rgba(255,255,255,.14)}
+#isl .cb svg{width:22px;height:22px;fill:currentColor}
+#isl .cb .pp svg{width:28px;height:28px}
+#isl .cb .pp .i2{display:none}#isl.pl .cb .pp .i1{display:none}#isl.pl .cb .pp .i2{display:block}
+body.isl-on #toast{top:calc(max(10px,env(safe-area-inset-top)) + 52px)}
+@media (prefers-reduced-motion:reduce){#isl,#isl *{transition-duration:.01s!important;animation:none!important}}

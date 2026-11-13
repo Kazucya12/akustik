@@ -248,7 +248,7 @@ play(){try{yp.playVideo()}catch(e){}return Promise.resolve()},
 pause(){try{yp.pauseVideo()}catch(e){}}};
 setInterval(()=>{if(act===yAct&&vPlaying())tick()},500);
 function vPlaying(){try{return !!(yp&&yp.getPlayerState&&yp.getPlayerState()==1)}catch(e){return false}}
-function vSt(e){if(e.data==1){vef=0;A.pause();B.pause();try{yp.setPlaybackRate(Math.min(2,Math.max(.25,rate)))}catch(x){}if(act===yAct){mst('playing');rp();rn()}}else if(e.data==2){if(act===yAct){mst('paused');rp();rn()}}else if(e.data==0){if(act===yAct){if(slEnd==-1){slFire();return}if(rep==2){yAct.currentTime=0;yAct.play()}else if(rep==1||qi<q.length-1)nxt();else{rp();rn()}return}if(vq.length>1){vNext(1);return}}mvUi()}
+function vSt(e){if(e.data==1){vef=0;A.pause();B.pause();try{yp.setPlaybackRate(Math.min(2,Math.max(.25,rate)))}catch(x){}if(act===yAct){mst('playing');rp();rn()}}else if(e.data==2){if(act===yAct){mst('paused');rp();rn()}}else if(e.data==0){if(act===yAct){if(slEnd==-1){slFire();return}if(rep==2){yAct.currentTime=0;yAct.play()}else if(rep==1||qi<q.length-1)nxt();else{rp();rn();autoRadio()}return}if(vq.length>1){vNext(1);return}}mvUi()}
 function vEr(){toast('Video ini tidak bisa diputar di sini');if(act===yAct){if(q.length>1&&++vef<q.length)setTimeout(()=>nxt(1),800);return}if(vq.length>1&&++vef<vq.length)setTimeout(()=>vNext(1),800)}
 function stopV(){try{yp&&yp.pauseVideo&&yp.pauseVideo()}catch(e){}}
 function mvUi(){const m=$('#mv');if(!m)return;m.classList.toggle('on',!!(vbg&&vcur&&act!==yAct));$('#mvt').textContent=vcur?vcur.title:'';const mi=$('#mvi'),ms=$('#mvs');if(mi&&vcur)mi.src=vcur.img||'';if(ms)ms.textContent=(vcur&&vcur.artist?vcur.artist+' \u00b7 ':'')+'YouTube';$('#mvp').innerHTML=ic(vPlaying()?'pause':'play',20,1)}

@@ -13,7 +13,7 @@ const hh=s=>[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0)%360;
 const cov=t=>t.img||('data:image/svg+xml,'+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='hsl(${t.h},70%,30%)'/><stop offset='1' stop-color='hsl(${(t.h+40)%360},80%,60%)'/></linearGradient></defs><rect width='100' height='100' fill='url(#g)'/><circle cx='68' cy='30' r='14' fill='#fff' opacity='.85'/><path d='M0 100V72l22-22 16 14 24-30 38 40v26z' fill='hsl(${t.h},60%,12%)'/></svg>`));
 const f2=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
 /* ===== Tema ===== */
-function th(){const t=cfg.theme||'auto',d=t=='auto'?matchMedia('(prefers-color-scheme: dark)').matches:t!='light';document.documentElement.dataset.t=d?'dark':'light';document.documentElement.classList.toggle('am',t=='amoled')}
+function th(){const t=cfg.theme||'auto',d=t=='auto'?matchMedia('(prefers-color-scheme: dark)').matches:t!='light';document.documentElement.dataset.t=d?'dark':'light';document.documentElement.classList.toggle('am',t=='amoled');document.documentElement.classList.toggle('nu',t=='neutral')}
 function tgTheme(){cfg.theme=document.documentElement.dataset.t=='dark'?'light':'dark';ls.set('cfg',cfg);th();go(pg)}
 matchMedia('(prefers-color-scheme: dark)').addEventListener&&matchMedia('(prefers-color-scheme: dark)').addEventListener('change',th);
 /* ===== Lagu lokal (disimpan di IndexedDB, tetap ada saat dibuka lagi) ===== */
@@ -120,7 +120,7 @@ const isPlO=()=>$('#pl').classList.contains('on');
 const fmtT=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.round(s%3600/60);return h?h+' j '+(m%60)+' mnt':m+' mnt'};
 /* respons API: array biasa atau {data|tracks|results}; stasiun radio (id berbentuk UUID) diberi tanda radio */
 function arrOf(j){const a=Array.isArray(j)?j:j&&Array.isArray(j.data)?j.data:j&&Array.isArray(j.tracks)?j.tracks:j&&Array.isArray(j.results)?j.results:[];return a.map(x=>{if(x&&x.title)x={...x,title:ct(x.title)};return x&&/^r[0-9a-f]{8}-[0-9a-f]{4}-/.test(String(x.id))?{...x,radio:1}:x})}
-function toast(m,img){const t=$('#toast');if(!t)return;t.innerHTML=`<img src="${esc(img||'icon-192.png')}" alt=""><div><b>Loopify</b><span>${esc(m)}</span></div><small>sekarang</small>`;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2800)}
+function toast(m,img){const t=$('#toast');if(!t)return;t.innerHTML=`<img src="${esc(img||'icon-192.png')}" alt=""><div><b>Loopify</b><span>${esc(m)}</span></div><small>sekarang</small>`;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),6000)}
 /* ----- Gambar ----- */
 function shrink(f,m=320){return new Promise(res=>{try{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{try{const s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,im.width*s|0);c.height=Math.max(1,im.height*s|0);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',.82))}catch(e){res('')}};im.onerror=()=>{URL.revokeObjectURL(u);res('')};im.src=u}catch(e){res('')}})}
 /* ----- Tag ID3 (MP3): judul, artis, cover ----- */
@@ -366,18 +366,18 @@ sub(shd('Statistik Dengar')+`<div class="pcard" style="text-align:center"><small
 /* ----- Pengaturan ----- */
 function applyCfg(){const d=document.documentElement;d.classList.toggle('eco',!!cfg.eco);d.style.setProperty('--lf',cfg.lf||1);nvA();th()}
 function goSet(){rbP=0;setR()}
-function setR(){const on=k=>k=='ar'?cfg.ar!==false:k=='nv'?cfg.nv!==false:!!cfg[k];
+function setR(){const on=k=>k=='ar'?cfg.ar!==false:k=='nv'?cfg.nv!==false:(k=='npn'||k=='lyn'||k=='dmx'||k=='rsm')?cfg[k]!==false:!!cfg[k];
 const sw=(k,l,s)=>`<div class="ft" onclick="cfgTg('${k}')"><div>${l}${s?`<br><small>${s}</small>`:''}</div><i class="sw ${on(k)?'on':''}"></i></div>`;
 const v1=v=>typeof v=='number'?v:"'"+v+"'";
 const ch=(k,arr)=>`<div class="chips">${arr.map(x=>`<span class="chip ${(cfg[k]==null?arr[0][2]:cfg[k])==x[0]?'a':''}" onclick="cfgSet('${k}',${v1(x[0])})">${x[1]}</span>`).join('')}</div>`;
 sub(shd('Pengaturan')+`<div class="ft" onclick="setName()"><span>👤</span><div>Nama<br><small>${esc(nm())}</small></div></div>
-<div class="sec"><h3>Tema</h3></div>${ch('theme',[['auto','Otomatis'],['dark','Gelap'],['light','Terang'],['amoled','AMOLED']])}
+<div class="sec"><h3>Tema</h3></div>${ch('theme',[['auto','Otomatis'],['dark','Gelap'],['light','Terang'],['amoled','AMOLED'],['neutral','Netral']])}
 <div class="sec"><h3>Jenis musik</h3></div>${ch('src',[['all','Musik'],['radio','Radio']])}
-<div class="sec"><h3>Pemutar</h3></div>${sw('fade','Transisi halus','Fade in/out di awal dan akhir lagu')}${sw('nv','Normalisasi volume','Meratakan volume lagu dari perangkat')}${sw('ar','Putar otomatis serupa','Saat antrean lagu online habis')}
+<div class="sec"><h3>Pemutar</h3></div>${sw('fade','Transisi halus','Fade in/out di awal dan akhir lagu')}${sw('nv','Normalisasi volume','Meratakan volume lagu dari perangkat')}${sw('npn','Banner "Sedang diputar"','Muncul di atas saat lagu baru dimulai')}${sw('lyn','Lirik di notifikasi','Baris lirik tampil di layar kunci dan bayangan notifikasi')}${sw('dmx','Daily Mix di beranda','Campuran lagu dari artis yang sering kamu dengar')}${sw('rsm','Lanjutkan dari perangkat lain','Tawarkan lagu terakhir yang diputar di akunmu')}${sw('ar','Putar otomatis serupa','Saat antrean lagu online habis')}
 <div class="sec"><h3>Ukuran lirik</h3></div>${ch('lf',[[.85,'Kecil'],[1,'Normal'],[1.2,'Besar'],[1.4,'Sangat besar']])}
 <div class="sec"><h3>Pengingat waktu dengar</h3></div>${ch('rem',[[0,'Mati'],[30,'30 mnt'],[60,'60 mnt'],[90,'90 mnt'],[120,'120 mnt']])}
 <div class="sec"><h3>Lainnya</h3></div>${sw('eco','Mode hemat','Matikan animasi dan efek blur')}<div class="ft" onclick="goBk()"><span>💾</span><div>Cadangan Data</div></div><div class="ft" onclick="histClr()"><span>🗑</span><div>Hapus riwayat putar</div></div>`)}
-function cfgTg(k){cfg[k]=!(k=='ar'?cfg.ar!==false:k=='nv'?cfg.nv!==false:!!cfg[k]);ls.set('cfg',cfg);applyCfg();setR()}
+function cfgTg(k){cfg[k]=!(k=='ar'?cfg.ar!==false:k=='nv'?cfg.nv!==false:(k=='npn'||k=='lyn'||k=='dmx'||k=='rsm')?cfg[k]!==false:!!cfg[k]);ls.set('cfg',cfg);applyCfg();setR();if(k=='dmx')try{go(pg)}catch(e){}}
 function cfgSet(k,v){cfg[k]=v;ls.set('cfg',cfg);applyCfg();setR()}
 async function setName(){const n=await uiPrompt('Nama ini tampil di beranda dan profil.',cfg.name||'',{title:'Nama kamu',placeholder:'Nama panggilan',max:30});if(n===null)return;cfg.name=n.trim().slice(0,30);ls.set('cfg',cfg);go(pg);if($('#sp').classList.contains('on'))setR()}
 /* ----- Mode berkendara, kartu bagikan ----- */

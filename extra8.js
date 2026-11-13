@@ -3,7 +3,7 @@
    jadi tampilannya mengikuti HP; yang bisa kita atur hanya isinya (judul, artis, cover, dan baris lirik). */
 (function(){
   'use strict';
-  function on(){return cfg.lyn!==0}
+  function on(){return cfg.lyn!==false}
 
   /* ---------- Notifikasi sistem (hanya saat aplikasi tidak sedang dibuka) ---------- */
   function sysNotify(title,body,tag){
@@ -66,7 +66,7 @@
     try{if(on()&&cur&&!cur.radio&&typeof fetchLy==='function')fetchLy(cur)}catch(e){}
     /* banner "Sedang diputar" di dalam aplikasi (gaya iPhone), sekali per lagu */
     try{
-      if(cfg.npn!==0&&cur&&cur.id!==bannerId){
+      if(cfg.npn!==false&&cur&&cur.id!==bannerId){
         bannerId=cur.id;
         if(!pm)toast('Sedang diputar: '+cur.title+(cur.artist?' - '+cur.artist:''),cur.img||undefined);
       }

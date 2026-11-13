@@ -238,7 +238,7 @@
   window.accSet=function(c){cfg.acc=c||'';ls.set('cfg',cfg);if(c==='auto'){accAuto=null;autoAcc(cur)}hap6(8);accApply();setR()};
   accApply();
 
-  var SW=[['#ff8a5b','Oranye'],['#ff5f6d','Merah'],['#ff5fa2','Pink'],['#8b7bff','Ungu'],['#3da5ff','Biru'],['#2ed39a','Hijau'],['#f5b301','Kuning']];
+  var SW=[['#ff8a5b','Oranye'],['#ff5f6d','Merah'],['#ff5fa2','Pink'],['#8b7bff','Ungu'],['#3da5ff','Biru'],['#2ed39a','Hijau'],['#1ed760','Hijau Spotify'],['#f5b301','Kuning']];
   function settingsHtml(){
     var cf=cfg.cf==null?0:+cfg.cf,ch=[[0,'Mati'],[3,'3 dtk'],[5,'5 dtk'],[8,'8 dtk']].map(function(x){return'<span class="chip '+(cf==x[0]?'a':'')+'" onclick="cfgSet(\'cf\','+x[0]+')">'+x[1]+'</span>'}).join('');
     var a=cfg.acc||'',sw='<button class="ac6 def'+(a?'':' sel')+'" aria-label="Bawaan" onclick="accSet(\'\')"></button>'

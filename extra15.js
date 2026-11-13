@@ -14,14 +14,14 @@
     play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',pause:'<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
     ly:'<svg viewBox="0 0 24 24"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1zm3 4v2h10V8zm0 4v2h7v-2z"/></svg>'};
   var EQ='<span class="eq"><i></i><i></i><i></i><i></i></span>';
-  isl.innerHTML='<div class="ic"><img alt="" id="islc" decoding="async">'+EQ+'</div>'+
+  isl.innerHTML='<div class="bgc"><img alt="" id="islbg" decoding="async"></div><div class="ic"><img alt="" id="islc" decoding="async">'+EQ+'</div>'+
     '<div class="ex"><div class="tp"><img alt="" id="islc2" decoding="async"><div class="tt"><b><span class="mq" id="islt"></span></b><span id="isla"></span></div>'+EQ+'</div>'+
     '<div class="ly" id="islly"><div class="lst" id="isllst"></div><div class="lm" id="islm"></div></div>'+
     '<div class="sk"><em id="islct">0:00</em><div class="bar" id="islb"><u id="islu"></u></div><em id="isldu">0:00</em></div>'+
     '<div class="cb"><span></span><button id="islp" aria-label="Sebelumnya">'+SV.prev+'</button><button class="pp" id="islpp" aria-label="Putar atau jeda"><span class="i1">'+SV.play+'</span><span class="i2">'+SV.pause+'</span></button><button id="islnx" aria-label="Berikutnya">'+SV.next+'</button><button class="lb on" id="islly2" aria-label="Tampilkan lirik">'+SV.ly+'</button></div></div>';
   app.appendChild(isl);
   var $i=function(id){return document.getElementById(id)};
-  var el={c:$i('islc'),c2:$i('islc2'),t:$i('islt'),a:$i('isla'),ly:$i('islly'),lst:$i('isllst'),lm:$i('islm'),u:$i('islu'),ct:$i('islct'),du:$i('isldu'),bar:$i('islb'),lb:$i('islly2')};
+  var el={bg:$i('islbg'),c:$i('islc'),c2:$i('islc2'),t:$i('islt'),a:$i('isla'),ly:$i('islly'),lst:$i('isllst'),lm:$i('islm'),u:$i('islu'),ct:$i('islct'),du:$i('isldu'),bar:$i('islb'),lb:$i('islly2')};
   var started=0,big=false,hideT=0,lastId=null,lastTitle='',drag=0,dragRatio=0,lpT=0,lpFired=0,sx=0,sy=0,moved=0,raf=0,isPl=false,isShow=false;
   var lastR=-1,lastS=-1,lastD='',lyKey='',lyMode='',lyEls=[],lyT=[],lyI=-2,lyY=-1,lyOn=true;
   try{lyOn=localStorage.getItem('ma_isl_ly')!=='0'}catch(e){}
@@ -57,7 +57,7 @@
   var coverSrc='';
   function setCover(src,fb){
     if(src===coverSrc)return;coverSrc=src;
-    [el.c,el.c2].forEach(function(im){im.onerror=function(){this.onerror=null;this.src=fb};im.src=src});
+    [el.c,el.c2,el.bg].forEach(function(im){im.onerror=function(){this.onerror=null;this.src=fb};im.src=src});
   }
   async function itunes(term,entity){
     var ctl=typeof AbortController==='function'?new AbortController():null,to=setTimeout(function(){try{ctl&&ctl.abort()}catch(e){}},7000);

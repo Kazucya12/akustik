@@ -174,7 +174,7 @@
     });
   };
   function addMixes(v){
-    if(v.querySelector('[data-dm]'))return;
+    if(v.querySelector('[data-dm]')||cfg.dmx===false)return;
     var mx=mixes();if(!mx.length)return;
     var tr=null;$$('.sec h3',v).forEach(function(h){if(h.textContent.trim()==='Trending')tr=h.closest('.sec')});
     var w=document.createElement('div');w.setAttribute('data-dm','1');
@@ -189,15 +189,16 @@
 
   /* ---------- 10. Wrapped ---------- */
   function wrData(){
-    var mm=known(),tot=+stt.tot||0;
-    var songs2=Object.keys(stt.pl||{}).map(function(id){var v=stt.pl[id],o=v&&typeof v==='object'?v:{s:+v||0},t=mm.get(id);return{n:(t&&t.title)||o.t||id,a:(t&&t.artist)||o.a||'',s:+o.s||0,c:o.n||0}}).filter(function(x){return x.s>5}).sort(function(a,b){return b.s-a.s}).slice(0,5);
-    var arts=Object.keys(stt.ar||{}).map(function(n){return{n:n,s:+stt.ar[n]||0}}).filter(function(x){return x.s>5}).sort(function(a,b){return b.s-a.s}).slice(0,5);
+    var SS=(window.wrSrc&&window.wrSrc(window.wrPeriod||'all'))||stt;
+    var mm=known(),tot=+SS.tot||0;
+    var songs2=Object.keys(SS.pl||{}).map(function(id){var v=SS.pl[id],o=v&&typeof v==='object'?v:{s:+v||0},t=mm.get(id);return{n:(t&&t.title)||o.t||id,a:(t&&t.artist)||o.a||'',s:+o.s||0,c:o.n||0}}).filter(function(x){return x.s>5}).sort(function(a,b){return b.s-a.s}).slice(0,5);
+    var arts=Object.keys(SS.ar||{}).map(function(n){return{n:n,s:+SS.ar[n]||0}}).filter(function(x){return x.s>5}).sort(function(a,b){return b.s-a.s}).slice(0,5);
     return{tot:tot,min:Math.round(tot/60),songs:songs2,arts:arts};
   }
   var WRC=[['#ff5f7e','#8b5cf6'],['#12b886','#2d8bff'],['#f59f00','#ff5f7e'],['#7048e8','#15aabf'],['#e64980','#f76707']];
   function wrSlides(d){
     var s=[];
-    s.push('<h2>Loopify Wrapped</h2><p>Rangkuman dengarmu di Loopify</p><div class="big">'+d.min+'</div><p>menit mendengarkan musik'+(d.min>=60?' (sekitar '+(d.tot/3600).toFixed(1)+' jam)':'')+'</p>');
+    s.push('<h2>Loopify Wrapped</h2><p>Rangkuman dengarmu · '+(window.wrLabel?window.wrLabel(window.wrPeriod||'all'):'sepanjang waktu')+'</p><div class="big">'+d.min+'</div><p>menit mendengarkan musik'+(d.min>=60?' (sekitar '+(d.tot/3600).toFixed(1)+' jam)':'')+'</p>');
     if(d.songs[0])s.push('<p>Lagu nomor 1-mu</p><h2>'+E(d.songs[0].n)+'</h2><p>'+E(d.songs[0].a)+'</p><div class="big">'+Math.max(1,Math.round(d.songs[0].s/60))+'</div><p>menit diputar'+(d.songs[0].c?' · '+d.songs[0].c+'x diputar':'')+'</p>');
     if(d.songs.length)s.push('<h2>5 lagu teratasmu</h2><div class="wr-l">'+d.songs.map(function(x,i){return'<div><em>'+(i+1)+'</em><span>'+E(x.n)+'<small>'+E(x.a)+'</small></span></div>'}).join('')+'</div>');
     if(d.arts.length)s.push('<p>Artis yang paling sering kamu dengar</p><h2>'+E(d.arts[0].n)+'</h2><div class="wr-l">'+d.arts.map(function(x,i){return'<div><em>'+(i+1)+'</em><span>'+E(x.n)+'<small>'+Math.max(1,Math.round(x.s/60))+' menit</small></span></div>'}).join('')+'</div>');
@@ -213,8 +214,9 @@
   }
   window.wrGo=function(d){var n=wrI+d;if(n<0)return;if(n>=wrS.length){wrClose();return}wrI=n;wrShow()};
   window.wrClose=function(){var w=document.getElementById('wr');if(w)w.classList.remove('on')};
-  window.wrOpen=function(){
-    var d=wrData();if(d.tot<60){toast('Dengarkan beberapa lagu dulu, lalu buka Wrapped');return}
+  window.wrOpen=function(p){
+    window.wrPeriod=p||'all';
+    var d=wrData();if(d.tot<60){toast(window.wrPeriod==='all'?'Dengarkan beberapa lagu dulu, lalu buka Wrapped':'Belum ada data untuk periode ini. Data bulanan mulai dihitung sejak pembaruan ini');return}
     var w=document.getElementById('wr');if(!w){w=document.createElement('div');w.id='wr';document.getElementById('app').appendChild(w)}
     wrS=wrSlides(d);wrI=0;wrShow();w.classList.add('on');
   };
@@ -223,7 +225,7 @@
     var g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#ff5f7e');g.addColorStop(.55,'#8b5cf6');g.addColorStop(1,'#2d8bff');x.fillStyle=g;x.fillRect(0,0,W,H);
     x.fillStyle='#fff';x.textAlign='left';
     x.font='800 84px sans-serif';x.fillText('Loopify Wrapped',80,200);
-    x.font='400 40px sans-serif';x.fillStyle='rgba(255,255,255,.85)';x.fillText('Rangkuman dengarmu',80,262);
+    x.font='400 40px sans-serif';x.fillStyle='rgba(255,255,255,.85)';x.fillText('Rangkuman dengarmu · '+(window.wrLabel?window.wrLabel(window.wrPeriod||'all'):'sepanjang waktu'),80,262);
     x.fillStyle='#fff';x.font='800 190px sans-serif';x.fillText(String(d.min),80,520);
     x.font='400 42px sans-serif';x.fillText('menit mendengarkan',80,584);
     x.font='700 46px sans-serif';x.fillText('Lagu teratas',80,720);
@@ -237,8 +239,8 @@
     if(v.querySelector('[data-wr]'))return;
     var h1=v.querySelector('h1');if(!h1||h1.textContent.trim()!=='Profil')return;
     var first=v.querySelector('.pcard');if(!first)return;
-    var d=document.createElement('div');d.className='wr-c';d.setAttribute('data-wr','1');d.setAttribute('onclick','wrOpen()');
-    d.innerHTML='<span class="wr-e">✨</span><div><b>Loopify Wrapped</b><br><small>Lihat rangkuman dengarmu</small></div>';
+    var d=document.createElement('div');d.className='wr-c';d.setAttribute('data-wr','1');d.setAttribute('onclick',"wrOpen('all')");
+    d.innerHTML='<span class="wr-e">✨</span><div><b>Loopify Wrapped</b><br><small>Lihat rangkuman dengarmu</small><div class="wr-p"><span onclick="event.stopPropagation();wrOpen(\'all\')">Semua</span><span onclick="event.stopPropagation();wrOpen(\'m0\')">Bulan ini</span><span onclick="event.stopPropagation();wrOpen(\'m1\')">Bulan lalu</span></div></div>';
     first.after(d);
   }
 

@@ -1,0 +1,43 @@
+/* Loopify v3.8 - tampilan ala Spotify: beranda, mini player, Library, pemutar. Dimuat setelah web.css. */
+
+/* ---------- 1. Beranda ---------- */
+#v.sp-home .hero{display:none}
+.sp-hi{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:14px 0 12px}
+.sp-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.sp-t{display:flex;align-items:center;gap:10px;height:54px;border-radius:8px;overflow:hidden;cursor:pointer;background:var(--c);border:1px solid var(--b);padding:0;transition:transform .16s}
+.sp-t:active{transform:scale(.96)}
+.sp-t img,.sp-t .sp-i{width:54px;height:54px;flex:none;object-fit:cover;display:grid;place-items:center;font-size:22px;color:#fff;background:linear-gradient(135deg,#6d5dfc,#35c4ff)}
+.sp-t .sp-i.l{background:linear-gradient(135deg,#5a46f0,#b7b0ff)}
+.sp-t .sp-i.r{background:linear-gradient(135deg,#ff8a5b,#ff5f7e)}
+.sp-t .sp-i.g{background:linear-gradient(135deg,#18a86b,#7be0ae)}
+.sp-t b{font-size:12px;font-weight:700;line-height:1.25;padding-right:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#v.sp-home .cd img{border-radius:8px;box-shadow:none}
+#v.sp-home .cd b{font-size:13px}
+#v.sp-home .cd small{color:var(--mu)}
+#v.sp-home .sec h3{font-size:20px;font-weight:700;letter-spacing:-.01em}
+
+/* ---------- 2. Mini player ---------- */
+#mp{background:linear-gradient(100deg,color-mix(in srgb,var(--mpc,#3a3f7a) 78%,#000) 0%,color-mix(in srgb,var(--mpc,#3a3f7a) 38%,#0b0d22) 100%)!important;border-radius:12px!important;border:0!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important;height:56px!important}
+#mp img{border-radius:6px!important}
+#mp b,#mp small{color:#fff!important}
+#mp small{opacity:.72}
+#mp .ib{background:transparent!important;color:#fff!important}
+#mp:after{content:"";position:absolute;left:8px;right:8px;bottom:3px;height:2px;border-radius:2px;background:rgba(255,255,255,.25)}
+#mp i{left:8px!important;right:8px!important;bottom:3px!important;height:2px!important;border-radius:2px;background:#fff!important;z-index:1}
+
+/* ---------- 3. Library ---------- */
+#v .chips .chip{border-radius:99px;font-weight:600}
+#v .chips .chip.a{background:var(--p)!important;color:#fff;border-color:transparent}
+#v .chips .chip:not(.a){background:var(--c)}
+
+/* ---------- 4. Pemutar penuh ---------- */
+#pl .disc{width:min(86vw,340px);aspect-ratio:1;border-radius:10px;border:0;margin:14px auto 22px;box-shadow:0 22px 50px rgba(0,0,0,.55);animation:none}
+#pl .disc img{animation:none!important;border-radius:0}
+#pl .sp-tt{display:flex;align-items:center;gap:12px;margin:0 2px 14px}
+#pl .sp-tt .sp-tx{flex:1;min-width:0}
+#pl .sp-tt .pt,#pl .sp-tt .pa{text-align:left;margin:0}
+#pl .sp-tt .pt{font-size:22px;line-height:1.2;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#pl .sp-tt .pa{margin-top:4px;font-size:14px}
+#pl .sp-h{flex:none;background:none;border:0;color:var(--mu);padding:6px;cursor:pointer}
+#pl .sp-h.on-c{color:#1ed760}
+#pl .act button[onclick="fav()"]{display:none}

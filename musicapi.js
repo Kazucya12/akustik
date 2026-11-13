@@ -1,4 +1,4 @@
-/* Midnight Acoustic — MusicAPI / YouTube Music integration */
+/* Loopify — MusicAPI / YouTube Music integration */
 (function(){
   'use strict';
   var KEY='ma_musicapi_uuid', NAME='ma_musicapi_name';

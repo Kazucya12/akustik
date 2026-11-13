@@ -1,16 +1,16 @@
 /* ===== v3.2: pilih banyak lagu + impor playlist Spotify/YouTube ===== */
 (function(){
 /* ---------- Pilih banyak lagu ---------- */
-const SEL={on:0,m:new Map()};let PLOPEN=-1;
+const SEL={on:0,m:new Map(),k:new Map()};let PLOPEN=-1;
 const app=$('#app');
 const bar=document.createElement('div');bar.id='sb';app.appendChild(bar);
 const sheet=document.createElement('div');sheet.id='ss';sheet.onclick=e=>{if(e.target==sheet)sheet.classList.remove('on')};app.appendChild(sheet);
 
-const okT=t=>t&&!(t.rec&&!t.url);
+const okP=t=>t&&!t.nf;
 const pick=kind=>{
   const a=[...SEL.m.values()];
-  const r=kind=='play'||kind=='queue'?a.filter(t=>!t.yt&&okT(t)):a.filter(t=>!t.yt);
-  if(r.length<a.length)toast((a.length-r.length)+' item dilewati (video atau belum ada versi putar)');
+  const r=kind=='play'?a.filter(okP):kind=='queue'?a.filter(t=>okP(t)&&!t.yt):a.filter(t=>!t.yt);
+  if(r.length<a.length)toast((a.length-r.length)+' item dilewati ('+(kind=='play'?'belum ada versi putar':'video tidak bisa masuk '+(kind=='queue'?'antrean':kind=='fav'?'Favorit':'playlist'))+')');
   return r;
 };
 function barR(){
@@ -37,7 +37,7 @@ document.addEventListener('click',e=>{
   e.preventDefault();e.stopPropagation();
   const m=el.getAttribute('onclick').match(/^P\('(\w+)',(\d+)\)/);if(!m)return;
   const t=lists[m[1]]&&lists[m[1]][+m[2]];if(!t)return;
-  if(SEL.m.has(t.id))SEL.m.delete(t.id);else SEL.m.set(t.id,t);
+  if(SEL.m.has(t.id))SEL.m.delete(t.id);else{SEL.m.set(t.id,t);SEL.k.set(t.id,m[1])}
   hp(8);paint();barR();
 },true);
 
@@ -47,20 +47,35 @@ window.selTog=function(){
 };
 window.selAll=function(){
   const els=[...document.querySelectorAll('.rw[onclick^="P("]')];const ts=[];
-  els.forEach(el=>{const m=el.getAttribute('onclick').match(/^P\('(\w+)',(\d+)\)/);const t=m&&lists[m[1]]&&lists[m[1]][+m[2]];if(t)ts.push(t)});
+  els.forEach(el=>{const m=el.getAttribute('onclick').match(/^P\('(\w+)',(\d+)\)/);const t=m&&lists[m[1]]&&lists[m[1]][+m[2]];if(t){ts.push(t);SEL.k.set(t.id,m[1])}});
   if(!ts.length)return;
   const all=ts.every(t=>SEL.m.has(t.id));
   ts.forEach(t=>all?SEL.m.delete(t.id):SEL.m.set(t.id,t));paint();barR();
 };
 async function selDel(){
   const a=[...SEL.m.values()];
-  const loc=a.filter(t=>t.loc&&songs.some(s=>s.id==t.id)),vs=a.filter(t=>t.yt&&vids.some(v=>v.id==t.id));
-  if(!loc.length&&!vs.length){toast('Hanya lagu di perangkat dan video tersimpan yang bisa dihapus');return}
-  if(!await uiConfirm('Lagu di perangkat hanya dihapus dari aplikasi, file aslinya tidak disentuh.',{title:'Hapus '+(loc.length+vs.length)+' item?',ok:'Hapus',danger:1}))return;
+  const loc=[],vs=[],fv=[],hs=[];
+  a.forEach(t=>{
+    const k=SEL.k.get(t.id)||'';
+    if(k=='fv'||k=='pf'){if(isF(t))fv.push(t);return}
+    if(k=='rc'){hs.push(t);return}
+    if(t.loc&&songs.some(s=>s.id==t.id))loc.push(t);
+    else if(t.yt&&vids.some(v=>v.id==t.id))vs.push(t);
+  });
+  const total=loc.length+vs.length+fv.length+hs.length;
+  if(!total){toast('Lagu dari pencarian atau rekomendasi tidak bisa dihapus. Simpan ke Favorit/Playlist dulu.');return}
+  const parts=[];
+  if(loc.length)parts.push(loc.length+' lagu dihapus dari aplikasi (file asli tidak disentuh)');
+  if(vs.length)parts.push(vs.length+' video dihapus dari daftar');
+  if(fv.length)parts.push(fv.length+' lagu dikeluarkan dari Favorit');
+  if(hs.length)parts.push(hs.length+' lagu dihapus dari riwayat');
+  if(!await uiConfirm(parts.join('. ')+'.',{title:'Hapus '+total+' item?',ok:'Hapus',danger:1}))return;
   for(const t of loc){try{await tx('readwrite',o=>o.delete(t.id))}catch(e){}if(cur&&cur.id==t.id){A.pause();cur=null;clp()}}
-  const ids=new Set(loc.map(t=>t.id));songs=songs.filter(s=>!ids.has(s.id));
+  if(loc.length){const ids=new Set(loc.map(t=>t.id));songs=songs.filter(s=>!ids.has(s.id))}
   if(vs.length){const vi2=new Set(vs.map(t=>t.id));vids=vids.filter(v=>!vi2.has(v.id));ls.set('vids',vids)}
-  toast((loc.length+vs.length)+' item dihapus');SEL.m.clear();barR();
+  if(fv.length){const fi=new Set(fv.map(t=>t.id));favs=favs.filter(f=>!fi.has(f.id));ls.set('favs',favs)}
+  if(hs.length){const hi=new Set(hs.map(t=>t.id));hist=hist.filter(x=>!hi.has(x.id));ls.set('hist',hist)}
+  toast(total+' item dihapus');SEL.m.clear();barR();
   if(PLOPEN>=0)openPl(PLOPEN,1);else go(pg);
 }
 window.selAct=function(k){

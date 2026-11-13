@@ -68,7 +68,7 @@
     try{
       if(cfg.npn!==false&&cur&&cur.id!==bannerId){
         bannerId=cur.id;
-        if(!pm)toast('Sedang diputar: '+cur.title+(cur.artist?' - '+cur.artist:''),cur.img||undefined);
+        if(!pm&&!document.getElementById('isl'))toast('Sedang diputar: '+cur.title+(cur.artist?' - '+cur.artist:''),cur.img||undefined);
       }
     }catch(e){}
   };

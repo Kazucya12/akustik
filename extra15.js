@@ -22,7 +22,7 @@
   app.appendChild(isl);
   var $i=function(id){return document.getElementById(id)};
   var el={bg:$i('islbg'),c:$i('islc'),c2:$i('islc2'),t:$i('islt'),a:$i('isla'),ly:$i('islly'),lst:$i('isllst'),lm:$i('islm'),u:$i('islu'),ct:$i('islct'),du:$i('isldu'),bar:$i('islb'),lb:$i('islly2')};
-  var started=0,big=false,hideT=0,lastId=null,lastTitle='',drag=0,dragRatio=0,lpT=0,lpFired=0,sx=0,sy=0,moved=0,raf=0,isPl=false,isShow=false;
+  var started=0,big=false,hideT=0,lastId=null,lastTitle='',drag=0,dragRatio=0,lpT=0,lpFired=0,sx=0,sy=0,moved=0,raf=0,isPl=false,isShow=false,gone=0,vt=0;
   var lastR=-1,lastS=-1,lastD='',lyKey='',lyMode='',lyEls=[],lyT=[],lyI=-2,lyY=-1,lyOn=true;
   try{lyOn=localStorage.getItem('ma_isl_ly')!=='0'}catch(e){}
   el.lb.classList.toggle('on',lyOn);
@@ -135,6 +135,8 @@
     if(big)return;big=true;isl.classList.add('big');vib(10);
     lastR=-1;lastS=-1;lastD='';lyI=-2;marquee();arm(auto?5200:8000);upd();kick();
   }
+  function stay(){clearTimeout(vt);if(isShow)vt=setTimeout(hideIsl,8000)}
+  function hideIsl(){if(drag){stay();return}gone=1;collapse();slow()}
   function collapse(){if(!big)return;big=false;isl.classList.remove('big');clearTimeout(hideT)}
   function arm(ms){clearTimeout(hideT);hideT=setTimeout(function(){if(drag){arm(2000);return}collapse()},ms)}
   function marquee(){
@@ -177,12 +179,14 @@
   function slow(){
     if(document.hidden)return;
     if(!started&&cur&&playing())started=1;
-    var on=!!(enabled()&&started&&cur),vis=on&&!playerOpen();
-    if(vis!==isShow){isShow=vis;isl.classList.toggle('show',vis);document.body.classList.toggle('isl-on',vis)}
+    var on=!!(enabled()&&started&&cur);
+    if(on&&(cur.id!==lastId||(cur.title||'Tanpa judul')!==lastTitle))gone=0;
+    var vis=on&&!playerOpen()&&!gone;
+    if(vis!==isShow){isShow=vis;if(vis)stay();isl.classList.toggle('show',vis);document.body.classList.toggle('isl-on',vis)}
     if(!on){if(big)collapse();return}
     if(!vis&&big)collapse();
     var p=playing();if(p!==isPl){isPl=p;isl.classList.toggle('pl',p)}
-    if(cur.id!==lastId||(cur.title||'Tanpa judul')!==lastTitle){lastId=cur.id;setTrack();if(vis)expand(true)}
+    if(cur.id!==lastId||(cur.title||'Tanpa judul')!==lastTitle){lastId=cur.id;setTrack();if(vis){expand(true);stay()}}
     syncLy();
     if(big){upd();kick()}
   }
@@ -215,7 +219,7 @@
   isl.addEventListener('mousedown',press);isl.addEventListener('mousemove',function(e){if(e.buttons)mv(e)});isl.addEventListener('mouseup',rel);
   isl.addEventListener('mouseleave',function(){clearTimeout(lpT)});
 
-  function btn(b,fn){var h=function(e){e.stopPropagation();vib(8);try{fn()}catch(x){}arm(8000);setTimeout(slow,120)};
+  function btn(b,fn){var h=function(e){e.stopPropagation();vib(8);try{fn()}catch(x){}arm(8000);stay();setTimeout(slow,120)};
     b.addEventListener('click',h);['touchstart','mousedown','mouseup','touchend'].forEach(function(n){b.addEventListener(n,function(e){e.stopPropagation()},{passive:true})})}
   btn($i('islp'),function(){if(act&&act.currentTime>4&&!(cur&&cur.radio)){act.currentTime=0}else nxt(-1)});
   btn($i('islnx'),function(){nxt(1)});
@@ -234,15 +238,15 @@
   function ratioOf(e){var p=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e,r=bar.getBoundingClientRect();return Math.max(0,Math.min(1,(p.clientX-r.left)/r.width))}
   function dstart(e){e.stopPropagation();if(isl.classList.contains('live'))return;drag=1;bar.classList.add('drag');dmove(e);clearTimeout(hideT)}
   function dmove(e){if(!drag)return;e.stopPropagation();dragRatio=ratioOf(e);var d=act&&act.duration;el.u.style.transform='scaleX('+dragRatio+')';if(d>0&&isFinite(d))el.ct.textContent=fmt(dragRatio*d)}
-  function dend(e){if(!drag)return;e.stopPropagation();drag=0;bar.classList.remove('drag');var d=act&&act.duration;if(d>0&&isFinite(d)){try{act.currentTime=dragRatio*d}catch(x){}}lastR=-1;lastS=-1;lyI=-2;arm(8000);setTimeout(function(){upd();kick()},60)}
+  function dend(e){if(!drag)return;e.stopPropagation();drag=0;bar.classList.remove('drag');var d=act&&act.duration;if(d>0&&isFinite(d)){try{act.currentTime=dragRatio*d}catch(x){}}lastR=-1;lastS=-1;lyI=-2;arm(8000);stay();setTimeout(function(){upd();kick()},60)}
   bar.addEventListener('touchstart',dstart,{passive:true});bar.addEventListener('touchmove',dmove,{passive:true});bar.addEventListener('touchend',dend);
   bar.addEventListener('mousedown',dstart);window.addEventListener('mousemove',function(e){if(drag)dmove(e)});window.addEventListener('mouseup',function(e){if(drag)dend(e)});
 
   /* ketuk di luar island = tutup */
-  document.addEventListener('pointerdown',function(e){if(big&&!isl.contains(e.target))collapse()},true);
+  document.addEventListener('pointerdown',function(e){if(big&&!isl.contains(e.target)){collapse();stay()}},true);
 
   /* tombol "Coba notifikasi" di Profil: tampilkan island */
   var _nt=window.notifTest;
   window.notifTest=function(){try{if(cur&&enabled()){started=1;lastId=null;slow();return}}catch(e){}if(_nt)_nt()};
-  window.islandShow=function(){started=1;slow();expand(false)};
+  window.islandShow=function(){started=1;gone=0;slow();expand(false);stay()};
 })();

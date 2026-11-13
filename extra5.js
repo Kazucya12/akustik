@@ -1,4 +1,4 @@
-/* Midnight Acoustic v3.5.2 - Geser kiri/kanan untuk pindah tab: Beranda - Cari - Library - Profil.
+/* Loopify v3.5.2 - Geser kiri/kanan untuk pindah tab: Beranda - Cari - Library - Profil.
    Berlaku di isi halaman dan di bilah navigasi bawah. Tidak aktif saat panel/overlay terbuka, di kolom input,
    atau saat menggeser daftar yang bisa digulir ke samping (chip, kartu trending). Dimuat setelah extra4.js. */
 (function(){

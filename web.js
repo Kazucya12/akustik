@@ -1,4 +1,4 @@
-/* Midnight Acoustic - pintasan keyboard untuk versi website (tidak aktif saat mengetik di kolom input) */
+/* Loopify - pintasan keyboard untuk versi website (tidak aktif saat mengetik di kolom input) */
 (function(){
   document.addEventListener('keydown',function(e){
     if(e.ctrlKey||e.metaKey||e.altKey)return;

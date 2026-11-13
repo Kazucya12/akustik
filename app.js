@@ -120,7 +120,7 @@ const isPlO=()=>$('#pl').classList.contains('on');
 const fmtT=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.round(s%3600/60);return h?h+' j '+(m%60)+' mnt':m+' mnt'};
 /* respons API: array biasa atau {data|tracks|results}; stasiun radio (id berbentuk UUID) diberi tanda radio */
 function arrOf(j){const a=Array.isArray(j)?j:j&&Array.isArray(j.data)?j.data:j&&Array.isArray(j.tracks)?j.tracks:j&&Array.isArray(j.results)?j.results:[];return a.map(x=>{if(x&&x.title)x={...x,title:ct(x.title)};return x&&/^r[0-9a-f]{8}-[0-9a-f]{4}-/.test(String(x.id))?{...x,radio:1}:x})}
-function toast(m,img){const t=$('#toast');if(!t)return;t.innerHTML=`<img src="${esc(img||'icon-192.png')}" alt=""><div><b>Loopify</b><span>${esc(m)}</span></div><small>sekarang</small>`;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),6000)}
+function toast(m,img){return;const t=$('#toast');if(!t)return;t.innerHTML=`<img src="${esc(img||'icon-192.png')}" alt=""><div><b>Loopify</b><span>${esc(m)}</span></div><small>sekarang</small>`;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),6000)}
 /* ----- Gambar ----- */
 function shrink(f,m=320){return new Promise(res=>{try{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{try{const s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,im.width*s|0);c.height=Math.max(1,im.height*s|0);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',.82))}catch(e){res('')}};im.onerror=()=>{URL.revokeObjectURL(u);res('')};im.src=u}catch(e){res('')}})}
 /* ----- Tag ID3 (MP3): judul, artis, cover ----- */

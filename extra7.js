@@ -1,4 +1,4 @@
-/* Midnight Acoustic Patch — Rekomendasi Adaptif Suasana, Filter Chip, Pencarian Khusus Musik, & Opsi Lihat Video */
+/* Loopify Patch — Rekomendasi Adaptif Suasana, Filter Chip, Pencarian Khusus Musik, & Opsi Lihat Video */
 (function () {
   'use strict';
 

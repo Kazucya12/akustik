@@ -1,7 +1,5 @@
 // /api/soundstat?type=mood|activity|time&value=... (&r=timestamp untuk segarkan)
 const BASE = 'https://soundstat.info/api/v1';
-const AUD = 'https://api.audius.co/v1';
-const APP = 'app_name=MidnightAcoustic';
 
 const OK = {
   mood: ['happy', 'sad', 'energetic', 'relaxed', 'danceable'],
@@ -9,24 +7,6 @@ const OK = {
   time: ['morning', 'afternoon', 'evening', 'night'],
 };
 const PATH = { mood: ['mood', 'mood'], activity: ['activity', 'activity'], time: ['time-of-day', 'time'] };
-
-// Kata kunci suasana untuk fallback otomatis & pengayaan hasil
-const MOOD_QUERY = {
-  happy: ['happy acoustic upbeat', 'feel good pop', 'sunny day chill'],
-  sad: ['sad acoustic ballad', 'melancholy piano', 'galau akustik'],
-  energetic: ['energetic rock upbeat', 'high energy electronic', 'power workout'],
-  relaxed: ['chill acoustic ambient', 'lofi relax', 'santai akustik'],
-  danceable: ['dance groove nu disco', 'house dance', 'upbeat funk'],
-  workout: ['workout bass boost', 'gym motivation beat', 'cardio electronic'],
-  study: ['lofi study beats', 'instrumental focus', 'calm piano study'],
-  sleep: ['sleep ambient rain', 'deep sleep piano', 'soft lullaby'],
-  party: ['party remix dance', 'club hits', 'dj party'],
-  focus: ['deep focus instrumental', 'ambient concentration', 'minimal electronic'],
-  morning: ['morning coffee acoustic', 'pagi cerah akustik', 'sunrise chill'],
-  afternoon: ['afternoon indie chill', 'sunny acoustic', 'sore santai'],
-  evening: ['evening jazz chill', 'sunset lofi', 'senja akustik'],
-  night: ['midnight lofi chill', 'late night R&B', 'malam tenang'],
-};
 
 async function jget(url, opt = {}, ms = 8000) {
   const c = new AbortController();
@@ -75,26 +55,6 @@ async function info(id, key) {
   return o;
 }
 
-async function fallbackMoodTracks(value) {
-  const queries = MOOD_QUERY[value] || ['acoustic chill'];
-  const q = queries[Math.floor(Math.random() * queries.length)];
-  const j = await jget(`${AUD}/tracks/search?query=${encodeURIComponent(q)}&limit=25&${APP}`);
-  const list = (Array.isArray(j.data) ? j.data : [])
-    .filter((t) => t && t.id && t.is_streamable !== false && !t.is_delete && !t.is_stream_gated)
-    .map((t) => ({
-      id: 'a' + t.id,
-      title: String(t.title || 'Tanpa judul').slice(0, 200),
-      artist: String((t.user && t.user.name) || 'Tidak diketahui').slice(0, 100),
-      img: (t.artwork && (t.artwork['480x480'] || t.artwork['150x150'])) || '',
-      url: `${AUD}/tracks/${t.id}/stream?${APP}`,
-    }));
-  for (let i = list.length - 1; i > 0; i--) {
-    const k = Math.floor(Math.random() * (i + 1));
-    [list[i], list[k]] = [list[k], list[i]];
-  }
-  return list.slice(0, 10);
-}
-
 module.exports = async (req, res) => {
   const key = String(process.env.SOUNDSTAT_API_KEY || '').trim();
   const p = new URL(req.url, 'http://x').searchParams;
@@ -126,14 +86,10 @@ module.exports = async (req, res) => {
     }
   }
 
-  // Fallback otomatis ke Audius jika SoundStat gagal atau API key kosong
-  if (!out.length) {
-    try {
-      out = await fallbackMoodTracks(value);
-    } catch (e) {
-      res.status(502).json({ error: 'Gagal memuat rekomendasi suasana lagu' });
-      return;
-    }
+  // Tanpa key, rekomendasi tidak tersedia (fallback Audius sudah dihapus)
+  if (!key) {
+    res.status(501).json({ error: 'SOUNDSTAT_API_KEY belum diatur' });
+    return;
   }
 
   res.setHeader('Cache-Control', p.get('r') ? 'no-store' : 'public, s-maxage=3600, stale-while-revalidate=86400');

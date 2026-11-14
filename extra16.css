@@ -1,0 +1,27 @@
+/* Loopify v4.6 - gaya untuk extra16.js */
+.x16g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.x16c{height:84px;border-radius:14px;padding:12px;color:#fff;font-weight:700;font-size:15px;overflow:hidden;position:relative;cursor:pointer}
+.x16c b{position:relative;z-index:1}
+.x16c:after{content:"";position:absolute;right:-14px;bottom:-10px;width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,.22);transform:rotate(25deg)}
+.x16a{text-align:center}
+.x16a img{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover}
+.x16a b{display:block;font-size:12px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x16fb{margin-top:10px;padding:8px 22px;border-radius:99px;border:1px solid var(--b);font-weight:700;font-size:13px;background:var(--c)}
+.x16fb.on{background:var(--p);border-color:var(--p);color:#fff}
+.x16tb{display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px;font-size:12px;color:var(--mu)}
+.x16tb span{cursor:pointer;display:flex;gap:6px;align-items:center}
+.x16pin{flex:none;opacity:.3;font-size:15px;padding:4px}
+.x16pin.on{opacity:1}
+.x16m{width:48px;height:48px;border-radius:12px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;flex:none}
+.x16m img{width:100%;height:100%;object-fit:cover}
+.x16heart{width:48px;height:48px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:22px;color:#fff;background:linear-gradient(135deg,#4b3bff,#b9a8ff)}
+.x16fav>div:last-child,.x16grid .rw>div:nth-child(2){flex:1;min-width:0}
+.x16gm{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.x16gm .rw{flex-direction:column;align-items:stretch;padding:8px;position:relative}
+.x16gm .rw>img,.x16gm .rw>.x16m,.x16gm .rw>.x16heart{width:100%;height:auto;aspect-ratio:1;border-radius:14px}
+.x16gm .rw.ar>img{border-radius:50%!important}
+.x16gm .x16pin{position:absolute;right:12px;top:12px}
+.x16hd{display:flex;flex-direction:column;align-items:center;text-align:center;margin:4px 0 14px}
+.x16hd img{width:112px;height:112px;border-radius:50%;object-fit:cover;box-shadow:var(--sh)}
+.x16hd h2{margin-top:10px}
+.x16pb{display:flex;gap:8px;margin:6px 0 8px}

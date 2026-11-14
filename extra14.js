@@ -30,7 +30,7 @@
         toast('Memutar lagu berikutnya dari koleksimu…');
         play(l,0);return;
       }
-      if(t.yt){
+      if(!t.loc){
         toast('Memutar video serupa…');
         var yq=(usable(t.artist)?t.artist+' ':'')+clean(t.title);
         var v=(await ytSearch(yq)).filter(function(x){return !skip[x.id]});

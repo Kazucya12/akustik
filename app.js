@@ -1,8 +1,8 @@
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const ls={get(k,d){try{const v=JSON.parse(localStorage.getItem('ma_'+k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem('ma_'+k,JSON.stringify(v))}catch(e){}}};
-let favs=ls.get('favs',[]),pls=ls.get('pls',[]),hist=ls.get('hist',[]),lyc=ls.get('ly',{}),cfg=ls.get('cfg',{src:'audius',prem:false,name:'',theme:'auto'}),
+let favs=ls.get('favs',[]),pls=ls.get('pls',[]),hist=ls.get('hist',[]),lyc=ls.get('ly',{}),cfg=ls.get('cfg',{src:'all',prem:false,name:'',theme:'auto'}),
 eq=ls.get('eq',{on:true,v:[0,0,0,0,0,0],bass:0,treb:0,pre:'Flat'}),stt=ls.get('stt',{tot:0,pl:{},ar:{}});
-const SRCS=['all','audius','jamendo','archive','radio','custom'],SN={audius:'online',jamendo:'online',archive:'online',radio:'Radio',custom:'online'};
+const SRCS=['all','radio'],SN={radio:'Radio'};
 /* nama sumber disembunyikan: pengguna lama dipindah ke Semua, judul dibersihkan dari tag nama sumber */
 const ct=s=>{s=String(s==null?'':s);const r=s.replace(/\s*[\(\[][^\)\]]*\b(audius|jamendo)\b[^\)\]]*[\)\]]/ig,'').replace(/\s*[-–|]\s*(audius|jamendo)\s*$/i,'').trim();return r||s};
 if(!SRCS.includes(cfg.src)||['audius','jamendo','archive','custom'].includes(cfg.src)){cfg.src='all';ls.set('cfg',cfg)}
@@ -197,15 +197,12 @@ function openKr(){if(!cur)return;krRender();$('#kr').classList.add('on')}
 function krX(){$('#kr').classList.remove('on')}
 function krRender(){const t=cur;if(!t)return;const p=!act.paused;$('#kr').innerHTML=`<div class="hd"><button class="ib g" onclick="krX()">${ic('back')}</button><div style="flex:1;min-width:0;text-align:center"><b style="display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</b><small>${esc(t.artist)}</small></div><span style="width:38px"></span></div>${lyHtml(t,lyc[t.id])}<div class="ctl"><button onclick="nxt(-1)">${ic('prev',26,1)}</button><button class="m" onclick="toggle()">${ic(p?'pause':'play',30,1)}</button><button onclick="nxt()">${ic('next',26,1)}</button></div>`;lyI=-1}
 /* ----- Resolusi rekomendasi, radio otomatis, simpan offline ----- */
-async function resolveRec(t){try{const W=s=>new Set(String(s||'').toLowerCase().replace(/\(.*?\)|\[.*?\]/g,' ').split(/[^\p{L}\p{N}]+/u).filter(w=>w.length>1)),qq=(t.title+' '+(t.artist&&t.artist!='Tidak diketahui'?t.artist:'')).trim().slice(0,80);
-const r=await fetch('/api/music?src=audius&q='+encodeURIComponent(qq));if(!r.ok)throw 0;const a=arrOf(await r.json()),tw=W(t.title),aw=W(t.artist);let best=null,bs=0;
-for(const c of a){if(!c||!c.url)continue;const cw=W(c.title+' '+c.artist);let n=0,m=0;tw.forEach(w=>{if(cw.has(w))n++});aw.forEach(w=>{if(cw.has(w))m++});const ts=tw.size?n/tw.size:0,as=aw.size?m/aw.size:0,s=ts>=.7?ts+as:0;if(s>bs){bs=s;best=c}}
-if(best){t.url=best.url;t.img=t.img||best.img;t.dl=best.dl;t.sn=best.sn;t.nf=0;return true}}catch(e){}
+async function resolveRec(t){const qq=(t.title+' '+(t.artist&&t.artist!='Tidak diketahui'?t.artist:'')).trim().slice(0,80);
 try{const y=await ytSearch(qq),v=y&&y[0];if(v){Object.assign(t,{yt:1,vid:v.vid,img:t.img||v.img,rec:0,nf:0});return true}}catch(e){}
 t.nf=1;return false}
 function rrec(){const e=$('#rec');if(e)e.innerHTML=recHtml()}
 async function autoRadio(force){const t=cur;if(!t||t.loc||t.radio||t.yt||(t.rec&&!t.url))return;if(!force&&cfg.ar===false)return;toast('Memutar lagu serupa…');
-try{const r=await fetch('/api/music?src=audius&q='+encodeURIComponent(/^(Tidak diketahui|Lagu Saya)$/i.test(t.artist)?t.title:t.artist));if(!r.ok)throw 0;const a=arrOf(await r.json()).filter(x=>x&&x.url&&x.id!=t.id).map(x=>({...x,h:hh(x.title)}));for(let i=a.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[a[i],a[k]]=[a[k],a[i]]}if(!a.length||(!force&&cur!==t))return;play(a.slice(0,15),0)}catch(e){}}
+try{const a=(await ytSearch(/^(Tidak diketahui|Lagu Saya)$/i.test(t.artist)?t.title:t.artist)).filter(x=>x&&x.id!=t.id);for(let i=a.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[a[i],a[k]]=[a[k],a[i]]}if(!a.length||(!force&&cur!==t))return;playV(a.slice(0,15),0,1)}catch(e){}}
 async function dlOff(t){const id='o'+t.id;if(songs.some(x=>x.id==id)){toast('Sudah tersimpan offline');return}toast('Menyimpan offline…');
 try{const r=await fetch(t.url);if(!r.ok)throw 0;const b=await r.blob(),s={id,loc:1,blob:b,title:t.title,artist:t.artist,h:hh(t.title),added:Date.now(),off:1};if(t.img)s.img=t.img;await tx('readwrite',o=>o.put(s));songs.push(s);toast('Tersimpan offline di Library');if(pg=='library'||pg=='home')go(pg)}catch(e){toast('Gagal menyimpan offline')}}
 
@@ -283,7 +280,7 @@ const tgChips=()=>TG.map(x=>`<span class="chip ${tg==x[0]?'a':''}" onclick="tgSe
 function trBody(){return trRes===null?skel6(4):trRes==='err'?'<div class="em">Tidak bisa memuat trending.<br><a style="color:var(--p2)" onclick="trRetry()">Coba lagi</a></div>':trRes.length?rows('tr',trRes):'<div class="em">Belum ada trending.</div>'}
 function trCards(){if(trRes===null)return'<div class="em" style="flex:1">Memuat…</div>';if(trRes==='err')return'<div class="em" style="flex:1">Trending belum bisa dimuat.<br><a style="color:var(--p2)" onclick="trRetry()">Coba lagi</a></div>';return(lists.tc=trRes.slice(0,12)).map((t,i)=>`<div class="cd" onclick="P('tc',${i})"><img loading="lazy" src="${esc(cov(t))}"><b>${esc(t.title)}</b><small>${esc(t.artist)}</small></div>`).join('')}
 function trR(){const a=$('#tr');if(a)a.innerHTML=trBody();const b=$('#trh');if(b)b.innerHTML=trCards();const c=$('#tgc');if(c)c.innerHTML=tgChips()}
-async function trend(g){const k=g||'';if(trBusy===k)return;trBusy=k;let res;try{const r=await fetch('/api/music?src=audius&trending=1&genre='+encodeURIComponent(k));if(!r.ok)throw 0;res=arrOf(await r.json()).map(x=>({...x,h:hh(x.title)}))}catch(e){res='err'}if(trBusy!==k)return;trBusy=null;trRes=res;trR()}
+async function trend(g){const k=g||'';if(trBusy===k)return;trBusy=k;let res;try{res=(await ytSearch(k?k.replace('/',' ')+' lagu populer':'lagu populer indonesia')).slice(0,25)}catch(e){res='err'}if(trBusy!==k)return;trBusy=null;trRes=res;trR()}
 function tgSet(g){tg=g;cfg.tg=g;ls.set('cfg',cfg);trRes=null;trBusy=null;trR();trend(g)}
 function trRetry(){trRes=null;trBusy=null;trR();trend(tg)}
 const RC=[['mood:happy','😊 Senang'],['mood:sad','😢 Sendu'],['mood:energetic','⚡ Semangat'],['mood:relaxed','😌 Santai'],['mood:danceable','💃 Joget'],['activity:workout','🏋 Olahraga'],['activity:study','📚 Belajar'],['activity:focus','🎯 Fokus'],['activity:party','🎉 Pesta'],['activity:sleep','😴 Tidur'],['time:morning','🌅 Pagi'],['time:afternoon','☀ Siang'],['time:evening','🌇 Sore'],['time:night','🌙 Malam']];

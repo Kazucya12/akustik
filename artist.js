@@ -1,5 +1,7 @@
 // /api/artist?q=nama                     -> [{ src, id, name, img, subs, v }]   (cari profil artis)
 // /api/artist?src=au&id=ID&name=Nama     -> { tracks: [{..., rmx}] }            (lagu Audius milik artis)
+// /api/artist?src=au&id=ID&albums=1       -> { albums: [{ id, name, img, n }] }
+// /api/artist?album=ID&src=au|yt           -> { tracks: [...] }                    (isi satu album; YouTube = playlist milik channel)
 // /api/artist?src=yt&id=CHANNEL_ID       -> { tracks: [{..., yt, vid, rmx}] }   (video channel YouTube)
 // Audius gratis. Channel YouTube butuh YOUTUBE_API_KEY (tanpa key, hanya artis Audius yang muncul).
 const UA = 'MidnightAcoustic/4.6';
@@ -51,17 +53,34 @@ async function audArtists(q) {
     subs: u.follower_count || 0, v: u.is_verified ? 1 : 0,
   }));
 }
+const mapT = (t, name) => ({
+  id: 'a' + t.id,
+  title: clip(t.title, 200) || 'Tanpa judul',
+  artist: clip((t.user && t.user.name) || name, 100) || 'Tidak diketahui',
+  img: httpsOnly(t.artwork && (t.artwork['480x480'] || t.artwork['150x150'] || t.artwork['1000x1000'])),
+  url: `${AUD}/tracks/${t.id}/stream?${APP}`,
+  dl: t.is_downloadable && !t.is_download_gated ? 1 : 0,
+  d: +t.duration || 0,
+  rmx: (t.remix_of && t.remix_of.tracks && t.remix_of.tracks.length) || RMX.test(t.title || '') ? 1 : 0,
+});
+const okT = (t) => t && t.id && t.is_streamable !== false && !t.is_delete && !t.is_stream_gated;
 async function audTracks(id, name) {
   const j = await audGet(`/users/${encodeURIComponent(id)}/tracks?limit=60&sort=plays`);
-  return (j.data || []).filter((t) => t && t.id && t.is_streamable !== false && !t.is_delete && !t.is_stream_gated).map((t) => ({
-    id: 'a' + t.id,
-    title: clip(t.title, 200) || 'Tanpa judul',
-    artist: clip((t.user && t.user.name) || name, 100) || 'Tidak diketahui',
-    img: httpsOnly(t.artwork && (t.artwork['480x480'] || t.artwork['150x150'] || t.artwork['1000x1000'])),
-    url: `${AUD}/tracks/${t.id}/stream?${APP}`,
-    dl: t.is_downloadable && !t.is_download_gated ? 1 : 0,
-    rmx: (t.remix_of && t.remix_of.tracks && t.remix_of.tracks.length) || RMX.test(t.title || '') ? 1 : 0,
+  return (j.data || []).filter(okT).map((t) => mapT(t, name));
+}
+async function audAlbums(id) {
+  let l;
+  try { l = (await audGet(`/users/${encodeURIComponent(id)}/albums?limit=30`)).data || []; }
+  catch (e) { l = ((await audGet(`/users/${encodeURIComponent(id)}/playlists?limit=30`)).data || []).filter((p) => p.is_album); }
+  return l.filter((p) => p && p.id && !p.is_delete).map((p) => ({
+    id: String(p.id), name: clip(p.playlist_name, 120) || 'Album',
+    img: httpsOnly(p.artwork && (p.artwork['480x480'] || p.artwork['150x150'] || p.artwork['1000x1000'])),
+    n: p.track_count || (p.playlist_contents && p.playlist_contents.length) || 0,
   }));
+}
+async function audAlbumTracks(id) {
+  const j = await audGet(`/playlists/${encodeURIComponent(id)}/tracks`);
+  return (j.data || []).filter(okT).map((t) => mapT(t, ''));
 }
 
 /* ---------- YouTube ---------- */
@@ -86,6 +105,24 @@ async function ytArtists(q) {
     };
   });
 }
+async function ytAlbums(id) {
+  const k = ytKey();
+  if (!k) return [];
+  const j = await jget('https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&maxResults=30&channelId=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(k));
+  return (j.items || []).map((p) => {
+    const th = p.snippet.thumbnails || {};
+    return { id: p.id, name: clip(dec(p.snippet.title), 120) || 'Album', img: httpsOnly((th.high || th.medium || th.default || {}).url), n: (p.contentDetails && p.contentDetails.itemCount) || 0 };
+  });
+}
+async function ytAlbumTracks(id) {
+  const k = ytKey();
+  if (!k) return [];
+  const j = await jget('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(k));
+  return (j.items || []).filter((x) => x.snippet && x.snippet.resourceId && x.snippet.resourceId.videoId && !/^(private|deleted) video$/i.test(x.snippet.title || '')).map((x) => {
+    const title = clip(dec(x.snippet.title), 200);
+    return { id: x.snippet.resourceId.videoId, title, artist: clip(dec(x.snippet.videoOwnerChannelTitle || '').replace(/ - Topic$/i, ''), 100), rmx: RMX.test(title) ? 1 : 0 };
+  });
+}
 async function ytTracks(id, name) {
   const k = ytKey();
   if (!k) return [];
@@ -102,6 +139,15 @@ module.exports = async (req, res) => {
   const name = clip(u.get('name'), 100);
   res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
   try {
+    const alb = clip(u.get('album'), 60);
+    if (alb) {
+      if (!/^[\w-]+$/.test(alb)) { res.status(400).json({ error: 'id tidak valid' }); return; }
+      res.status(200).json({ tracks: src === 'yt' ? await ytAlbumTracks(alb) : await audAlbumTracks(alb) }); return;
+    }
+    if (id && u.get('albums')) {
+      if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }
+      res.status(200).json({ albums: src === 'yt' ? await ytAlbums(id) : await audAlbums(id) }); return;
+    }
     if (id) {
       if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }
       res.status(200).json({ tracks: src === 'yt' ? await ytTracks(id, name) : await audTracks(id, name) });

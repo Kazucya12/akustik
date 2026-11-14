@@ -167,7 +167,7 @@
     if(dmCache[key]){show(dmCache[key]);return}
     var loc=localFor(mx);
     sub(shd('Daily Mix '+(k+1))+'<div class="em">Menyiapkan mix…</div>');
-    Promise.all(mx.map(function(a){return fetch('/api/music?src=all&q='+encodeURIComponent(a)).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})})).then(function(rs2){
+    Promise.all(mx.map(function(a){return ytSearch(a).catch(function(){return[]})})).then(function(rs2){
       var seen={},all=[];
       loc.concat([].concat.apply([],rs2).map(function(x){x.h=hh(x.title);return x})).forEach(function(t){if(t&&t.id!=null&&!seen[t.id]){seen[t.id]=1;all.push(t)}});
       dmCache[key]=seeded(all,key).slice(0,30);show(dmCache[key]);

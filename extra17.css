@@ -1,0 +1,12 @@
+/* Loopify v4.7 - gaya untuk extra17.js */
+.x17s{align-items:center}
+.x17i{width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:12px;background:var(--c);color:var(--mu);font-size:18px}
+.x17s>div{flex:1;min-width:0}
+.x17ab{margin:18px 16px 28px;padding:14px;border-radius:18px;background:var(--c)}
+.x17h{font-size:12px;font-weight:700;color:var(--mu);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.x17r{display:flex;gap:12px;align-items:center}
+.x17r img{width:56px;height:56px;border-radius:50%;object-fit:cover}
+.x17r small{display:block;color:var(--mu);font-size:12px}
+.x17b{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.x17b .btn{flex:1;min-width:96px;padding:9px 10px;font-size:13px}
+.x17b .btn.on{background:var(--p);color:#fff}

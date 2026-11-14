@@ -110,7 +110,48 @@
   if(_ch)window.x16Ch=function(a){_ch(a);inj()};
   if(_tb)window.x16Tab=function(t){_tb(t);inj()};
 
+
+  /* ---------- Beranda: Untuk kamu (saran dari riwayat dengar, dicari lewat YouTube, disimpan 12 jam) ---------- */
+  var GENX=/^(Lagu Saya|Link kustom|YouTube|Tidak diketahui|Radio)$/i,BADX=/(full album|nonstop|non stop|kumpulan|compilation|playlist|\b\d+\s*(jam|hours?|hrs?)\b)/i;
+  function nmx(s){return String(s||'').toLowerCase().replace(/\(.*?\)|\[.*?\]/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim()}
+  function seeds(){
+    var out=[],S={};
+    function add(n){n=String(n||'').trim();var k=n.toLowerCase();if(!n||GENX.test(n)||S[k])return;S[k]=1;out.push(n)}
+    hist.map(rs).filter(Boolean).slice(0,6).forEach(function(t){add(t.artist)});
+    Object.entries(stt.ar||{}).sort(function(a,b){return(+b[1]||0)-(+a[1]||0)}).slice(0,4).forEach(function(e){add(e[0])});
+    favs.map(rs).filter(Boolean).slice(0,6).forEach(function(t){add(t.artist)});
+    return out.slice(0,3);
+  }
+  function fyGet(sd,force){
+    var c=ls.get('ufk',null);
+    if(!force&&c&&c.l&&Date.now()-c.t<c.ttl)return Promise.resolve(c.l.map(function(x){return mkV(x.v,x.t,x.a)}));
+    return Promise.all(sd.map(function(a){return ytSearch(a+' lagu').catch(function(){return[]})})).then(function(R){
+      var known={},S={};
+      hist.concat(favs).map(rs).filter(Boolean).forEach(function(t){known[t.id]=1;known['t:'+nmx(t.title)]=1});
+      var out=[];
+      for(var i=0;out.length<15&&i<20;i++){
+        R.forEach(function(l){var x=l[i];if(!x||known[x.id]||BADX.test(x.title))return;var k='t:'+nmx(x.title);if(known[k]||S[k])return;S[k]=1;out.push(x)});
+      }
+      out=out.slice(0,15);
+      ls.set('ufk',{t:Date.now(),ttl:out.length?12*3600e3:30*60e3,l:out.map(function(x){return{v:x.vid,t:x.title,a:x.artist}})});
+      return out;
+    });
+  }
+  function homeFy(force){
+    var h=Q('#v [data-x16h]');if(!h||Q('[data-x23]',h))return;
+    var sd=seeds();if(!sd.length)return;
+    var d=document.createElement('div');d.setAttribute('data-x23','1');h.appendChild(d);
+    fyGet(sd,force).then(function(l){
+      if(!d.isConnected)return;
+      if(!l.length){d.remove();return}
+      lists.fy=l;
+      d.innerHTML='<div class="sec"><h3>Untuk kamu</h3><a onclick="x23R()">Segarkan</a></div><div class="hs">'+l.map(function(t,i){return'<div class="cd" onclick="P(\'fy\','+i+')"><img src="'+E(cov(t))+'" alt=""><b>'+E(t.title)+'</b><small>'+E(t.artist)+'</small></div>'}).join('')+'</div>';
+    }).catch(function(){if(d.isConnected)d.remove()});
+  }
+  window.x23R=function(){var d=Q('[data-x23]');if(d)d.remove();homeFy(true)};
+
   var v=Q('#v');
-  if(v&&window.MutationObserver)new MutationObserver(function(){try{homeNew();libBadge()}catch(e){}}).observe(v,{childList:true});
+  if(v&&window.MutationObserver)new MutationObserver(function(){try{homeNew();homeFy();libBadge()}catch(e){}}).observe(v,{childList:true});
+  setTimeout(function(){try{homeNew();homeFy()}catch(e){}},700);
   setTimeout(function(){try{latest().then(libBadge)}catch(e){}},2500);
 })();

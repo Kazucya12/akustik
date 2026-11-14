@@ -11,8 +11,8 @@
   var RAD=null,mor=0;
   function sim(art,title,have){
     var qs=[art];if(title)qs.push(String(title).split(/[\(\[\-]/)[0]+' '+art);
-    return Promise.all(qs.map(function(s){return jget('/api/music?src=all&q='+encodeURIComponent(s))})).then(function(r){
-      var o=[],S={};r.forEach(function(a){(Array.isArray(a)?a:[]).forEach(function(x){if(x&&x.id&&x.url&&!S[x.id]&&!have[x.id]){S[x.id]=1;o.push(toT(x))}})});
+    return Promise.all(qs.map(function(s){return ytSearch(s).catch(function(){return[]})})).then(function(r){
+      var o=[],S={};r.forEach(function(a){(Array.isArray(a)?a:[]).forEach(function(x){if(x&&x.id&&(x.url||x.yt)&&!S[x.id]&&!have[x.id]){S[x.id]=1;o.push(toT(x))}})});
       return o.sort(function(){return Math.random()-.5});
     });
   }

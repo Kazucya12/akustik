@@ -1,5 +1,7 @@
 # Midnight Acoustic
 
+> **v4.12:** sumber Audius, Jamendo, dan Internet Archive dihapus. Sumber yang tersisa: YouTube (`api/yt-music.js`, butuh `YOUTUBE_API_KEY`) dan Radio (`api/music.js`). Trending, Daily Mix, lagu serupa, rekomendasi, dan impor playlist sekarang memakai pencarian YouTube. Lagu lama yang tersimpan dengan alamat Audius tetap bisa diputar selama alamatnya masih hidup.
+
 Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) dan dua fungsi server di `api/` supaya API key tidak terlihat di browser.
 
 ## Fitur (v2.4)
@@ -30,7 +32,7 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
 - `extra.js`: fitur v3.1, `extra2.js`: fitur v3.2 (dimuat setelah `app.js`)
 - `api/import.js`: ambil daftar lagu dari link Spotify/YouTube (YouTube butuh `YOUTUBE_API_KEY`)
 - `index.html`, `style.css`, `app.js`: aplikasi
-- `api/music.js`: pencarian musik (Audius, Jamendo, Internet Archive, radio-browser, atau API kustom)
+- `api/music.js`: stasiun radio (radio-browser) atau API kustom
 - `api/yt-search.js`: pencarian video YouTube
 - `api/soundstat.js`: rekomendasi lagu berdasarkan suasana, aktivitas, dan waktu (SoundStat)
 - `manifest.json`, `sw.js`, `icon-*.png`: PWA
@@ -42,8 +44,6 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
 3. Buka Project > Settings > Environment Variables, lalu isi:
    - `YOUTUBE_API_KEY` (wajib untuk cari video)
    - `SOUNDSTAT_API_KEY` (wajib untuk Rekomendasi Suasana)
-   - `AUDIUS_API_KEY` (opsional, dipakai saat mencari lagu di Audius)
-   - `JAMENDO_CLIENT_ID` (opsional, gratis di devportal.jamendo.com; tanpa ini sumber Jamendo dilewati)
    - `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `AUTH_SECRET` (wajib untuk login Gmail, lihat bagian v3.5)
    - `MUSIC_API_URL` dan `MUSIC_API_KEY` (opsional, untuk sumber "API server sendiri")
 4. Redeploy supaya variabel terbaca.

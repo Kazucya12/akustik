@@ -124,11 +124,7 @@ function score(w,c){
 }
 async function matchOne(w){
   const qq=((clean(w.title)+' '+clean(w.artist)).trim()||w.title).slice(0,80);
-  const r=await fetch('/api/music?src=audius&q='+encodeURIComponent(qq));
-  if(!r.ok)return null;
-  const a=arrOf(await r.json());let best=null,bs=-1;
-  a.forEach(c=>{if(!c||!c.url)return;const s=score(w,c);if(s>bs){bs=s;best=c}});
-  return bs>0?{...best,h:hh(best.title)}:null;
+  return null; // Audius dihapus: pencocokan lewat YouTube (ytFind)
 }
 window.impOpen=function(){
   clp();

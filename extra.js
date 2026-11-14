@@ -19,7 +19,8 @@ srch=async function(s){
   return arrOf(await r.json()).map(x=>({...x,h:hh(x.title)}));
 };
 
-let agH='';
+let agH='',sord='';
+window.setOrd=k=>{sord=k;lres=null;agH='';go('explore');if(lq.trim()&&smode!='v')doSearch(lq)};
 const shG=()=>ls.get('sh',[]);
 window.SH=i=>shG()[i];
 function shAdd(s){s=String(s||'').trim().slice(0,60);if(s.length<2)return;ls.set('sh',[s,...shG().filter(x=>x.toLowerCase()!=s.toLowerCase())].slice(0,10))}
@@ -47,9 +48,9 @@ doSearch=async function(s){
   r.innerHTML=skel6(6);shR();
   const k=s.trim().toLowerCase();
   const loc=mineAll().filter(t=>(t.title+' '+t.artist).toLowerCase().includes(k)).slice(0,8);
-  const [on,vd]=await Promise.allSettled([srch(s),ytSearch(s)]);
+  const [on,vd]=await Promise.allSettled([srch(s),ytSearch(s,sord)]);
   if(lq!==s||smode!='a')return;
-  const o=on.status=='fulfilled'?on.value.slice(0,20):[],v=vd.status=='fulfilled'?vd.value.slice(0,o.length<8?15:5):[];
+  const o=on.status=='fulfilled'?on.value.slice(0,20):[],v=vd.status=='fulfilled'?vd.value.slice(0,o.length<8?40:10):[];
   lres=null;
   const sec=t=>`<div class="sec"><h3>${t}</h3></div>`;
   agH=(loc.length?sec('Di Library')+rows('sl',loc):'')+(o.length?rows('sr',o):'')+(v.length?rows('sv',v):'');
@@ -82,7 +83,7 @@ V.explore=function(){
   h=h.replace(/<div class="sec"><small>Hasil pencarian online[^<]*<\/small><\/div>/,'');
   h=h.replace(/<div class="chips"><span class="chip [^"]*" onclick="smode='m';go\('explore'\)">Musik<\/span><span class="chip [^"]*" onclick="smode='v';go\('explore'\)">Video<\/span><\/div>/,
     `<div class="chips">${[['a','Semua'],['v','Video']].map(x=>`<span class="chip ${smode==x[0]?'a':''}" onclick="setMode('${x[0]}')">${x[1]}</span>`).join('')}</div>`+
-    (smode!='v'?`<div class="chips">${SRC.map(x=>`<span class="chip ${cfg.src==x[0]?'a':''}" onclick="setSrc('${x[0]}')">${x[1]}</span>`).join('')}</div>`:''));
+    (smode!='v'?`<div class="chips">${[['','Relevan'],['viewCount','Terpopuler'],['date','Terbaru']].map(x=>`<span class="chip ${sord==x[0]?'a':''}" onclick="setOrd('${x[0]}')">${x[1]}</span>`).join('')}</div>`:'')+(smode!='v'?`<div class="chips">${SRC.map(x=>`<span class="chip ${cfg.src==x[0]?'a':''}" onclick="setSrc('${x[0]}')">${x[1]}</span>`).join('')}</div>`:''));
   h=h.replace('<div id="res">',`<div id="sh">${shHtml()}</div>${cfg.src=='radio'&&smode!='v'?rdSec():''}<div id="res">${smode=='a'?agH:''}`);
   return h;
 };
@@ -141,4 +142,31 @@ window.plCv=i=>{
   f.onchange=async()=>{const x=f.files[0];if(!x)return;const d=await shrink(x);if(!d){toast('Gagal membaca gambar');return}pls[i].img=d;plSave();toast('Cover playlist diganti');openPl(i,1)};
   f.click();
 };
+})();
+
+/* ---------- Setelah memilih lagu dari hasil pencarian, antrean diisi lagu terkait (seperti YouTube) ---------- */
+(function(){
+  const norm=s=>String(s||'').toLowerCase().replace(/\(.*?\)|\[.*?\]/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+  const BAD=/(full album|nonstop|non stop|kumpulan|compilation|playlist|\b\d+\s*(jam|hours?|hrs?)\b)/i;
+  const GEN=/^(YouTube|Tidak diketahui|Lagu Saya|Radio)$/i;
+  const _P0=P;
+  P=function(k,i){
+    const t=lists[k]&&lists[k][i];
+    if(k!='sv'||!t||!t.yt)return _P0(k,i);
+    lists.sv1=[t];          // putar lagu pilihan dulu, lagu terkait menyusul di antrean
+    _P0('sv1',0);
+    fill(t);
+  };
+  async function fill(t){
+    try{
+      const base=GEN.test(String(t.artist||'').trim())?t.title:t.artist;
+      const r=await ytSearch(String(base||'').trim()+' lagu');
+      if(cur!==t)return;      // lagu sudah diganti sebelum saran selesai dimuat
+      const seen=new Set([norm(t.title)]);
+      const rel=r.filter(x=>{if(!x||x.id==t.id||BAD.test(x.title))return false;const n=norm(x.title);if(!n||seen.has(n))return false;seen.add(n);return true}).slice(0,20);
+      if(!rel.length)return;
+      q=[t,...rel];qi=0;vq=[t,...rel];vi=0;
+      try{rp()}catch(e){}
+    }catch(e){}
+  }
 })();

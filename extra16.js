@@ -41,7 +41,7 @@
   doSearch=async function(s){await _ds(s);try{rnd()}catch(e){}};
 
   /* ---------- 2. Profil artis seperti channel (Lagu / Remix / Koleksimu) + Ikuti ---------- */
-  var ARC={},CH=null,CHC={};
+  var ARC={},CH=null,CHC={},CHN={};
   function fmtN(n){n=+n||0;return n>=1e6?(n/1e6).toFixed(1).replace('.0','')+' jt':n>=1e3?Math.round(n/1e3)+' rb':String(n)}
   function subT(a){return a.src=='yt'?(a.subs?fmtN(a.subs)+' subscriber · ':'')+'YouTube':a.src=='au'?(a.subs?fmtN(a.subs)+' pengikut · ':'')+'Audius':'Di koleksimu'}
   function fetchArtists(q){
@@ -62,16 +62,25 @@
     b.onclick=function(){folTg(a);paint()};paint();
   }
   function chBody(){
-    var a=CH.a,tr=CH.tr,own=CH.own,L=tr===null&&CH.tab!='own'?null:CH.tab=='rmx'?tr.filter(function(x){return x.rmx}):CH.tab=='own'?own:tr.filter(function(x){return!x.rmx});
+    var a=CH.a,tr=CH.tr,own=CH.own,L=CH.tab=='new'?(CH.nw||null):tr===null&&CH.tab!='own'?null:CH.tab=='rmx'?tr.filter(function(x){return x.rmx}):CH.tab=='own'?own:tr.filter(function(x){return!x.rmx});
     if(L===null)return'<div class="em">Memuat…</div>';
-    if(!L.length)return'<div class="em">'+(CH.tab=='rmx'?'Belum ada remix.':'Belum ada lagu.')+'</div>';
+    if(!L.length)return'<div class="em">'+(CH.tab=='rmx'?'Belum ada remix.':CH.tab=='new'?'Belum ada rilis terbaru.':'Belum ada lagu.')+'</div>';
     return'<div class="x16pb"><button class="btn" onclick="P(\'ch\',0)">▶ Putar</button><button class="btn g" onclick="x16Shuf()">⤮ Acak</button></div>'+rows('ch',L);
   }
   function chTabs(){
-    var T=[['lagu','Lagu'],['rmx','Remix']];if(CH.own.length)T.push(['own','Koleksimu']);
+    var T=[['lagu','Terpopuler']];if(CH.a&&CH.a.id&&CH.a.src=='yt')T.push(['new','Terbaru']);T.push(['rmx','Remix']);if(CH.own.length)T.push(['own','Koleksimu']);
     return T.map(function(x){return'<span class="chip '+(CH.tab==x[0]?'a':'')+'" onclick="x16Tab(\''+x[0]+'\')">'+x[1]+'</span>'}).join('');
   }
-  window.x16Tab=function(t){CH.tab=t;var c=Q('#x16t'),b=Q('#x16b');if(c)c.innerHTML=chTabs();if(b)b.innerHTML=chBody()};
+  function loadNew(){
+    var a=CH.a,key=CH.key;
+    if(CHN[key]){CH.nw=CHN[key];return}
+    fetch('/api/artist?src='+a.src+'&id='+encodeURIComponent(a.id)+'&latest=1&n=25&name='+encodeURIComponent(a.name)).then(function(r){return r.ok?r.json():{tracks:[]}}).catch(function(){return{tracks:[]}}).then(function(j){
+      var t=(j.tracks||[]).map(function(x){return Object.assign(mkV(x.id,x.title,x.artist),{ts:x.ts})}).sort(function(m,n){return(n.ts||0)-(m.ts||0)});
+      CHN[key]=t;
+      if(CH&&CH.key==key){CH.nw=t;if(CH.tab=='new'){var b=Q('#x16b');if(b)b.innerHTML=chBody()}}
+    });
+  }
+  window.x16Tab=function(t){CH.tab=t;if(t=='new'&&CH.nw===undefined)loadNew();var c=Q('#x16t'),b=Q('#x16b');if(c)c.innerHTML=chTabs();if(b)b.innerHTML=chBody()};
   window.x16Shuf=function(){lists.ch=(lists.ch||[]).slice().sort(function(){return Math.random()-.5});P('ch',0)};
   window.x16Ch=function(a){
     clp();var key=a.src+a.id;
@@ -95,7 +104,7 @@
       if(m)x16Ch(m);else old();
     });
   };
-  window.x16FG=function(i){var f=fol()[i];if(!f)return;if(f.i)x16Ch({src:f.s,id:f.i,name:f.n,img:f.img,subs:0,v:0});else artistPg(f.n)};
+  window.x16FG=function(i){var f=fol()[i];if(!f)return;if(f.i&&f.s=='yt')x16Ch({src:f.s,id:f.i,name:f.n,img:f.img,subs:0,v:0});else artistPg(f.n)};
   var _al=window.arList;
   window.arList=function(){
     var h=_al(),f=fol();if(!f.length)return h;var seen={};

@@ -1,6 +1,7 @@
 // /api/artist?q=nama                     -> [{ src, id, name, img, subs, v }]   (cari profil artis)
 // /api/artist?src=au&id=ID&name=Nama     -> { tracks: [{..., rmx}] }            (lagu Audius milik artis)
 // /api/artist?src=au&id=ID&albums=1       -> { albums: [{ id, name, img, n }] }
+// /api/artist?src=au|yt&id=ID&latest=1     -> { tracks: [... ts] }                (rilis terbaru, untuk Beranda)
 // /api/artist?album=ID&src=au|yt           -> { tracks: [...] }                    (isi satu album; YouTube = playlist milik channel)
 // /api/artist?src=yt&id=CHANNEL_ID       -> { tracks: [{..., yt, vid, rmx}] }   (video channel YouTube)
 // Audius gratis. Channel YouTube butuh YOUTUBE_API_KEY (tanpa key, hanya artis Audius yang muncul).
@@ -61,11 +62,12 @@ const mapT = (t, name) => ({
   url: `${AUD}/tracks/${t.id}/stream?${APP}`,
   dl: t.is_downloadable && !t.is_download_gated ? 1 : 0,
   d: +t.duration || 0,
+  ts: Date.parse(t.release_date || t.created_at) || 0,
   rmx: (t.remix_of && t.remix_of.tracks && t.remix_of.tracks.length) || RMX.test(t.title || '') ? 1 : 0,
 });
 const okT = (t) => t && t.id && t.is_streamable !== false && !t.is_delete && !t.is_stream_gated;
-async function audTracks(id, name) {
-  const j = await audGet(`/users/${encodeURIComponent(id)}/tracks?limit=60&sort=plays`);
+async function audTracks(id, name, latest) {
+  const j = await audGet(`/users/${encodeURIComponent(id)}/tracks?limit=${latest ? 8 : 60}&sort=${latest ? 'date' : 'plays'}`);
   return (j.data || []).filter(okT).map((t) => mapT(t, name));
 }
 async function audAlbums(id) {
@@ -123,6 +125,15 @@ async function ytAlbumTracks(id) {
     return { id: x.snippet.resourceId.videoId, title, artist: clip(dec(x.snippet.videoOwnerChannelTitle || '').replace(/ - Topic$/i, ''), 100), rmx: RMX.test(title) ? 1 : 0 };
   });
 }
+async function ytLatest(id) {
+  const k = ytKey();
+  if (!k || !/^UC[\w-]{22}$/.test(id)) return [];
+  const j = await jget('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=8&playlistId=UU' + id.slice(2) + '&key=' + encodeURIComponent(k));
+  return (j.items || []).filter((x) => x.snippet && x.snippet.resourceId && x.snippet.resourceId.videoId && !/^(private|deleted) video$/i.test(x.snippet.title || '')).map((x) => ({
+    id: x.snippet.resourceId.videoId, yt: 1, vid: x.snippet.resourceId.videoId, title: clip(dec(x.snippet.title), 200),
+    artist: clip(dec(x.snippet.videoOwnerChannelTitle || '').replace(/ - Topic$/i, ''), 100), ts: Date.parse(x.snippet.publishedAt) || 0,
+  }));
+}
 async function ytTracks(id, name) {
   const k = ytKey();
   if (!k) return [];
@@ -143,6 +154,10 @@ module.exports = async (req, res) => {
     if (alb) {
       if (!/^[\w-]+$/.test(alb)) { res.status(400).json({ error: 'id tidak valid' }); return; }
       res.status(200).json({ tracks: src === 'yt' ? await ytAlbumTracks(alb) : await audAlbumTracks(alb) }); return;
+    }
+    if (id && u.get('latest')) {
+      if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }
+      res.status(200).json({ tracks: src === 'yt' ? await ytLatest(id) : await audTracks(id, name, 1) }); return;
     }
     if (id && u.get('albums')) {
       if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }

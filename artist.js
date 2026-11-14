@@ -56,33 +56,59 @@ async function ytAlbumTracks(id) {
   if (!k) return [];
   const j = await jget('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(k));
   return (j.items || []).filter((x) => x.snippet && x.snippet.resourceId && x.snippet.resourceId.videoId && !/^(private|deleted) video$/i.test(x.snippet.title || '')).map((x) => {
-    const title = clip(dec(x.snippet.title), 200);
-    return { id: x.snippet.resourceId.videoId, title, artist: clip(dec(x.snippet.videoOwnerChannelTitle || '').replace(/ - Topic$/i, ''), 100), rmx: RMX.test(title) ? 1 : 0 };
+    const raw = clip(dec(x.snippet.title), 200);
+    const n = tidy(raw, dec(x.snippet.videoOwnerChannelTitle || ''));
+    return { id: x.snippet.resourceId.videoId, title: n.title, artist: clip(n.artist, 100), rmx: RMX.test(raw) ? 1 : 0 };
   });
 }
-async function ytLatest(id) {
+async function ytLatest(id, n) {
   const k = ytKey();
   if (!k || !/^UC[\w-]{22}$/.test(id)) return [];
-  const j = await jget('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=8&playlistId=UU' + id.slice(2) + '&key=' + encodeURIComponent(k));
-  return (j.items || []).filter((x) => x.snippet && x.snippet.resourceId && x.snippet.resourceId.videoId && !/^(private|deleted) video$/i.test(x.snippet.title || '')).map((x) => ({
-    id: x.snippet.resourceId.videoId, yt: 1, vid: x.snippet.resourceId.videoId, title: clip(dec(x.snippet.title), 200),
-    artist: clip(dec(x.snippet.videoOwnerChannelTitle || '').replace(/ - Topic$/i, ''), 100), ts: Date.parse(x.snippet.publishedAt) || 0,
-  }));
+  const j = await jget('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=' + (n || 8) + '&playlistId=UU' + id.slice(2) + '&key=' + encodeURIComponent(k));
+  return (j.items || []).filter((x) => x.snippet && x.snippet.resourceId && x.snippet.resourceId.videoId && !/^(private|deleted) video$/i.test(x.snippet.title || '')).map((x) => {
+    const t = tidy(clip(dec(x.snippet.title), 200), dec(x.snippet.videoOwnerChannelTitle || ''));
+    return { id: x.snippet.resourceId.videoId, yt: 1, vid: x.snippet.resourceId.videoId, title: t.title, artist: clip(t.artist, 100), ts: Date.parse(x.snippet.publishedAt) || 0 };
+  });
 }
 async function ytTracks(id, name) {
   const k = ytKey();
   if (!k) return [];
   const j = await jget('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=40&order=viewCount&channelId=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(k));
   return (j.items || []).filter((x) => x.id && x.id.videoId).map((x) => {
-    const title = clip(dec(x.snippet.title), 200);
-    return { id: x.id.videoId, title, artist: clip(dec(x.snippet.channelTitle), 100) || name, rmx: RMX.test(title) ? 1 : 0 };
+    const raw = clip(dec(x.snippet.title), 200);
+    const n = tidy(raw, dec(x.snippet.channelTitle) || name);
+    return { id: x.id.videoId, title: n.title, artist: clip(n.artist, 100) || name, rmx: RMX.test(raw) ? 1 : 0 };
   });
+}
+
+// Rapikan judul dan nama penyanyi supaya mirip aplikasi musik (bukan judul video mentah)
+const TAG = /\b(official|video|audio|lyrics?|lirik|visuali[sz]er|mv|m\/v|hd|4k|clip|klip|resmi|music)\b/i;
+function cleanArtist(a) {
+  const r = String(a || '').replace(/\s*-\s*Topic$/i, '').replace(/\s*VEVO$/i, '').replace(/\s*(official( channel)?|resmi)$/i, '').replace(/\s+/g, ' ').trim();
+  return r || String(a || '').trim();
+}
+function tidy(rawTitle, rawArtist) {
+  let t = String(rawTitle || '');
+  let a = cleanArtist(rawArtist);
+  // buang tag dalam kurung: (Official Video), [Lyrics], (Video Lirik), dst.
+  t = t.replace(/\s*[\(\[【]([^\)\]】]*)[\)\]】]/g, (m, inner) => (TAG.test(inner) ? '' : m));
+  t = t.replace(/\s*[|｜]\s*(official|lyric|video|audio|lirik|mv|visuali).*$/i, '');
+  t = t.replace(/\s+[-–—]\s*(official|lyric|video|audio|lirik|visuali)[^-–—]*$/i, '').replace(/^\s*[\[\(【](mv|m\/v|official[^\]\)】]*)[\]\)】]\s*/i, '').replace(/\s+/g, ' ').trim();
+  // "Artis - Judul" -> pisahkan; "Judul - Artis" (nama channel sama dengan bagian kanan) -> tukar
+  const m = t.match(/^(.{2,60}?)\s[-–—]\s(.{2,})$/);
+  if (m) {
+    const l = m[1].trim(), r = m[2].trim(), an = a.toLowerCase();
+    if (an && r.toLowerCase() === an) { a = r; t = l; }
+    else if (!/^(live|cover|remix|acoustic|akustik)\b/i.test(r)) { a = l; t = r; }
+  }
+  return { title: t || String(rawTitle || ''), artist: a || String(rawArtist || '') };
 }
 
 module.exports = async (req, res) => {
   const u = new URL(req.url, 'http://x').searchParams;
   const q = clip(u.get('q'), 100), id = clip(u.get('id'), 60), src = u.get('src') === 'yt' ? 'yt' : 'au';
   const name = clip(u.get('name'), 100);
+  const n = Math.min(30, Math.max(1, parseInt(u.get('n'), 10) || 8));
   res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
   try {
     const alb = clip(u.get('album'), 60);
@@ -92,7 +118,7 @@ module.exports = async (req, res) => {
     }
     if (id && u.get('latest')) {
       if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }
-      res.status(200).json({ tracks: src === 'yt' ? await ytLatest(id) : [] }); return;
+      res.status(200).json({ tracks: src === 'yt' ? await ytLatest(id, n) : [] }); return;
     }
     if (id && u.get('albums')) {
       if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }

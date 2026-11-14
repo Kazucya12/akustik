@@ -91,7 +91,7 @@
   };
   window.x17Sim=function(b){
     var t=cur;if(!t)return;b.disabled=true;b.textContent='Mencari…';
-    fetch('/api/music?src=all&q='+encodeURIComponent(t.artist+' '+t.title.split(/[\(\[\-]/)[0])).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]}).then(function(a){
+    ytSearch(t.artist+' '+t.title.split(/[\(\[\-]/)[0]).catch(function(){return[]}).then(function(a){
       b.disabled=false;b.textContent='Lagu serupa';
       a=(Array.isArray(a)?a:[]).filter(function(x){return x&&x.id!=t.id}).slice(0,25).map(function(x){return Object.assign({h:hh(x.title)},x)});
       if(!a.length)return;lists.sim=a;clp();sub(shd('Lagu serupa')+rows('sim',a));

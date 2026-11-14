@@ -5,13 +5,14 @@
 if(!ls.get('v31',0)){ls.set('v31',1);if(cfg.src=='audius'){cfg.src='all';ls.set('cfg',cfg)}}
 smode='a';
 
-const SRC=[['all','Musik'],['radio','Radio']];
+const SRC=[['radio','Radio']];
 const GENERIC=/^(Lagu Saya|Link kustom|YouTube|Tidak diketahui|Radio)$/i;
 const uniq=a=>{const s=new Set();return a.filter(t=>t&&t.id!=null&&!s.has(t.id)&&s.add(t.id))};
 const mineAll=()=>uniq([...songs,...favs.map(rs),...hist.map(rs),...pls.flatMap(p=>p.tr.map(rs))]).filter(t=>!t.yt);
 
 /* ---------- Pencarian: sumber, kesalahan, gabungan, riwayat ---------- */
 srch=async function(s){
+  if(cfg.src!='radio')return[];
   const r=await fetch('/api/music?src='+cfg.src+'&q='+encodeURIComponent(s));
   if(r.status==501){toast('Sumber ini belum diaktifkan di server. Isi key-nya di Vercel');return[]}
   if(!r.ok)throw 0;
@@ -52,13 +53,13 @@ doSearch=async function(s){
   lres=null;
   const sec=t=>`<div class="sec"><h3>${t}</h3></div>`;
   agH=(loc.length?sec('Di Library')+rows('sl',loc):'')+(o.length?rows('sr',o):'')+(v.length?rows('sv',v):'');
-  if(!agH)agH=on.status=='rejected'?'<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber.</div>':'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>';
+  if(!agH)agH=vd.status=='rejected'?'<div class="em">'+esc(ytMsg(vd.reason))+'</div>':on.status=='rejected'?'<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber.</div>':'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>';
   else shAdd(s);
   r.innerHTML=agH;shR();
 };
 
 window.setMode=m=>{smode=m;lres=null;agH='';go('explore');if(lq.trim())doSearch(lq)};
-window.setSrc=k=>{cfg.src=k;ls.set('cfg',cfg);lres=null;agH='';go('explore');if(lq.trim()&&smode!='v')doSearch(lq)};
+window.setSrc=k=>{cfg.src=cfg.src==k?'all':k;ls.set('cfg',cfg);lres=null;agH='';go('explore');if(lq.trim()&&smode!='v')doSearch(lq)};
 
 /* ---------- Radio ---------- */
 const RD=[['ID','','Indonesia'],['','','Dunia'],['','pop','Pop'],['','rock','Rock'],['','jazz','Jazz'],['','news','Berita']];
@@ -80,7 +81,7 @@ V.explore=function(){
   /* Pilihan Semua/Musik saja disembunyikan: pencarian selalu mode Semua (musik + video YouTube diputar sebagai audio) */
   h=h.replace(/<div class="sec"><small>Hasil pencarian online[^<]*<\/small><\/div>/,'');
   h=h.replace(/<div class="chips"><span class="chip [^"]*" onclick="smode='m';go\('explore'\)">Musik<\/span><span class="chip [^"]*" onclick="smode='v';go\('explore'\)">Video<\/span><\/div>/,
-    `<div class="chips">${[['a','Semua'],['m','Musik'],['v','Video']].map(x=>`<span class="chip ${smode==x[0]?'a':''}" onclick="setMode('${x[0]}')">${x[1]}</span>`).join('')}</div>`+
+    `<div class="chips">${[['a','Semua'],['v','Video']].map(x=>`<span class="chip ${smode==x[0]?'a':''}" onclick="setMode('${x[0]}')">${x[1]}</span>`).join('')}</div>`+
     (smode!='v'?`<div class="chips">${SRC.map(x=>`<span class="chip ${cfg.src==x[0]?'a':''}" onclick="setSrc('${x[0]}')">${x[1]}</span>`).join('')}</div>`:''));
   h=h.replace('<div id="res">',`<div id="sh">${shHtml()}</div>${cfg.src=='radio'&&smode!='v'?rdSec():''}<div id="res">${smode=='a'?agH:''}`);
   return h;
@@ -104,8 +105,7 @@ window.artistPg=async function(n){
   lists.am=mine;
   sub(`${shd(esc(n))}<div style="text-align:center;margin:4px 0 14px"><img src="${esc(cov(mine[0]||{h:hh(n)}))}" style="width:112px;height:112px;border-radius:50%;object-fit:cover;box-shadow:var(--sh)"><h2 style="margin-top:10px">${esc(n)}</h2><small>${mine.length?mine.length+' lagu di perangkat dan koleksimu':'Belum ada lagu di koleksimu'}</small></div>${mine.length?`<button class="btn" style="margin-bottom:8px" onclick="play(lists.am,0);openP()">▶ Putar Semua</button>${rows('am',mine)}`:''}<div class="sec"><h3>Lagu Online</h3></div><div id="ao"><div class="em">Memuat…</div></div>`);
   try{
-    const r=await fetch('/api/music?src=all&q='+encodeURIComponent(n));
-    let a=r.ok?arrOf(await r.json()).map(x=>({...x,h:hh(x.title)})):[];
+    let a=await ytSearch(n);
     const m=a.filter(x=>String(x.artist||'').toLowerCase().includes(k));
     a=(m.length?m:a).slice(0,15);
     const e=$('#ao');if(!e)return;

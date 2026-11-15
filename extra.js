@@ -112,7 +112,7 @@ window.artistPg=async function(n){
     const e=$('#ao');if(!e)return;
     lists.ao=a;
     e.innerHTML=a.length?`<button class="btn g" style="margin-bottom:8px" onclick="play(lists.ao,0);openP()">▶ Putar Semua</button>${rows('ao',a)}`:'<div class="em">Tidak ada lagu online untuk artis ini.</div>';
-  }catch(x){const e=$('#ao');if(e)e.innerHTML='<div class="em">Tidak bisa terhubung.</div>'}
+  }catch(x){const e=$('#ao');if(e)e.innerHTML='<div class="em">'+esc(ytMsg(x))+'</div>'}
 };
 
 /* ---------- Edit playlist: nama, cover, urutan, hapus lagu ---------- */

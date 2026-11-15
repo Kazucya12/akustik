@@ -1,0 +1,17 @@
+/* Loopify v4.24 - gaya untuk extra26.js */
+.x26t{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:18px;border-radius:20px;background:var(--c);border:1px solid var(--b);box-shadow:var(--sh);cursor:pointer;margin-bottom:14px;overflow:hidden}
+.x26t img{width:96px;height:96px;border-radius:12px;object-fit:cover;box-shadow:0 8px 22px rgba(0,0,0,.35);margin-bottom:8px}
+.x26t img.r{border-radius:50%}
+.x26t b{font-size:24px;line-height:1.15;font-weight:800;letter-spacing:-.3px;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.x26t small{font-size:12px;color:var(--mu)}
+.x26t small i{font-style:normal;display:inline-block;padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.14);color:var(--tx);font-weight:700;font-size:11px}
+.x26p{position:absolute;right:16px;bottom:16px;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;padding-left:3px;background:var(--g,var(--p));color:#fff;font-size:18px;box-shadow:0 8px 20px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);transition:.18s}
+.x26t:hover .x26p,.x26t:active .x26p{opacity:1;transform:none}
+@media (hover:none){.x26p{opacity:1;transform:none}}
+.x26sv{margin-top:10px;padding:8px 18px;border-radius:99px;border:1px solid var(--b);background:var(--c);color:var(--tx);font-weight:700;font-size:13px;cursor:pointer}
+.x26sv.on{background:var(--p);border-color:var(--p);color:#fff}
+.x26ag{margin-top:10px}
+.x26ac{cursor:pointer;min-width:0}
+.x26ac img{display:block;width:100%;aspect-ratio:1;border-radius:14px;object-fit:cover;box-shadow:var(--sh)}
+.x26ac b{display:block;font-size:13px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x26ac small{display:block;font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

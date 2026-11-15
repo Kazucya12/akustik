@@ -3,6 +3,7 @@
 // /api/artist?src=yt&id=ID&latest=1     -> { tracks: [... ts] }                (rilis terbaru, untuk Beranda)
 // /api/artist?album=ID&src=yt           -> { tracks: [...] }                    (isi satu album; YouTube = playlist milik channel)
 // /api/artist?src=yt&id=CHANNEL_ID       -> { tracks: [{..., yt, vid, rmx}] }   (video channel YouTube)
+// /api/artist?names=A|B|C                -> { res: { A: {id,name,img,subs}|null, ... }, quota }   (foto channel banyak artis sekaligus, maks 8)
 // Hanya YouTube (butuh YOUTUBE_API_KEY). Permintaan src=au lama dijawab kosong.
 const UA = 'MidnightAcoustic/4.6';
 const RMX = /\b(remix|mix|edit|bootleg|flip|rework|vip|mashup|slowed|sped up|nightcore)\b/i;
@@ -41,6 +42,45 @@ async function ytArtists(q) {
       subs: s.hiddenSubscriberCount ? 0 : +s.subscriberCount || 0, v: 0,
     };
   });
+}
+
+/* Cocokkan banyak nama artis ke channel YouTube-nya (nama + foto). 1 pencarian channel per nama (100 unit kuota), jadi hasilnya di-cache lama. */
+const normN = (s) => String(s || '').toLowerCase().replace(/\s*-\s*topic$/, '').replace(/\b(official|vevo|music|channel|resmi)\b/g, '').replace(/[^a-z0-9À-￿]+/g, '');
+async function ytResolve(names) {
+  const k = ytKey();
+  const out = {};
+  let quota = false;
+  if (!k) return { res: out, quota: false };
+  const found = {};
+  await Promise.all(names.map(async (n) => {
+    try {
+      const j = await jget('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=3&q=' + encodeURIComponent(n) + '&key=' + encodeURIComponent(k));
+      found[n] = (j.items || []).filter((x) => x.id && x.id.channelId);
+    } catch (e) {
+      if (/403|429/.test(String(e.message))) quota = true;
+      found[n] = null;
+    }
+  }));
+  const ids = [...new Set(Object.values(found).flatMap((a) => (a || []).map((x) => x.id.channelId)))].slice(0, 50);
+  const st = {};
+  if (ids.length) {
+    try {
+      const s = await jget('https://www.googleapis.com/youtube/v3/channels?part=statistics&id=' + ids.join(',') + '&key=' + encodeURIComponent(k));
+      (s.items || []).forEach((c) => { st[c.id] = c.statistics || {}; });
+    } catch (e) { /* subscriber opsional */ }
+  }
+  names.forEach((n) => {
+    const a = found[n];
+    if (a === null) return; // gagal: jangan di-cache sebagai "tidak ketemu"
+    const nn = normN(n);
+    const sc = (x) => { const t = normN(x.snippet.channelTitle || x.snippet.title); return !nn || !t ? 0 : t === nn ? 3 : (t.indexOf(nn) >= 0 || nn.indexOf(t) >= 0) ? 2 : 0; };
+    const subs = (x) => { const s = st[x.id.channelId] || {}; return s.hiddenSubscriberCount ? 0 : +s.subscriberCount || 0; };
+    const best = a.map((x) => ({ x, r: sc(x), s: subs(x) })).filter((m) => m.r > 0).sort((m, o) => o.r - m.r || o.s - m.s)[0];
+    if (!best) { out[n] = null; return; }
+    const th = best.x.snippet.thumbnails || {};
+    out[n] = { id: best.x.id.channelId, name: clip(dec(best.x.snippet.channelTitle || best.x.snippet.title), 100), img: httpsOnly((th.high || th.medium || th.default || {}).url), subs: best.s };
+  });
+  return { res: out, quota };
 }
 async function ytAlbums(id) {
   const k = ytKey();
@@ -111,6 +151,14 @@ module.exports = async (req, res) => {
   const n = Math.min(30, Math.max(1, parseInt(u.get('n'), 10) || 8));
   res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
   try {
+    const nm = clip(u.get('names'), 1500);
+    if (nm) {
+      const list = [...new Set(nm.split('|').map((x) => clip(x, 100)).filter(Boolean))].slice(0, 8);
+      const r = await ytResolve(list);
+      if (r.quota) res.setHeader('Cache-Control', 'no-store');
+      else res.setHeader('Cache-Control', 'public, s-maxage=604800, stale-while-revalidate=2592000');
+      res.status(200).json(r); return;
+    }
     const alb = clip(u.get('album'), 60);
     if (alb) {
       if (!/^[\w-]+$/.test(alb)) { res.status(400).json({ error: 'id tidak valid' }); return; }

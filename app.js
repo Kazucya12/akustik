@@ -72,7 +72,7 @@ function P(k,i){const t=lists[k][i];if(t.rec){play(lists[k],i);openP();return}if
 let lq='',lres=null,lt='sg',pg='home',dt,smode='m';
 async function doSearch(s){lq=s;const r=$('#res');if(!s.trim()){lres=null;r.innerHTML='';return}r.innerHTML=skel6(6);
 try{lres=await srch(s);r.innerHTML=lres.length?rows('sr',lres):'<div class="em">Tidak ada hasil. Coba kata kunci lain.</div>'}catch(e){r.innerHTML='<div class="em">Tidak bisa terhubung. Periksa internet atau ganti sumber di Pengaturan.</div>'}}
-const onS=v=>{clearTimeout(dt);dt=setTimeout(()=>doSearch(v),500)};
+const onS=v=>{clearTimeout(dt);dt=setTimeout(()=>{if(window.x24H)x24H();const n=String(v).trim().length;if(!n||n>=3)doSearch(v)},1100)};
 function link(){const u=$('#lk').value.trim();if(!u)return;const y=ytId(u);if(y){vAdd(y);return}const t={id:'l'+Date.now(),title:decodeURIComponent(u.split('/').pop().split('?')[0])||'Lagu dari link',artist:'Link kustom',url:u,h:hh(u)};play([t],0);openP()}
 /* ===== Halaman ===== */
 const gen=[['Pop',280],['Rock',215],['Indie',260],['EDM',300],['Jazz',190],['Hip-Hop',330]];

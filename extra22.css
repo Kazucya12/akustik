@@ -15,3 +15,8 @@
 .x22pp{background:var(--p);color:#fff}
 .x22s{height:1px}
 .q-lb .q-x{float:right;color:var(--p);cursor:pointer;font-weight:700;font-size:12px}
+
+/* ---------- Kartu Beranda rapi: lebar tetap, judul maks 2 baris, penyanyi 1 baris ---------- */
+.cd{min-width:0}
+.cd b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;word-break:break-word}
+.cd small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}

@@ -170,3 +170,56 @@ window.plCv=i=>{
     }catch(e){}
   }
 })();
+
+/* ---------- Saran pencarian saat mengetik (ala YouTube/Spotify): koleksi sendiri + saran online gratis ---------- */
+(function(){
+  var st=document.createElement('style');
+  st.textContent='.srch{position:relative}#x24{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:60;max-height:58vh;overflow:auto;border-radius:16px;background:var(--bg);border:1px solid var(--b);box-shadow:0 12px 32px rgba(0,0,0,.35)}#x24 .x24r{display:flex;align-items:center;gap:10px;padding:11px 14px;font-size:14px;color:var(--tx);cursor:pointer}#x24 .x24r img{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none}#x24 .x24r b{display:block;font-weight:600}#x24 .x24r small{display:block;color:var(--mu);font-size:11px}#x24 .x24r span{flex:1;min-width:0}';
+  document.head.appendChild(st);
+  var cache={},ctl=null,tm=null,cq='';
+  function box(){var s=document.querySelector('.srch');if(!s)return null;var b=s.querySelector('#x24');if(!b){b=document.createElement('div');b.id='x24';s.appendChild(b)}return b}
+  function hide(){var b=document.getElementById('x24');if(b)b.remove()}
+  window.x24H=hide;
+  function loc(q){
+    var k=q.toLowerCase(),seen={},out=[];
+    [].concat(songs||[],hist.map(rs),favs.map(rs)).forEach(function(t){
+      if(!t||!t.title||out.length>=3||seen[t.id])return;
+      if((t.title+' '+(t.artist||'')).toLowerCase().indexOf(k)<0)return;
+      seen[t.id]=1;out.push(t);
+    });
+    return out;
+  }
+  function paint(q,rem){
+    var L=loc(q),R=(rem||[]).filter(function(s){return s.toLowerCase()!=q.toLowerCase()}).slice(0,8);
+    if(!L.length&&!R.length){hide();return}
+    var b=box();if(!b)return;
+    lists.x24=L;window.x24S=R;
+    b.innerHTML=L.map(function(t,i){return'<div class="x24r" onclick="x24P('+i+')"><img src="'+esc(cov(t))+'" alt=""><div><b>'+esc(t.title)+'</b><small>'+esc(t.artist||'')+' · di koleksimu</small></div></div>'}).join('')+
+      R.map(function(s,i){return'<div class="x24r" onclick="x24G('+i+')">🔎 <span>'+esc(s)+'</span></div>'}).join('');
+  }
+  window.x24G=function(i){var s=(window.x24S||[])[i];if(!s)return;clearTimeout(dt);hide();qs(s)};
+  window.x24P=function(i){hide();P('x24',i)};
+  function ask(q){
+    if(cache[q]){paint(q,cache[q]);return}
+    if(ctl)ctl.abort();
+    ctl=new AbortController();
+    fetch('/api/suggest?q='+encodeURIComponent(q),{signal:ctl.signal}).then(function(r){return r.ok?r.json():[]}).then(function(a){
+      a=Array.isArray(a)?a:[];cache[q]=a;if(cq==q&&document.getElementById('qi'))paint(q,a);
+    }).catch(function(){});
+  }
+  document.addEventListener('input',function(e){
+    var t=e.target;if(!t||t.id!='qi')return;
+    var q=t.value.trim();cq=q;clearTimeout(tm);
+    if(!q){hide();return}
+    paint(q,cache[q]);
+    tm=setTimeout(function(){ask(q)},150);
+  },true);
+  document.addEventListener('keydown',function(e){
+    var t=e.target;if(!t||t.id!='qi'||e.key!='Enter')return;
+    clearTimeout(dt);hide();t.blur();var q=t.value.trim();if(q)qs(q);
+  },true);
+  document.addEventListener('click',function(e){
+    if(!document.getElementById('x24'))return;
+    if(!(e.target&&e.target.closest&&e.target.closest('.srch')))hide();
+  },true);
+})();

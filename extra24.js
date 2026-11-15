@@ -157,7 +157,7 @@
     var anchor=Q('[data-x16h]',v)||Q('.hero',v);if(!anchor)return;
     var d=document.createElement('div');d.setAttribute('data-x24h','1');
     var draw=function(){
-      window.x24H=all;
+      window.x24HL=all;
       d.innerHTML='<div class="sec"><h3>Artis dari koleksimu</h3><a onclick="x24Open()">Lihat Semua</a></div><div class="hs x24hs">'+all.map(function(x,i){
         var c=cget(x.n),img=(c&&c.img)||x.img||'';
         return'<div class="cd x24a" onclick="x24GoH('+i+')"><div class="x24r"><img src="'+E(img||fb(x.n))+'" data-n="'+E(x.n)+'" alt="" onerror="x24E(this)"></div><b>'+E(x.n)+'</b></div>';
@@ -167,7 +167,7 @@
     // hanya muat foto untuk 8 artis teratas di Beranda (hemat kuota); sisanya di halaman Semua Artis
     resolve(all.slice(0,8).map(function(x){return x.n}),function(){if(d.isConnected)draw()});
   }
-  window.x24GoH=function(i){var x=(window.x24H||[])[i];if(!x)return;window.x24V=[x];window.x24Go(0)};
+  window.x24GoH=function(i){var x=(window.x24HL||[])[i];if(!x)return;window.x24V=[x];window.x24Go(0)};
   function deco(){
     var v=Q('#v');if(!v)return;
     if(Q('.hero',v)&&!Q('[data-x24h]',v))home(v);

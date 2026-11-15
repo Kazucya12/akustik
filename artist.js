@@ -3,7 +3,7 @@
 // /api/artist?src=yt&id=ID&latest=1     -> { tracks: [... ts] }                (rilis terbaru, untuk Beranda)
 // /api/artist?album=ID&src=yt           -> { tracks: [...] }                    (isi satu album; YouTube = playlist milik channel)
 // /api/artist?src=yt&id=CHANNEL_ID       -> { tracks: [{..., yt, vid, rmx}] }   (video channel YouTube)
-// /api/artist?names=A|B|C                -> { res: { A: {id,name,img,subs}|null, ... }, quota }   (foto channel banyak artis sekaligus, maks 8)
+// /api/artist?names=A~VID|B~VID|C&s=1   -> { res: { A: {id,name,img,subs}|null, ... }, quota }   (foto channel banyak artis; maks 25; s=1 = boleh pakai pencarian yang mahal)
 // Hanya YouTube (butuh YOUTUBE_API_KEY). Permintaan src=au lama dijawab kosong.
 const UA = 'MidnightAcoustic/4.6';
 const RMX = /\b(remix|mix|edit|bootleg|flip|rework|vip|mashup|slowed|sped up|nightcore)\b/i;
@@ -44,41 +44,55 @@ async function ytArtists(q) {
   });
 }
 
-/* Cocokkan banyak nama artis ke channel YouTube-nya (nama + foto). 1 pencarian channel per nama (100 unit kuota), jadi hasilnya di-cache lama. */
+/* Cocokkan banyak nama artis ke channel YouTube-nya (nama + foto).
+   Jalur murah (1-2 unit kuota untuk 50 artis): ambil channel dari video yang sudah kamu punya (videos.list -> channels.list).
+   Jalur mahal (100 unit per nama): pencarian channel, hanya kalau diminta (s=1) atau tidak ada videonya. */
 const normN = (s) => String(s || '').toLowerCase().replace(/\s*-\s*topic$/, '').replace(/\b(official|vevo|music|channel|resmi)\b/g, '').replace(/[^a-z0-9À-￿]+/g, '');
-async function ytResolve(names) {
+const rank = (n, title) => { const a = normN(n), t = normN(title); return !a || !t ? 0 : t === a ? 3 : (t.indexOf(a) >= 0 || a.indexOf(t) >= 0) ? 2 : 0; };
+async function ytResolve(entries, allowSearch) {
   const k = ytKey();
   const out = {};
   let quota = false;
-  if (!k) return { res: out, quota: false };
-  const found = {};
-  await Promise.all(names.map(async (n) => {
+  if (!k) return { res: out, quota: false, nokey: true };
+  const kk = encodeURIComponent(k);
+  const note = (e) => { if (/403|429/.test(String(e && e.message))) quota = true; };
+  // 1) video -> channel (1 unit)
+  const vids = [...new Set(entries.map((e) => e.vid).filter(Boolean))].slice(0, 50);
+  const chOf = {};
+  if (vids.length) {
     try {
-      const j = await jget('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=3&q=' + encodeURIComponent(n) + '&key=' + encodeURIComponent(k));
-      found[n] = (j.items || []).filter((x) => x.id && x.id.channelId);
-    } catch (e) {
-      if (/403|429/.test(String(e.message))) quota = true;
-      found[n] = null;
-    }
-  }));
-  const ids = [...new Set(Object.values(found).flatMap((a) => (a || []).map((x) => x.id.channelId)))].slice(0, 50);
-  const st = {};
+      const j = await jget('https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + vids.join(',') + '&key=' + kk);
+      (j.items || []).forEach((v) => { if (v.snippet && v.snippet.channelId) chOf[v.id] = v.snippet.channelId; });
+    } catch (e) { note(e); }
+  }
+  // 2) pencarian channel untuk yang belum ketemu (mahal, opsional)
+  const found = {};
+  if (allowSearch) {
+    await Promise.all(entries.filter((e) => !chOf[e.vid]).slice(0, 8).map(async (e) => {
+      try {
+        const j = await jget('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=3&q=' + encodeURIComponent(e.n) + '&key=' + kk);
+        found[e.n] = (j.items || []).filter((x) => x.id && x.id.channelId).map((x) => x.id.channelId);
+      } catch (er) { note(er); found[e.n] = null; }
+    }));
+  }
+  // 3) detail channel: nama, foto, subscriber (1 unit)
+  const ids = [...new Set(Object.values(chOf).concat(...Object.values(found).filter(Boolean)))].slice(0, 50);
+  const info = {};
   if (ids.length) {
     try {
-      const s = await jget('https://www.googleapis.com/youtube/v3/channels?part=statistics&id=' + ids.join(',') + '&key=' + encodeURIComponent(k));
-      (s.items || []).forEach((c) => { st[c.id] = c.statistics || {}; });
-    } catch (e) { /* subscriber opsional */ }
+      const j = await jget('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=' + ids.join(',') + '&key=' + kk);
+      (j.items || []).forEach((c) => { info[c.id] = c; });
+    } catch (e) { note(e); }
   }
-  names.forEach((n) => {
-    const a = found[n];
-    if (a === null) return; // gagal: jangan di-cache sebagai "tidak ketemu"
-    const nn = normN(n);
-    const sc = (x) => { const t = normN(x.snippet.channelTitle || x.snippet.title); return !nn || !t ? 0 : t === nn ? 3 : (t.indexOf(nn) >= 0 || nn.indexOf(t) >= 0) ? 2 : 0; };
-    const subs = (x) => { const s = st[x.id.channelId] || {}; return s.hiddenSubscriberCount ? 0 : +s.subscriberCount || 0; };
-    const best = a.map((x) => ({ x, r: sc(x), s: subs(x) })).filter((m) => m.r > 0).sort((m, o) => o.r - m.r || o.s - m.s)[0];
-    if (!best) { out[n] = null; return; }
-    const th = best.x.snippet.thumbnails || {};
-    out[n] = { id: best.x.id.channelId, name: clip(dec(best.x.snippet.channelTitle || best.x.snippet.title), 100), img: httpsOnly((th.high || th.medium || th.default || {}).url), subs: best.s };
+  const pack = (c) => { const th = (c.snippet && c.snippet.thumbnails) || {}, st = c.statistics || {}; return { id: c.id, name: clip(dec(c.snippet.title), 100), img: httpsOnly((th.high || th.medium || th.default || {}).url), subs: st.hiddenSubscriberCount ? 0 : +st.subscriberCount || 0 }; };
+  entries.forEach((e) => {
+    const cand = [chOf[e.vid]].concat(found[e.n] || []).filter((id) => id && info[id]);
+    const best = cand.map((id) => ({ c: info[id], r: rank(e.n, info[id].snippet && info[id].snippet.title) })).filter((m) => m.r > 0).sort((m, o) => o.r - m.r)[0];
+    if (best) { out[e.n] = pack(best.c); return; }
+    if (found[e.n] === null) return;           // pencarian gagal: jangan disimpan sebagai "tidak ada"
+    if (!allowSearch && !cand.length && !e.vid) { out[e.n] = null; return; }
+    if (quota && !cand.length) return;         // kuota habis: coba lagi nanti
+    out[e.n] = null;
   });
   return { res: out, quota };
 }
@@ -151,11 +165,13 @@ module.exports = async (req, res) => {
   const n = Math.min(30, Math.max(1, parseInt(u.get('n'), 10) || 8));
   res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
   try {
-    const nm = clip(u.get('names'), 1500);
+    const nm = clip(u.get('names'), 2500);
     if (nm) {
-      const list = [...new Set(nm.split('|').map((x) => clip(x, 100)).filter(Boolean))].slice(0, 8);
-      const r = await ytResolve(list);
-      if (r.quota) res.setHeader('Cache-Control', 'no-store');
+      // format: "Nama~VIDEOID|Nama2~VIDEOID2|Nama3" (VIDEOID opsional)
+      const seen = new Set();
+      const list = nm.split('|').map((x) => { const i = x.lastIndexOf('~'); const v = i > 0 ? x.slice(i + 1).trim() : ''; return { n: clip(i > 0 ? x.slice(0, i) : x, 100), vid: /^[\w-]{6,20}$/.test(v) ? v : '' }; }).filter((e) => e.n && !seen.has(e.n) && seen.add(e.n)).slice(0, 25);
+      const r = await ytResolve(list, u.get('s') === '1');
+      if (r.quota || r.nokey) res.setHeader('Cache-Control', 'no-store');
       else res.setHeader('Cache-Control', 'public, s-maxage=604800, stale-while-revalidate=2592000');
       res.status(200).json(r); return;
     }

@@ -65,3 +65,40 @@
 @media (prefers-reduced-motion:reduce){
   .nav button[data-p].a svg,.nav button[data-p].a span,#mp,.mv,#v .rw,.ov .rw,.hs .cd,.hs .pcard,.chip.a,.em,#app.pl .ctl button.m:after{animation:none!important}
 }
+
+/* ================= Rapikan layar pemutar (saat lagu diputar) ================= */
+/* Latar sampul diberi lapisan gelap/terang lembut supaya lirik dan judul terbaca di atas foto apa pun */
+#pl{background:radial-gradient(90% 40% at 80% 0,var(--o1),transparent 70%),radial-gradient(80% 40% at 0 90%,var(--o2),transparent 70%),linear-gradient(color-mix(in srgb,var(--ov) 68%,transparent) 0,var(--ov) 82%),var(--cv,none) center/cover no-repeat,var(--ov)}
+/* Lirik: tinggi menyesuaikan layar supaya judul, bar progres, dan kontrol tetap terlihat tanpa scroll */
+#pl .lyr{max-height:calc(100vh - 430px);max-height:calc(100dvh - 430px);min-height:170px;margin-bottom:6px}
+/* Tombol Layar Penuh: ringkas dan di tengah */
+#pl .krr{display:flex;justify-content:center;gap:8px;margin:0 0 14px}
+#pl .krb{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;margin:0;padding:8px 18px;font-size:12px;font-weight:600;border-radius:99px;background:var(--c);color:var(--tx);border:1px solid var(--b);box-shadow:none}
+#pl .krb:after{display:none}
+/* Bar progres: tipis, terisi mengikuti posisi lagu */
+#pl #sk{-webkit-appearance:none;appearance:none;display:block;height:4px;margin:8px 0 6px;border-radius:4px;outline:0;background:linear-gradient(90deg,var(--p) var(--pg,0%),rgba(150,150,170,.35) var(--pg,0%))}
+#pl #sk::-webkit-slider-runnable-track{height:4px;background:transparent}
+#pl #sk::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--p);border:0}
+#pl #sk::-moz-range-track{height:4px;background:transparent}
+#pl #sk::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--p)}
+#pl.ytm #sk{background:linear-gradient(90deg,#fff var(--pg,0%),rgba(255,255,255,.3) var(--pg,0%))}
+#pl.ytm #sk::-webkit-slider-thumb,#pl.ytm #sk::-moz-range-thumb{background:#fff}
+#pl .tm{margin-bottom:2px}
+/* Kontrol dan baris aksi: jarak rata, satu baris, tidak patah */
+#pl .ctl{margin:10px 0 14px}
+#pl .act{flex-wrap:wrap;justify-content:space-evenly;align-items:center;gap:6px 2px;padding:0 4px;margin-bottom:12px}
+#pl .act button{flex:none;min-width:0;padding:6px}
+#pl .btn-vid-watch{white-space:nowrap;flex:none;padding:7px 12px}
+
+/* ================= Kartu Musik (extra23.js) ================= */
+#ks{z-index:40;display:flex;flex-direction:column;overflow:hidden;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#ks .ks-st{flex:1;min-height:0;display:grid;place-items:center;margin:4px 0 10px}
+#ks canvas{display:block;max-width:none;max-height:none;border-radius:16px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#111}
+#ks .ks-tb{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none;flex:none}
+#ks .ks-tb::-webkit-scrollbar{display:none}
+#ks .ks-tb .chip{flex:none;white-space:nowrap}
+#ks .ks-sl{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:none}
+#ks .ks-sl label{display:flex;flex-direction:column;gap:4px;min-width:0}
+#ks .ks-sl small{color:var(--mu);font-size:11px;font-weight:600}
+#ks .ks-sl input:disabled{opacity:.35}
+#ks .ks-sv{font-size:18px;font-weight:700}

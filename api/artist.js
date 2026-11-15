@@ -203,6 +203,11 @@ module.exports = async (req, res) => {
   const name = clip(u.get('name'), 100);
   const n = Math.min(30, Math.max(1, parseInt(u.get('n'), 10) || 8));
   res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
+  if (!ytKey()) {
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(501).json({ error: 'YOUTUBE_API_KEY belum terbaca di server. Isi di Vercel > Settings > Environment Variables (Production), lalu Redeploy.' });
+    return;
+  }
   try {
     const nm = clip(u.get('names'), 2500);
     if (nm) {
@@ -243,6 +248,7 @@ module.exports = async (req, res) => {
     // yang namanya sama persis dengan kata kunci tampil lebih dulu
     const ql = q.toLowerCase();
     out.sort((a, b) => (b.name.toLowerCase() === ql) - (a.name.toLowerCase() === ql) || b.subs - a.subs);
+    if (!out.length) res.setHeader('Cache-Control', 'public, s-maxage=300');
     res.status(200).json(out.slice(0, 8));
   } catch (e) {
     res.status(502).json({ error: 'Gagal memuat artis' });

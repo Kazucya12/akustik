@@ -123,7 +123,7 @@
     return out.slice(0,3);
   }
   function fyGet(sd,force){
-    var c=ls.get('ufk',null);
+    var c=ls.get('ufk2',null);
     if(!force&&c&&c.l&&Date.now()-c.t<c.ttl)return Promise.resolve(c.l.map(function(x){return mkV(x.v,x.t,x.a)}));
     return Promise.all(sd.map(function(a){return ytSearch(a+' lagu').catch(function(){return[]})})).then(function(R){
       var known={},S={};
@@ -133,7 +133,7 @@
         R.forEach(function(l){var x=l[i];if(!x||known[x.id]||BADX.test(x.title))return;var k='t:'+nmx(x.title);if(known[k]||S[k])return;S[k]=1;out.push(x)});
       }
       out=out.slice(0,15);
-      ls.set('ufk',{t:Date.now(),ttl:out.length?12*3600e3:30*60e3,l:out.map(function(x){return{v:x.vid,t:x.title,a:x.artist}})});
+      ls.set('ufk2',{t:Date.now(),ttl:out.length?12*3600e3:30*60e3,l:out.map(function(x){return{v:x.vid,t:x.title,a:x.artist}})});
       return out;
     });
   }

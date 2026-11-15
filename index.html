@@ -23,14 +23,13 @@
 #splash:before{content:"";position:absolute;top:50%;left:50%;width:280px;height:280px;margin:-150px 0 0 -140px;border-radius:50%;background:radial-gradient(circle,var(--p,#ff8a5b),transparent 65%);opacity:.16;animation:spGlow 2.6s ease-in-out infinite}
 @keyframes spGlow{0%,100%{transform:scale(.8);opacity:.1}50%{transform:scale(1.15);opacity:.24}}
 #splash .sp-n{display:flex;font:700 42px/1.15 Sora,system-ui,sans-serif;letter-spacing:.04em}
-#splash .sp-n span{display:inline-block;background:linear-gradient(180deg,var(--p2,#ffb08a) 0%,var(--p,#ff8a5b) 38%,#fff 50%,var(--p,#ff8a5b) 62%,var(--p2,#ffb08a) 100%);background-size:100% 300%;-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;animation:spLetter .8s calc(.3s + var(--i)*.09s) cubic-bezier(.2,.9,.3,1.3) both,spWave 1.8s calc(1.7s + var(--i)*.1s) ease-in-out infinite,spShine 1.6s calc(1.5s + var(--i)*.12s) ease-in-out infinite alternate}
-@keyframes spLetter{from{opacity:0;transform:translateY(26px) scale(.6);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+#splash .sp-n span{display:inline-block;background:linear-gradient(180deg,var(--p2,#ffb08a),var(--p,#ff8a5b));-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;animation:spLetter .7s calc(.25s + var(--i)*.08s) cubic-bezier(.2,.9,.3,1.3) both,spWave 1.8s calc(1.4s + var(--i)*.1s) ease-in-out infinite}
+@keyframes spLetter{from{opacity:0;transform:translateY(26px) scale(.6)}to{opacity:1;transform:none}}
 @keyframes spWave{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-@keyframes spShine{0%{background-position:0 100%}100%{background-position:0 0}}
 #splash .sp-t{font:600 11px Sora,system-ui,sans-serif;text-transform:uppercase;color:var(--mu,#9aa3e6);opacity:0;letter-spacing:.05em;animation:spTag 1.2s 1.7s ease forwards}
 @keyframes spTag{to{opacity:.9;letter-spacing:.3em}}
 #splash .sp-b{position:absolute;bottom:calc(48px + env(safe-area-inset-bottom,0px));width:160px;height:3px;border-radius:3px;background:rgba(127,127,160,.25);overflow:hidden}
-#splash .sp-b:after{content:"";position:absolute;top:0;left:0;height:100%;width:100%;border-radius:3px;background:linear-gradient(90deg,var(--p2,#ffb08a),var(--p,#ff8a5b));transform:scaleX(0);transform-origin:left;animation:spFill 5s cubic-bezier(.4,0,.2,1) forwards}
+#splash .sp-b:after{content:"";position:absolute;top:0;left:0;height:100%;width:100%;border-radius:3px;background:linear-gradient(90deg,var(--p2,#ffb08a),var(--p,#ff8a5b));transform:scaleX(0);transform-origin:left;animation:spFill 4s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes spFill{to{transform:scaleX(1)}}
 @media (prefers-reduced-motion:reduce){#splash .sp-r1,#splash .sp-r2,#splash .sp-pl{animation:none}#splash .sp-lg{animation:none;opacity:1;transform:none}#splash .sp-b:after{animation:none;transform:none}#splash .sp-n span{animation:none;opacity:1}#splash .sp-t{animation:none;opacity:.9;letter-spacing:.3em}#splash:before{animation:none}}
 </style>
@@ -50,8 +49,8 @@
 <input type="file" id="fd" webkitdirectory multiple hidden onchange="addF(this.files);this.value=''"></div>
  <script src="dialog.js"></script><script src="app.js"></script><script src="extra.js"></script><script src="extra2.js"></script><script src="extra3.js"></script><script src="extra4.js"></script><script src="extra5.js"></script><script src="extra6.js"></script><script src="extra7.js"></script><script src="extra8.js"></script><script src="extra9.js"></script><script src="extra10.js"></script><script src="extra14.js"></script><script src="extra15.js"></script><script src="extra16.js"></script><script src="extra17.js"></script><script src="extra18.js"></script><script src="extra19.js"></script><script src="extra20.js"></script><script src="extra21.js"></script><script src="extra22.js"></script><script src="web.js"></script><script src="musicapi.js"></script><script>
 (function(){var s=document.getElementById('splash');if(!s)return;var done=0;
-function hide(){if(done)return;done=1;var w=Math.max(0,5000-Math.round(performance.now()));setTimeout(function(){s.classList.add('out');setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},500)},w)}
+function hide(){if(done)return;done=1;var w=Math.max(0,4000-Math.round(performance.now()));setTimeout(function(){s.classList.add('out');setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},500)},w)}
 if(document.readyState=='complete')hide();else window.addEventListener('load',hide);
-setTimeout(hide,7000);})();
+setTimeout(hide,4000);})();
 </script>
 </body></html>

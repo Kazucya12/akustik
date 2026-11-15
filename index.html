@@ -9,7 +9,22 @@
 
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#060928"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="web.css"><link rel="stylesheet" href="extra9.css"><link rel="stylesheet" href="extra10.css"><link rel="stylesheet" href="extra11.css"><link rel="stylesheet" href="extra15.css"><link rel="stylesheet" href="extra16.css"><link rel="stylesheet" href="extra17.css"><link rel="stylesheet" href="extra18.css"><link rel="stylesheet" href="extra19.css"><link rel="stylesheet" href="extra21.css"><link rel="stylesheet" href="extra22.css"></head><body><div id="app"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div id="v"></div>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="web.css"><link rel="stylesheet" href="extra9.css"><link rel="stylesheet" href="extra10.css"><link rel="stylesheet" href="extra11.css"><link rel="stylesheet" href="extra15.css"><link rel="stylesheet" href="extra16.css"><link rel="stylesheet" href="extra17.css"><link rel="stylesheet" href="extra18.css"><link rel="stylesheet" href="extra19.css"><link rel="stylesheet" href="extra21.css"><link rel="stylesheet" href="extra22.css"><style id="splash-css">
+#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg,#080b1d);color:var(--tx,#e9ecff);transition:opacity .45s ease,visibility .45s}
+#splash.out{opacity:0;visibility:hidden}
+#splash .sp-eq{display:flex;align-items:flex-end;gap:6px;height:56px}
+#splash .sp-eq i{display:block;width:9px;height:30%;border-radius:5px;background:linear-gradient(180deg,var(--p2,#ffb08a),var(--p,#ff8a5b));animation:spEq 1s ease-in-out infinite}
+#splash .sp-eq i:nth-child(2){animation-delay:.12s}#splash .sp-eq i:nth-child(3){animation-delay:.24s}#splash .sp-eq i:nth-child(4){animation-delay:.36s}#splash .sp-eq i:nth-child(5){animation-delay:.48s}
+@keyframes spEq{0%,100%{height:26%}50%{height:100%}}
+#splash .sp-n{font:700 36px/1.1 Sora,system-ui,sans-serif;letter-spacing:.04em;background:linear-gradient(135deg,var(--p2,#ffb08a),var(--p,#ff8a5b));-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;transform:translateY(8px);animation:spIn .7s .15s ease forwards}
+@keyframes spIn{to{opacity:1;transform:none}}
+#splash .sp-b{position:absolute;bottom:calc(48px + env(safe-area-inset-bottom,0px));width:120px;height:3px;border-radius:3px;background:rgba(127,127,160,.25);overflow:hidden}
+#splash .sp-b:after{content:"";position:absolute;top:0;left:0;height:100%;width:40%;border-radius:3px;background:linear-gradient(90deg,var(--p2,#ffb08a),var(--p,#ff8a5b));animation:spBar 1.1s ease-in-out infinite}
+@keyframes spBar{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+@media (prefers-reduced-motion:reduce){#splash .sp-eq i,#splash .sp-b:after{animation:none}#splash .sp-n{animation:none;opacity:1;transform:none}}
+</style>
+</head><body><div id="splash" aria-hidden="true"><div class="sp-eq"><i></i><i></i><i></i><i></i><i></i></div><div class="sp-n">Loopify</div><div class="sp-b"></div></div>
+<div id="app"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div id="v"></div>
 <div class="nav" id="nav"></div><div class="ov" id="sp"></div><div class="ov" id="pl"></div>
 <div class="ov" id="vo" style="z-index:22"><div class="hd"><button class="ib g" onclick="ovc()">‹</button><h3>Video</h3><button class="ib g" onclick="vBg()" title="Mode audio">🎧</button></div>
 <div class="vbox" id="vos"></div>
@@ -22,4 +37,10 @@
 <input type="file" id="fbk" accept=".json,application/json" hidden onchange="bkImp(this.files[0]);this.value=''">
 <input type="file" id="fpl" accept=".json,application/json" hidden onchange="plImp(this.files[0]);this.value=''">
 <input type="file" id="fd" webkitdirectory multiple hidden onchange="addF(this.files);this.value=''"></div>
- <script src="dialog.js"></script><script src="app.js"></script><script src="extra.js"></script><script src="extra2.js"></script><script src="extra3.js"></script><script src="extra4.js"></script><script src="extra5.js"></script><script src="extra6.js"></script><script src="extra7.js"></script><script src="extra8.js"></script><script src="extra9.js"></script><script src="extra10.js"></script><script src="extra14.js"></script><script src="extra15.js"></script><script src="extra16.js"></script><script src="extra17.js"></script><script src="extra18.js"></script><script src="extra19.js"></script><script src="extra20.js"></script><script src="extra21.js"></script><script src="extra22.js"></script><script src="web.js"></script><script src="musicapi.js"></script></body></html>
+ <script src="dialog.js"></script><script src="app.js"></script><script src="extra.js"></script><script src="extra2.js"></script><script src="extra3.js"></script><script src="extra4.js"></script><script src="extra5.js"></script><script src="extra6.js"></script><script src="extra7.js"></script><script src="extra8.js"></script><script src="extra9.js"></script><script src="extra10.js"></script><script src="extra14.js"></script><script src="extra15.js"></script><script src="extra16.js"></script><script src="extra17.js"></script><script src="extra18.js"></script><script src="extra19.js"></script><script src="extra20.js"></script><script src="extra21.js"></script><script src="extra22.js"></script><script src="web.js"></script><script src="musicapi.js"></script><script>
+(function(){var s=document.getElementById('splash');if(!s)return;var done=0;
+function hide(){if(done)return;done=1;var w=Math.max(0,1300-Math.round(performance.now()));setTimeout(function(){s.classList.add('out');setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},500)},w)}
+if(document.readyState=='complete')hide();else window.addEventListener('load',hide);
+setTimeout(hide,4500);})();
+</script>
+</body></html>

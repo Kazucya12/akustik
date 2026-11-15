@@ -16,7 +16,7 @@ function tidy(rawTitle, rawArtist) {
   // buang tag dalam kurung: (Official Video), [Lyrics], (Video Lirik), dst.
   t = t.replace(/\s*[\(\[【]([^\)\]】]*)[\)\]】]/g, (m, inner) => (TAG.test(inner) ? '' : m));
   t = t.replace(/\s*[|｜]\s*(official|lyric|video|audio|lirik|mv|visuali).*$/i, '');
-  t = t.replace(/\s+[-–—]\s*(official|lyric|video|audio|lirik|visuali)[^-–—]*$/i, '').replace(/^\s*[\[\(【](mv|m\/v|official[^\]\)】]*)[\]\)】]\s*/i, '').replace(/\s+/g, ' ').trim();
+  t = t.replace(/\s+[-–—]\s*(official|lyric|video|audio|lirik|visuali)[^-–—]*$/i, '').replace(/^\s*[\[\(【](mv|m\/v|official[^\]\)】]*)[\]\)】]\s*/i, '').replace(/\s+(m\/v|mv)$/i, '').replace(/\s+/g, ' ').trim();
   // "Artis - Judul" -> pisahkan; "Judul - Artis" (nama channel sama dengan bagian kanan) -> tukar
   const m = t.match(/^(.{2,60}?)\s[-–—]\s(.{2,})$/);
   if (m) {
@@ -25,6 +25,23 @@ function tidy(rawTitle, rawArtist) {
     else if (!/^(live|cover|remix|acoustic|akustik)\b/i.test(r)) { a = l; t = r; }
   }
   return { title: t || String(rawTitle || ''), artist: a || String(rawArtist || '') };
+}
+
+// Mode "lagu saja": buang kompilasi, album penuh, mix panjang, karaoke, dll.
+const BADT = /(kumpulan|full album|compilation|non[\s-]?stop|megamix|medley|playlist|\bbest of\b|\btop\s*\d+|\b\d+\s*(lagu|songs?|hits|tracks)\b|\b\d+\s*(jam|hours?|hrs?)\b|tanpa iklan|karaoke|reaction|tutorial|podcast|interview|trailer|\bmix\b)|(\blagu\b.*\b(terbaru|terpopuler|terbaik|viral|populer|hits)\b.*\b20\d\d\b)/i;
+async function durations(ids, key) {
+  if (!ids.length) return null;
+  try {
+    const r = await fetch('https://www.googleapis.com/youtube/v3/videos?part=contentDetails&maxResults=50&id=' + ids.join(',') + '&key=' + encodeURIComponent(key));
+    if (!r.ok) return null;
+    const j = await r.json();
+    const o = {};
+    (j.items || []).forEach((v) => {
+      const m = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec((v.contentDetails || {}).duration || '');
+      o[v.id] = m ? (+m[1] || 0) * 86400 + (+m[2] || 0) * 3600 + (+m[3] || 0) * 60 + (+m[4] || 0) : 0;
+    });
+    return o;
+  } catch (e) { return null; }
 }
 
 module.exports = async (req, res) => {
@@ -49,7 +66,17 @@ module.exports = async (req, res) => {
       try { items = items.concat(await run('')); } catch (e) { if (!items.length) throw e; }
     }
     const seen = new Set();
-    const out = items.filter((x) => !seen.has(x.id.videoId) && seen.add(x.id.videoId)).map((x) => {
+    const uniq = items.filter((x) => !seen.has(x.id.videoId) && seen.add(x.id.videoId)).slice(0, 50);
+    const sm = String(new URL(req.url, 'http://x').searchParams.get('songs') || '');
+    let list = uniq;
+    if (sm === '1' || sm === '2') {
+      const dur = await durations(uniq.map((x) => x.id.videoId), key);
+      const isSong = (x) => !BADT.test(dec(x.snippet.title)) && (!dur || (dur[x.id.videoId] >= 90 && dur[x.id.videoId] <= 540));
+      const good = uniq.filter(isSong);
+      if (sm === '2') list = good.concat(uniq.filter((x) => !isSong(x))); // pencarian: lagu dulu, sisanya menyusul
+      else list = good.length ? good : uniq;                              // rekomendasi: lagu saja
+    }
+    const out = list.map((x) => {
       const n = tidy(dec(x.snippet.title), dec(x.snippet.channelTitle));
       return { id: x.id.videoId, title: n.title.slice(0, 200), artist: n.artist.slice(0, 100) };
     });

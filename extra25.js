@@ -144,7 +144,7 @@
         body='<div class="em">Memuat album…</div>';
         get('/api/artist?src=yt&albums=1&id='+encodeURIComponent(a.id),'albums').then(function(l){ALB[a.id]=l;if(S&&S.a.id==a.id)disco()});
       }else{
-        window.x25A=albums;
+        window.x25A=albums.map(function(x){return Object.assign({},x,{artist:a.name,aid:a.id})});
         body='<div class="hs">'+albums.map(function(x,i){return'<div class="cd" onclick="x25Al('+i+')"><img src="'+E(cov(x.img?{img:x.img}:{h:hh(x.name)}))+'" alt=""><b>'+E(x.name)+'</b><small>'+(x.n?x.n+' lagu':'Album')+'</small></div>'}).join('')+'</div>';
       }
     }else{
@@ -178,16 +178,7 @@
   };
   window.x25Tab=function(t){S.tab=t;disco()};
   window.x25Sim=function(i){var x=(window.x25T||[])[i];if(x)artistPg(x.name)};
-  window.x25Al=function(i){
-    var al=(window.x25A||[])[i];if(!al||!S)return;var a=S.a;
-    sub(shd(E(al.name))+'<div class="x16hd"><img src="'+E(cov(al.img?{img:al.img}:{h:hh(al.name)}))+'" alt=""><h2>'+E(al.name)+'</h2><small>Album · '+E(a.name)+'</small></div><div id="x25at"><div class="em">Memuat…</div></div>');
-    get('/api/artist?src=yt&album='+encodeURIComponent(al.id),'tracks').then(function(t){
-      t=t.map(mk);lists.x25al=t;
-      var el=Q('#x25at'),sm=Q('.x16hd small');
-      if(sm)sm.textContent='Album · '+a.name+' · '+t.length+' lagu';
-      if(el)el.innerHTML=t.length?'<div class="x16pb"><button class="btn" onclick="P(\'x25al\',0)">▶ Putar</button><button class="btn g" onclick="lists.x25al=lists.x25al.slice().sort(function(){return Math.random()-.5});P(\'x25al\',0)">⤮ Acak</button></div>'+rows('x25al',t):'<div class="em">Album kosong atau tidak bisa diputar.</div>';
-    });
-  };
+  window.x25Al=function(i){var al=(window.x25A||[])[i];if(al&&window.x26Alb)window.x26Alb(al)};
 
   /* ---------- pasang: ganti x16Ch untuk artis YouTube ---------- */
   var _ch=window.x16Ch;

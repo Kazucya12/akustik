@@ -5,7 +5,7 @@
   'use strict';
   var E=function(s){return esc(s)},Q=function(s,r){return(r||document).querySelector(s)};
   var GEN=/^(Lagu Saya|Link kustom|YouTube|Tidak diketahui|Radio)$/i;
-  var DAY=864e5,TTL_HIT=30*DAY,TTL_MISS=3*DAY,STEP=24,BATCH=8;
+  var DAY=864e5,TTL_HIT=30*DAY,TTL_MISS=3*DAY,STEP=24,BATCH=25,VM={};
   var low=function(s){return String(s||'').trim().toLowerCase()};
   function fmtN(n){n=+n||0;return n>=1e6?(n/1e6).toFixed(1).replace('.0','')+' jt':n>=1e3?Math.round(n/1e3)+' rb':String(n)}
 
@@ -33,6 +33,7 @@
         if(n.length<2||n.length>60||GEN.test(n))return;
         var k=low(n),o=m[k]||(m[k]={n:n,c:0,img:''});
         o.c++;if(!o.img&&t.img)o.img=t.img;
+        if(t.yt&&t.vid&&!VM[k])VM[k]=t.vid;
       });
     });
     try{ls.get('fol',[]).forEach(function(f){var k=low(f.n);if(!f.n)return;var o=m[k]||(m[k]={n:f.n,c:0,img:f.img||''});o.f=1;if(!o.img&&f.img)o.img=f.img})}catch(e){}
@@ -41,20 +42,20 @@
 
   /* ---------- ambil foto channel (bertahap, 8 nama per permintaan) ---------- */
   var busy=false,warnQuota=false,failKey=0;
-  function resolve(names,done){
-    var todo=names.filter(function(n){return cget(n)===undefined});
+  function resolve(names,done,deep){
+    var todo=names.filter(function(n){var c=cget(n);return c===undefined||(deep&&c.m&&!c.deep)});
     if(!todo.length){done&&done();return}
-    if(busy){setTimeout(function(){resolve(names,done)},400);return}
+    if(busy){setTimeout(function(){resolve(names,done,deep)},400);return}
     busy=true;
-    var chunks=[];for(var i=0;i<todo.length;i+=BATCH)chunks.push(todo.slice(i,i+BATCH));
+    var chunks=[],SZ=deep?8:BATCH;for(var i=0;i<todo.length;i+=SZ)chunks.push(todo.slice(i,i+SZ));
     var go=function(){
       var c=chunks.shift();
       if(!c){busy=false;csave();done&&done();return}
-      fetch('/api/artist?names='+encodeURIComponent(c.join('|'))).then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(j){
+      fetch('/api/artist?names='+encodeURIComponent(c.map(function(n){var v=VM[low(n)];return n.replace(/[|~]/g,' ')+(v?'~'+v:'')}).join('|'))+(deep?'&s=1':'')).then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(j){
         if(!j||!j.res){failKey++;chunks=[];}
         else{
           if(j.quota){warnQuota=true;chunks=[]}
-          Object.keys(j.res).forEach(function(n){cset(n,j.res[n])});
+          Object.keys(j.res).forEach(function(n){cset(n,j.res[n]);if(deep&&!j.res[n])PC[low(n)].deep=1});
         }
         csave();paint();go();
       });
@@ -76,6 +77,8 @@
     window.x24V=A;
     var vis=q?A:A.slice(0,SHOW),h='';
     h+=vis.length?'<div class="x24g">'+vis.map(function(x){return card(x,A.indexOf(x))}).join('')+'</div>':'<div class="em">'+(L.length?'Tidak ada artis dengan nama itu di koleksimu.':'Belum ada artis. Tambahkan lagu, favorit, atau putar video dulu.')+'</div>';
+    var miss=L.filter(function(x){var c=cget(x.n);return c&&c.m&&!c.deep});
+    if(!q&&miss.length)h+='<button class="btn g x24m" onclick="x24Deep()">Cari '+Math.min(8,miss.length)+' foto yang belum ketemu (pakai ±100 kuota YouTube per artis)</button>';
     if(!q&&A.length>SHOW)h+='<button class="btn g x24m" onclick="x24More()">Muat '+Math.min(STEP,A.length-SHOW)+' artis lagi ('+(A.length-SHOW)+' tersisa)</button>';
     return h;
   }
@@ -104,6 +107,10 @@
     var q=low(FQ),A=L.filter(function(x){return!q||low(x.n).indexOf(q)>=0});
     resolve((q?A.slice(0,12):A.slice(0,SHOW)).map(function(x){return x.n}),paint);
   }
+  window.x24Deep=function(){
+    var m=L.filter(function(x){var c=cget(x.n);return c&&c.m&&!c.deep}).slice(0,8).map(function(x){return x.n});
+    resolve(m,paint,1);paint();
+  };
   window.x24More=function(){SHOW+=STEP;paint();loadVisible()};
   window.x24Go=function(i){
     var x=(window.x24V||[])[i];if(!x)return;

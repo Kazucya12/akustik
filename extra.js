@@ -48,7 +48,7 @@ doSearch=async function(s){
   r.innerHTML=skel6(6);shR();
   const k=s.trim().toLowerCase();
   const loc=mineAll().filter(t=>(t.title+' '+t.artist).toLowerCase().includes(k)).slice(0,8);
-  const [on,vd]=await Promise.allSettled([srch(s),ytSearch(s,sord)]);
+  const [on,vd]=await Promise.allSettled([srch(s),ytSearch(s,sord,2)]);
   if(lq!==s||smode!='a')return;
   const o=on.status=='fulfilled'?on.value.slice(0,20):[],v=vd.status=='fulfilled'?vd.value.slice(0,o.length<8?40:10):[];
   lres=null;

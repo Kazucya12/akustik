@@ -4,6 +4,7 @@
 // /api/artist?album=ID&src=yt           -> { tracks: [...] }                    (isi satu album; YouTube = playlist milik channel)
 // /api/artist?src=yt&id=CHANNEL_ID       -> { tracks: [{..., yt, vid, rmx}] }   (video channel YouTube)
 // /api/artist?names=A~VID|B~VID|C&s=1   -> { res: { A: {id,name,img,subs}|null, ... }, quota }   (foto channel banyak artis; maks 25; s=1 = boleh pakai pencarian yang mahal)
+// /api/artist?src=yt&id=CHANNEL_ID&top=1 -> { tracks: [{id,title,artist,rmx,v,ts,d}] }  (lagu populer + terbaru, ±8 unit kuota)
 // Hanya YouTube (butuh YOUTUBE_API_KEY). Permintaan src=au lama dijawab kosong.
 const UA = 'MidnightAcoustic/4.6';
 const RMX = /\b(remix|mix|edit|bootleg|flip|rework|vip|mashup|slowed|sped up|nightcore)\b/i;
@@ -124,6 +125,44 @@ async function ytLatest(id, n) {
     return { id: x.snippet.resourceId.videoId, yt: 1, vid: x.snippet.resourceId.videoId, title: t.title, artist: clip(t.artist, 100), ts: Date.parse(x.snippet.publishedAt) || 0 };
   });
 }
+
+/* Lagu populer + rilis terbaru satu artis dengan kuota kecil: ambil sampai 200 upload channel (4 unit), lalu statistik tontonan (4 unit).
+   Hasil diurutkan di klien: Populer = views terbanyak, Terbaru = tanggal. */
+const isoSec = (d) => { const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(d || ''); return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0; };
+const NOSONG = /\b(full album|karaoke|livestream|live stream|podcast|compilation|nonstop|non stop|1 hour|1 jam|behind the scenes|trailer|interview|wawancara|reaction)\b/i;
+async function ytTop(id, name) {
+  const k = ytKey();
+  if (!k || !/^UC[\w-]{22}$/.test(id)) return [];
+  const kk = encodeURIComponent(k), pl = 'UU' + id.slice(2);
+  let ids = [], tok = '';
+  const meta = {};
+  for (let i = 0; i < 4; i++) {
+    const j = await jget('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=' + pl + (tok ? '&pageToken=' + tok : '') + '&key=' + kk);
+    (j.items || []).forEach((x) => {
+      const sn = x.snippet || {}, v = sn.resourceId && sn.resourceId.videoId;
+      if (v && !/^(private|deleted) video$/i.test(sn.title || '')) { ids.push(v); meta[v] = { t: clip(dec(sn.title), 200), o: dec(sn.videoOwnerChannelTitle || ''), ts: Date.parse(sn.publishedAt) || 0 }; }
+    });
+    tok = j.nextPageToken || '';
+    if (!tok) break;
+  }
+  ids = [...new Set(ids)];
+  const out = [];
+  for (let i = 0; i < ids.length; i += 50) {
+    try {
+      const j = await jget('https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails,status&id=' + ids.slice(i, i + 50).join(',') + '&key=' + kk);
+      (j.items || []).forEach((v) => {
+        const d = isoSec(v.contentDetails && v.contentDetails.duration);
+        if (d < 60 || d > 600 || NOSONG.test(meta[v.id].t) || (v.status && v.status.embeddable === false)) return;
+        const m = meta[v.id], n = tidy(m.t, m.o || name);
+        out.push({ id: v.id, title: n.title, artist: clip(n.artist, 100) || name, rmx: RMX.test(m.t) ? 1 : 0, v: +(v.statistics && v.statistics.viewCount) || 0, ts: m.ts, d });
+      });
+    } catch (e) { if (!out.length) throw e; }
+  }
+  // satu judul = satu lagu (ambil versi dengan tontonan terbanyak)
+  const best = new Map();
+  out.forEach((t) => { const key = t.title.toLowerCase().replace(/[^a-z0-9À-￿]+/g, ''); const o = best.get(key); if (!o || t.v > o.v) best.set(key, t); });
+  return [...best.values()].sort((a, b) => b.v - a.v).slice(0, 60);
+}
 async function ytTracks(id, name) {
   const k = ytKey();
   if (!k) return [];
@@ -179,6 +218,11 @@ module.exports = async (req, res) => {
     if (alb) {
       if (!/^[\w-]+$/.test(alb)) { res.status(400).json({ error: 'id tidak valid' }); return; }
       res.status(200).json({ tracks: src === 'yt' ? await ytAlbumTracks(alb) : [] }); return;
+    }
+    if (id && u.get('top')) {
+      if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }
+      res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=259200');
+      res.status(200).json({ tracks: src === 'yt' ? await ytTop(id, name) : [] }); return;
     }
     if (id && u.get('latest')) {
       if (!/^[\w-]+$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }

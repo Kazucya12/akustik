@@ -1,4 +1,6 @@
-# Midnight Acoustic
+# Loopify
+
+(Sebelumnya bernama Midnight Acoustic.)
 
 > **v4.12:** sumber Audius, Jamendo, dan Internet Archive dihapus. Sumber yang tersisa: YouTube (`api/yt-music.js`, butuh `YOUTUBE_API_KEY`) dan Radio (`api/music.js`). Trending, Daily Mix, lagu serupa, rekomendasi, dan impor playlist sekarang memakai pencarian YouTube. Lagu lama yang tersimpan dengan alamat Audius tetap bisa diputar selama alamatnya masih hidup.
 
@@ -94,3 +96,12 @@ Fitur ini menambahkan koneksi akun YouTube Music dari halaman Profil, lalu memba
 5. Buka Profil > Hubungkan YouTube Music, lalu selesaikan persetujuan akun Google.
 
 Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah memasukkannya ke `app.js`, `musicapi.js`, atau HTML. UUID koneksi disimpan pada perangkat yang menghubungkan akun.
+
+
+## v4.29: perapian UI/UX dan struktur
+- **Satu bundle.** `index.html` kini memuat hanya `loopify.css` dan `loopify.js` (sebelumnya 13 CSS dan 31 script). Keduanya dihasilkan dari file sumber lewat `node build.js` (tanpa instalasi). Setelah mengubah `app.js`, `extraNN.js/css`, `a11y.*`, jalankan `node build.js` lalu commit hasilnya. Fitur baru: tambahkan nama filenya ke daftar di `build.js`.
+- Tiap file `extra*.js` dibungkus try/catch di bundle, jadi satu file yang error tidak menghentikan fitur lain.
+- `extra11.css` dihapus dari urutan muat karena isinya duplikat `extra10.css`.
+- **Aksesibilitas** (`a11y.js`, `a11y.css`): tombol ikon mendapat nama untuk pembaca layar, kartu/baris/chip bisa difokus dan ditekan dengan Enter/Spasi, kolom isi diberi label, toast diumumkan, area ketuk tombol ikon diperluas ke ±44px, teks 10px dinaikkan ke 11px.
+- **Splash** dipersingkat (maksimal sekitar 1,6 detik) dan dilewati pada pembukaan berikutnya dalam sesi yang sama.
+- Service worker hanya menyimpan cangkang yang kini lebih ringkas (bundle, manifest, ikon).

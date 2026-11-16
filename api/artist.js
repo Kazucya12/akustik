@@ -198,6 +198,7 @@ function tidy(rawTitle, rawArtist) {
 }
 
 module.exports = async (req, res) => {
+  if (!(await require('./_rl')(req, res, 'ar', 60, 60))) return;
   const u = new URL(req.url, 'http://x').searchParams;
   const q = clip(u.get('q'), 100), id = clip(u.get('id'), 60), src = u.get('src') === 'yt' ? 'yt' : 'au';
   const name = clip(u.get('name'), 100);

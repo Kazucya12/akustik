@@ -3,6 +3,7 @@
 const UA = 'MidnightAcoustic/4.10';
 const AUD = 'https://api.audius.co/v1';
 module.exports = async (req, res) => {
+  if (!(await require('./_rl')(req, res, 'st', 60, 60))) return;
   const ids = String(new URL(req.url, 'http://x').searchParams.get('ids') || '').split(',').map((s) => s.trim()).filter((s) => /^[\w-]{1,20}$/.test(s)).slice(0, 10);
   res.setHeader('Cache-Control', 'public, s-maxage=240');
   const out = {};

@@ -56,6 +56,7 @@ async function info(id, key) {
 }
 
 module.exports = async (req, res) => {
+  if (!(await require('./_rl')(req, res, 'ss', 20, 60))) return;
   const key = String(process.env.SOUNDSTAT_API_KEY || '').trim();
   const p = new URL(req.url, 'http://x').searchParams;
   const type = p.get('type'), value = p.get('value');

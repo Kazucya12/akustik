@@ -93,63 +93,13 @@
     return origFetch.call(this, input, init);
   };
 
-  // 4. Buka video dari lagu yang sedang diputar
-  window.watchCurrentSongVideo = function () {
-    var t = typeof cur !== 'undefined' ? cur : null;
-    if (!t) {
-      if (typeof toast === 'function') toast('Putar lagu terlebih dahulu');
-      return;
-    }
-    var qStr = ((typeof ct === 'function' ? ct(t.title) : t.title) + ' ' + (t.artist || '') + ' official video').trim();
-    try {
-      if (typeof A !== 'undefined' && A && !A.paused) A.pause();
-      if (typeof B !== 'undefined' && B && !B.paused) B.pause();
-    } catch (e) {}
-
-    var vo = document.getElementById('vo');
-    var vq = document.getElementById('vq');
-    if (vo) {
-      vo.classList.add('on');
-      if (vq) vq.value = qStr;
-      if (typeof vGo === 'function') vGo();
-    }
-  };
-
-  // Sisipkan tombol "Lihat Video" di layar pemutar musik (#pl)
-  function injectWatchVideoButton() {
-    var pl = document.getElementById('pl');
-    if (!pl || !pl.classList.contains('on')) return;
-    if (pl.querySelector('.btn-vid-watch')) return;
-
-    var target = pl.querySelector('.act') || pl.querySelector('.ctl');
-    if (!target) return;
-
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-vid-watch';
-    btn.title = 'Lihat video musik lagu ini';
-    btn.innerHTML = '▶ Lihat Video';
-    btn.onclick = window.watchCurrentSongVideo;
-
-    if (target.classList.contains('act')) {
-      target.appendChild(btn);
-    } else {
-      var wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;justify-content:center;margin:8px 0 4px';
-      wrap.appendChild(btn);
-      target.insertAdjacentElement('afterend', wrap);
-    }
-  }
-
   // Pantau perubahan DOM & pemutaran lagu
   var obs = new MutationObserver(function () {
     hideUnwantedChips(document);
-    injectWatchVideoButton();
   });
 
   function init() {
     hideUnwantedChips(document);
-    injectWatchVideoButton();
     if (document.body) {
       obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }

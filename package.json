@@ -1,6 +1,6 @@
 {
   "name": "loopify",
-  "version": "3.5.0",
+  "version": "4.29.0",
   "private": true,
   "description": "Loopify - pemutar musik dan video",
   "dependencies": {
@@ -8,5 +8,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "scripts": {
+    "build": "node build.js"
   }
 }

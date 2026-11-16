@@ -1,0 +1,18 @@
+/* Loopify v4.29 - aksesibilitas dan kenyamanan ketuk (pasangan a11y.js) */
+
+/* Area ketuk tombol ikon diperluas ke ±44px tanpa mengubah tata letak */
+.ib{position:relative}
+.ib:after{content:"";position:absolute;inset:-3px}
+.mv .ib:after{inset:-5px}
+.ib:disabled:after{display:none}
+
+/* Elemen non-tombol yang bisa ditekan lewat keyboard */
+[data-a11y]{cursor:pointer}
+[data-a11y]:focus{outline:0}
+[data-a11y]:focus-visible{outline:2px solid var(--p2);outline-offset:2px}
+
+/* Teks terlalu kecil dinaikkan dari 10px ke 11px */
+.nav button,.eqs div,#toast small,#sb .sba button,#isl .sk{font-size:11px}
+
+/* Splash dilewati selama sesi yang sama */
+.nosp #splash{display:none}

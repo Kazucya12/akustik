@@ -18,7 +18,7 @@ async function redis(cmd) {
 }
 
 // limit(req, res, 'nama', maks, detik) -> true kalau boleh lanjut; false kalau sudah dijawab 429.
-module.exports = async function limit(req, res, name, max, windowSec) {
+async function limit(req, res, name, max, windowSec) {
   try {
     const h = req.headers || {};
     const ip = String(h['x-vercel-forwarded-for'] || h['x-forwarded-for'] || (req.socket && req.socket.remoteAddress) || '?').split(',')[0].trim();
@@ -32,9 +32,12 @@ module.exports = async function limit(req, res, name, max, windowSec) {
       const wait = windowSec - (Math.floor(Date.now() / 1000) % windowSec);
       res.setHeader('Retry-After', String(wait));
       res.setHeader('Cache-Control', 'no-store');
-      res.status(429).json({ error: 'Terlalu banyak permintaan. Coba lagi sebentar.' });
+      res.status(429).json({ error: 'Terlalu banyak permintaan. Coba lagi sebentar.', code: 'rl' });
       return false;
     }
     return true;
   } catch (e) { return true; }
 };
+
+module.exports = limit;
+module.exports.redis = redis;

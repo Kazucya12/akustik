@@ -5,35 +5,85 @@
   var Q=function(s,r){return(r||document).querySelector(s)},E=function(s){return esc(s)};
   function low(s){return String(s||'').trim().toLowerCase()}
 
-  /* ---------- 1. Sinkron lewat akun (butuh login; data: favorit, playlist, artis diikuti, pin, riwayat cari) ---------- */
-  var KS=['favs','pls','fol','pin','plr','lsrt','lgrid','qh'],last='',ready=0;
+  /* ---------- 1. Sinkron lewat akun (butuh login; data: favorit, playlist, artis diikuti, pin, riwayat cari) ----------
+     v4.30: gabung tiga arah (dasar = hasil sinkron terakhir 'syncB', lokal, server). Penambahan dan penghapusan dari
+     dua perangkat sama-sama dipertahankan. Server menolak (409) simpanan yang berdasar versi lama, jadi tidak ada lagi yang saling menimpa. */
+  var KS=['favs','pls','fol','pin','plr','lsrt','lgrid','qh'],last='',ready=0,busy=0;
+  function J(x){return JSON.stringify(x)}
+  function union(a,b,f){var s={},o=[];(a||[]).concat(b||[]).forEach(function(x){var k=f(x);if(!s[k]){s[k]=1;o.push(x)}});return o}
   function snap(){var o={};KS.forEach(function(k){var v=ls.get(k,null);if(v!==null)o[k]=v});return o}
   function auth(){try{var a=JSON.parse(localStorage.getItem('mx_auth'));return a&&a.session&&a.exp>Date.now()?a:null}catch(e){return null}}
-  function call(b){return fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
-  function union(a,b,f){var s={},o=[];(a||[]).concat(b||[]).forEach(function(x){var k=f(x);if(!s[k]){s[k]=1;o.push(x)}});return o}
-  function merge(l,r){
-    var o=Object.assign({},r);
-    o.favs=union(l.favs,r.favs,JSON.stringify);o.pls=union(l.pls,r.pls,function(p){return low(p.n)});
-    o.fol=union(l.fol,r.fol,function(x){return low(x.n)});o.pin=union(l.pin,r.pin,String);o.qh=union(l.qh,r.qh,low).slice(0,10);
+  function call(b){return fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:J(b)}).then(function(r){return r.ok||r.status==409?r.json():null}).catch(function(){return null})}
+  function tk(t){return t&&t.id!=null?String(t.id):J(t)}
+  // daftar: unsur dasar yang hilang di salah satu sisi = dihapus di sisi itu; unsur baru di salah satu sisi = ditambah
+  function m3(b,l,r,f,front){
+    var B={},L={},R={},o=[],seen={},add=[];
+    (b||[]).forEach(function(x){B[f(x)]=1});(l||[]).forEach(function(x){L[f(x)]=1});(r||[]).forEach(function(x){R[f(x)]=1});
+    (r||[]).forEach(function(x){var k=f(x);if(seen[k])return;seen[k]=1;if(B[k]&&!L[k])return;o.push(x)});
+    (l||[]).forEach(function(x){var k=f(x);if(seen[k])return;seen[k]=1;if(B[k])return;add.push(x)});
+    return front?add.concat(o):o.concat(add);
+  }
+  function byName(a){var m={};(a||[]).forEach(function(p){if(p)m[String(p.n||'').trim().toLowerCase()]=p});return m}
+  function mPl(b,l,r){
+    var bm=byName(b),lm=byName(l),rm=byName(r);
+    return m3(b,l,r,function(p){return String(p.n||'').trim().toLowerCase()}).map(function(p){
+      var k=String(p.n||'').trim().toLowerCase(),B=bm[k],L=lm[k],R=rm[k];
+      if(!L||!R)return p;
+      if(B&&J(L)==J(B))return R;
+      if(B&&J(R)==J(B))return L;
+      var o=Object.assign({},R,L);o.tr=m3(B&&B.tr,L.tr,R.tr,tk);return o;
+    });
+  }
+  function mo(b,l,r,max){
+    b=b||{};l=l||{};r=r||{};var o=Object.assign({},r);
+    Object.keys(l).forEach(function(k){if(max)o[k]=Math.max(+l[k]||0,+r[k]||0);else if(J(l[k])!=J(b[k]))o[k]=l[k]});
     return o;
   }
-  function push(f){
-    var a=auth(),s=JSON.stringify(snap());
-    if(!a||!ready||(!f&&s==last))return Promise.resolve();
-    return call({action:'put',session:a.session,data:snap()}).then(function(j){if(j&&j.t){ls.set('syncT',j.t);last=s}});
+  function merge3(B,l,r){
+    B=B||{};l=l||{};r=r||{};var o=Object.assign({},r);
+    function has(k){return l[k]!==undefined||r[k]!==undefined}
+    if(has('favs'))o.favs=m3(B.favs,l.favs,r.favs,tk);
+    if(has('pls'))o.pls=mPl(B.pls,l.pls,r.pls);
+    if(has('fol'))o.fol=m3(B.fol,l.fol,r.fol,function(x){return low(x.n)});
+    if(has('pin'))o.pin=m3(B.pin,l.pin,r.pin,String);
+    if(has('qh'))o.qh=m3(B.qh,l.qh,r.qh,low,1).slice(0,10);
+    if(has('plr'))o.plr=mo(B.plr,l.plr,r.plr,1);
+    if(has('lsrt'))o.lsrt=mo(B.lsrt,l.lsrt,r.lsrt);
+    if(has('lgrid'))o.lgrid=l.lgrid!==undefined&&J(l.lgrid)!=J(B.lgrid)?l.lgrid:(r.lgrid!==undefined?r.lgrid:l.lgrid);
+    return typeof scrubData=='function'?scrubData(o):o;
+  }
+  function apply(m){KS.forEach(function(k){if(m[k]!==undefined)ls.set(k,m[k])})}
+  function push(f,n){
+    var a=auth(),s=J(snap());
+    if(!a||!ready||busy||(!f&&s==last))return Promise.resolve();
+    busy=1;
+    return call({action:'put',session:a.session,data:snap(),bt:ls.get('syncT',0)}).then(function(j){
+      busy=0;
+      if(j&&j.conflict){
+        var l=snap(),m=merge3(ls.get('syncB',null),l,j.data||{});
+        apply(m);var s2=snap(),ch=J(s2)!=J(l);
+        ls.set('syncB',s2);ls.set('syncT',j.t);last='';
+        if((n||0)>=2){if(ch)location.reload();return}
+        return push(true,(n||0)+1).then(function(){if(ch)location.reload()});
+      }
+      if(j&&j.t){ls.set('syncT',j.t);ls.set('syncB',JSON.parse(s));last=s}
+    });
   }
   function pull(){
     var a=auth();if(!a)return;
     call({action:'get',session:a.session}).then(function(j){
-      if(!j)return;
-      var T=ls.get('syncT',0),l=snap();
-      if(j.data&&j.t>T&&(T==0||JSON.stringify(l)==last||!ready)){
-        var m=T?j.data:merge(l,j.data),changed=JSON.stringify(m)!=JSON.stringify(l);
-        KS.forEach(function(k){if(m[k]!==undefined)ls.set(k,m[k])});
-        ready=1;last=JSON.stringify(snap());
-        var done=function(){if(changed)location.reload()};
-        if(!T)push(true).then(done);else{ls.set('syncT',j.t);done()}
-      }else{ready=1;if(!j.data)last='';if(j.data&&j.t<=T)last=JSON.stringify(l)==JSON.stringify(j.data)?JSON.stringify(l):last}
+      if(!j||j.conflict)return;
+      var T=ls.get('syncT',0),l=snap(),B=ls.get('syncB',null);
+      if(!j.data){ready=1;last='';return}
+      if(j.t<=T){ready=1;if(J(l)==J(j.data))last=J(l);return}
+      var dirty=B?J(l)!=J(B):true;
+      var m=(T&&!dirty)?j.data:merge3(T?B:null,l,j.data);
+      if(typeof scrubData=='function')m=scrubData(m);
+      var changed=J(m)!=J(l),need=J(m)!=J(j.data);
+      apply(m);ready=1;
+      var s=snap();ls.set('syncB',s);ls.set('syncT',j.t);last=need?'':J(s);
+      var done=function(){if(changed)location.reload()};
+      if(need)push(true).then(done);else done();
     });
   }
   setTimeout(pull,1500);

@@ -44,14 +44,27 @@ async function durations(ids, key) {
   } catch (e) { return null; }
 }
 
+const crypto = require('crypto');
+const rl = require('./_rl');
+const FRESH = 12 * 3600e3, KEEP = 7 * 86400; // segar 12 jam di Redis; disimpan 7 hari sebagai cadangan saat kuota/ YouTube bermasalah
+
 module.exports = async (req, res) => {
-  if (!(await require('./_rl')(req, res, 'yt', 40, 60))) return;
+  // 120/menit: banyak pengguna HP seluler berbagi satu IP (CGNAT), jadi batas dibuat longgar
+  if (!(await rl(req, res, 'yt', 120, 60))) return;
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) { res.status(501).json({ error: 'YOUTUBE_API_KEY belum diatur di Vercel' }); return; }
   const q = String(new URL(req.url, 'http://x').searchParams.get('q') || '').trim().slice(0, 100);
   if (!q) { res.status(200).json([]); return; }
   const o = String(new URL(req.url, 'http://x').searchParams.get('order') || '');
   const ord = o === 'viewCount' || o === 'date' ? '&order=' + o : '';
+  const sm0 = String(new URL(req.url, 'http://x').searchParams.get('songs') || '');
+  const ck = 'ma:yt:' + crypto.createHash('sha1').update([q.toLowerCase(), o, sm0].join('|')).digest('hex').slice(0, 24);
+  let hit = null;
+  try { const raw = await rl.redis(['GET', ck]); hit = raw ? JSON.parse(raw) : null; } catch (e) { hit = null; }
+  if (hit && Array.isArray(hit.out) && Date.now() - hit.t < FRESH) {
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+    res.status(200).json(hit.out); return;
+  }
   try {
     const base = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=50' +
       '&q=' + encodeURIComponent(q) + ord + '&key=' + encodeURIComponent(key);
@@ -80,9 +93,17 @@ module.exports = async (req, res) => {
       const n = tidy(dec(x.snippet.title), dec(x.snippet.channelTitle));
       return { id: x.id.videoId, title: n.title.slice(0, 200), artist: n.artist.slice(0, 100) };
     });
+    if (out.length) { try { await rl.redis(['SET', ck, JSON.stringify({ t: Date.now(), out }), 'EX', KEEP]); } catch (e) { /* abaikan */ } }
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     res.status(200).json(out);
   } catch (e) {
-    res.status(e && e.status === 403 ? 429 : 502).json({ error: (e && e.message) || 'Gagal mencari video' });
+    // kuota habis / YouTube error: pakai hasil lama kalau ada (lebih baik daftar kemarin daripada gagal total)
+    if (hit && Array.isArray(hit.out) && hit.out.length) {
+      res.setHeader('Cache-Control', 'public, s-maxage=300');
+      res.status(200).json(hit.out); return;
+    }
+    const quota = e && e.status === 403;
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(quota ? 429 : 502).json({ error: (e && e.message) || 'Gagal mencari video', code: quota ? 'quota' : 'upstream' });
   }
 };

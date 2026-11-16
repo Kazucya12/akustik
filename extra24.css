@@ -30,3 +30,6 @@
 .x24a b{display:block;font-size:12px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (min-width:600px){.x24g{grid-template-columns:repeat(4,1fr)}}
 @media (min-width:900px){.x24g{grid-template-columns:repeat(5,1fr);gap:22px 16px}.x24c b{font-size:14px}}
+/* Strip "Artis dari koleksimu" di Beranda: bingkai kotak membulat yang sedikit lebih besar dari foto (bukan lingkaran) */
+.x24hs .x24a .x24r{border-radius:22px;padding:4px}
+#v .x24hs .x24a .x24r img{border-radius:18px;border-width:2px;box-shadow:none}

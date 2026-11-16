@@ -199,7 +199,7 @@
   function wrSlides(d){
     var s=[];
     s.push('<h2>Loopify Wrapped</h2><p>Rangkuman dengarmu · '+(window.wrLabel?window.wrLabel(window.wrPeriod||'all'):'sepanjang waktu')+'</p><div class="big">'+d.min+'</div><p>menit mendengarkan musik'+(d.min>=60?' (sekitar '+(d.tot/3600).toFixed(1)+' jam)':'')+'</p>');
-    if(d.songs[0])s.push('<p>Lagu nomor 1-mu</p><h2>'+E(d.songs[0].n)+'</h2><p>'+E(d.songs[0].a)+'</p><div class="big">'+Math.max(1,Math.round(d.songs[0].s/60))+'</div><p>menit diputar'+(d.songs[0].c?' · '+d.songs[0].c+'x diputar':'')+'</p>');
+    if(d.songs[0])s.push('<p>Lagu nomor 1-mu</p><h2>'+E(d.songs[0].n)+'</h2><p>'+E(d.songs[0].a)+'</p><div class="big">'+Math.max(1,Math.round(d.songs[0].s/60))+'</div><p>menit diputar'+(d.songs[0].c?' · '+(+d.songs[0].c||0)+'x diputar':'')+'</p>');
     if(d.songs.length)s.push('<h2>5 lagu teratasmu</h2><div class="wr-l">'+d.songs.map(function(x,i){return'<div><em>'+(i+1)+'</em><span>'+E(x.n)+'<small>'+E(x.a)+'</small></span></div>'}).join('')+'</div>');
     if(d.arts.length)s.push('<p>Artis yang paling sering kamu dengar</p><h2>'+E(d.arts[0].n)+'</h2><div class="wr-l">'+d.arts.map(function(x,i){return'<div><em>'+(i+1)+'</em><span>'+E(x.n)+'<small>'+Math.max(1,Math.round(x.s/60))+' menit</small></span></div>'}).join('')+'</div>');
     s.push('<h2>Terima kasih sudah mendengarkan.</h2><p>Terus putar, terus temukan lagu baru.</p><button class="wr-btn" onclick="wrShare()">Bagikan ringkasan</button>');

@@ -45,6 +45,7 @@ async function durations(ids, key) {
 }
 
 module.exports = async (req, res) => {
+  if (!(await require('./_rl')(req, res, 'yt', 40, 60))) return;
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) { res.status(501).json({ error: 'YOUTUBE_API_KEY belum diatur di Vercel' }); return; }
   const q = String(new URL(req.url, 'http://x').searchParams.get('q') || '').trim().slice(0, 100);

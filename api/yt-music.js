@@ -61,10 +61,9 @@ module.exports = async (req, res) => {
       return (j.items || []).filter((x) => x.id && x.id.videoId);
     };
     // Coba kategori Musik dulu supaya hasil lagu lebih tepat; kalau sedikit, lengkapi tanpa kategori
+    // Hemat kuota (search.list = 100 unit): panggilan kedua tanpa kategori hanya kalau kategori Musik kosong
     let items = await run('&videoCategoryId=10');
-    if (items.length < 15) {
-      try { items = items.concat(await run('')); } catch (e) { if (!items.length) throw e; }
-    }
+    if (!items.length) items = await run('');
     const seen = new Set();
     const uniq = items.filter((x) => !seen.has(x.id.videoId) && seen.add(x.id.videoId)).slice(0, 50);
     const sm = String(new URL(req.url, 'http://x').searchParams.get('songs') || '');
@@ -80,7 +79,7 @@ module.exports = async (req, res) => {
       const n = tidy(dec(x.snippet.title), dec(x.snippet.channelTitle));
       return { id: x.id.videoId, title: n.title.slice(0, 200), artist: n.artist.slice(0, 100) };
     });
-    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     res.status(200).json(out);
   } catch (e) {
     res.status(e && e.status === 403 ? 429 : 502).json({ error: (e && e.message) || 'Gagal mencari video' });

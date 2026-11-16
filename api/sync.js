@@ -43,6 +43,13 @@ module.exports = async (req, res) => {
       const data = {};
       KEYS.forEach((x) => { if (b.data && b.data[x] !== undefined) data[x] = b.data[x]; });
       if (JSON.stringify(data).length > MAX) { res.status(413).json({ error: 'Data terlalu besar' }); return; }
+      // Kontrol versi: klien menyebut versi (bt) yang jadi dasar perubahannya. Kalau server sudah lebih baru
+      // (perangkat lain sudah menyimpan), jangan menimpa: kirim 409 + data terbaru supaya klien menggabungkan dulu.
+      // Klien lama tanpa bt tetap diterima seperti dulu.
+      if (typeof b.bt === 'number') {
+        const cur = await getJ(k);
+        if (cur && cur.t > b.bt) { res.status(409).json({ conflict: true, t: cur.t, data: cur.data }); return; }
+      }
       const t = Date.now();
       await rd('SET', k, JSON.stringify({ t, data }));
       res.status(200).json({ t }); return;

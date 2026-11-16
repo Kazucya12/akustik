@@ -80,7 +80,7 @@
         '<div id="x25new"></div>'+
         '<div id="x25dis"></div>'+
         (mine.length?'<div class="sec"><h3>Koleksimu</h3></div><div id="x25own"></div>':'')+
-        (tg.length?'<div class="sec"><h3>Sering kamu putar bersama</h3></div><div class="hs x25tg">'+tg.map(function(x,i){var p=photo(x.name);return'<div class="cd x25a" onclick="x25Sim('+i+')"><div class="x25r"><img src="'+E(p||cov({h:hh(x.name)}))+'" data-n="'+E(x.name)+'" alt="" onerror="x24E&&x24E(this)"></div><b>'+E(x.name)+'</b><small>'+x.n+' playlist</small></div>'}).join('')+'</div>':'')+
+        (tg.length?'<div class="sec"><h3>Sering kamu putar bersama</h3></div><div class="hs x25tg">'+tg.map(function(x,i){var p=photo(x.name);return'<div class="cd x25a" onclick="x25Sim('+i+')"><div class="x25r"><img src="'+E(p||cov({h:hh(x.name)}))+'" data-n="'+E(x.name)+'" alt="" onerror="x24E&&x24E(this)"></div><b>'+E(x.name)+'</b><small>'+(+x.n||0)+' playlist</small></div>'}).join('')+'</div>':'')+
         '<div id="x25ab"></div>'+
       '</div>');
     window.x25T=tg;
@@ -145,7 +145,7 @@
         get('/api/artist?src=yt&albums=1&id='+encodeURIComponent(a.id),'albums').then(function(l){ALB[a.id]=l;if(S&&S.a.id==a.id)disco()});
       }else{
         window.x25A=albums.map(function(x){return Object.assign({},x,{artist:a.name,aid:a.id})});
-        body='<div class="hs">'+albums.map(function(x,i){return'<div class="cd" onclick="x25Al('+i+')"><img src="'+E(cov(x.img?{img:x.img}:{h:hh(x.name)}))+'" alt=""><b>'+E(x.name)+'</b><small>'+(x.n?x.n+' lagu':'Album')+'</small></div>'}).join('')+'</div>';
+        body='<div class="hs">'+albums.map(function(x,i){return'<div class="cd" onclick="x25Al('+i+')"><img src="'+E(cov(x.img?{img:x.img}:{h:hh(x.name)}))+'" alt=""><b>'+E(x.name)+'</b><small>'+(+x.n?(+x.n)+' lagu':'Album')+'</small></div>'}).join('')+'</div>';
       }
     }else{
       var L=(S.tab=='sg'?singles:rmx).slice(0,30);lists.x25d=L;

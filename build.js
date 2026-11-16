@@ -10,7 +10,7 @@ const CSS = ['style.css', 'web.css', 'extra9.css', 'extra10.css', 'extra15.css',
 const JS = ['dialog.js', 'app.js', 'extra.js', 'extra2.js', 'extra3.js', 'extra4.js', 'extra5.js', 'extra6.js', 'extra7.js',
   'extra8.js', 'extra9.js', 'extra10.js', 'extra14.js', 'extra15.js', 'extra16.js', 'extra17.js', 'extra18.js', 'extra19.js',
   'extra20.js', 'extra21.js', 'extra22.js', 'extra23.js', 'extra24.js', 'extra25.js', 'extra26.js', 'extra27.js', 'extra28.js',
-  'extra29.js', 'extra30.js', 'web.js', 'musicapi.js', 'a11y.js'];
+  'extra29.js', 'extra30.js', 'extra31.js', 'web.js', 'musicapi.js', 'a11y.js'];
 
 // app.js memakai deklarasi global (const/let/function) yang dipakai file lain, jadi tidak dibungkus.
 // File lain berupa IIFE: dibungkus try/catch supaya satu file yang error tidak menghentikan file sesudahnya.
@@ -27,4 +27,15 @@ const js = JS.map((f) => {
 }).join('\n\n');
 fs.writeFileSync('loopify.js', js);
 
-console.log(`loopify.css ${css.length} byte, loopify.js ${js.length} byte`);
+// Nama cache service worker = versi + hash isi cangkang. Tiap kali bundle/index/manifest berubah, SW dianggap baru,
+// jadi pengguna otomatis mendapat toast "Versi baru tersedia" (tidak perlu mengubah angka di sw.js manual).
+const crypto = require('crypto');
+const h = crypto.createHash('sha1');
+['loopify.css', 'loopify.js', 'index.html', 'manifest.json'].forEach((f) => h.update(fs.readFileSync(f)));
+const ver = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+const tag = `ma-v${ver}-${h.digest('hex').slice(0, 8)}`;
+const sw = fs.readFileSync('sw.js', 'utf8');
+const sw2 = sw.replace(/^const C = '[^']*';/m, `const C = '${tag}';`);
+if (sw2 !== sw) fs.writeFileSync('sw.js', sw2);
+
+console.log(`SW cache ${tag}\nloopify.css ${css.length} byte, loopify.js ${js.length} byte`);

@@ -105,3 +105,11 @@ Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah 
 - **Aksesibilitas** (`a11y.js`, `a11y.css`): tombol ikon mendapat nama untuk pembaca layar, kartu/baris/chip bisa difokus dan ditekan dengan Enter/Spasi, kolom isi diberi label, toast diumumkan, area ketuk tombol ikon diperluas ke ±44px, teks 10px dinaikkan ke 11px.
 - **Splash** dipersingkat (maksimal sekitar 1,6 detik) dan dilewati pada pembukaan berikutnya dalam sesi yang sama.
 - Service worker hanya menyimpan cangkang yang kini lebih ringkas (bundle, manifest, ikon).
+
+## v4.30: rate limit, sinkron aman, hardening, update otomatis
+- **Rate limit** (`api/_rl.js`, per IP lewat Upstash Redis yang sama; file berawalan `_` bukan fungsi Vercel). Batas per menit: yt-music 40, suggest 120, stream 60, artist 60, import 10, soundstat 20. Kalau Redis belum diatur, permintaan tetap lolos.
+- **Perbaikan rute:** `api/sugest.js` diganti nama menjadi `api/suggest.js` (aplikasi memanggil `/api/suggest`, sebelumnya 404 sehingga saran pencarian tidak pernah muncul). Hapus `api/sugest.js` lama di repo.
+- **Sinkron gabung tiga arah** (`extra17.js` + `api/sync.js`): penambahan/penghapusan dari dua perangkat dipertahankan; server menjawab 409 bila simpanan berdasar versi lama.
+- **Hardening:** data dari file cadangan/sinkron dibersihkan (`scrubData`), tombol unduh menolak alamat non-https, angka yang dicetak ke HTML dipaksa numerik, alamat autentikasi MusicAPI harus https.
+- **Update otomatis:** `node build.js` mengisi nama cache `sw.js` dengan hash bundle; aplikasi memeriksa versi baru tiap 30 menit dan saat dibuka kembali.
+- Splash: bar dan tagline kini selesai dalam durasi splash.

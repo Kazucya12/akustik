@@ -1,0 +1,27 @@
+/* Loopify v4.8 - gaya untuk extra18.js (Album, deskripsi/folder playlist, seret urutan) */
+
+/* kartu album di tab Album profil artis */
+.x18c{cursor:pointer;min-width:0}
+.x18c img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;box-shadow:var(--sh);display:block}
+.x18c b{display:block;margin-top:8px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x18c small{display:block;margin-top:2px;font-size:12px;color:var(--mu)}
+.x18c:active{transform:scale(.96)}
+.x18ac{cursor:pointer}
+
+/* deskripsi playlist */
+.x18d{margin:0 16px 10px;font-size:13px;line-height:1.45;color:var(--mu);overflow-wrap:anywhere}
+
+/* pegangan seret untuk urutan lagu */
+.x18dh{flex:none;width:28px;height:44px;display:grid;place-items:center;font-size:20px;line-height:1;color:var(--mu);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;border-radius:10px}
+.x18dh:active{cursor:grabbing;color:var(--p)}
+.x18dh:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.rw.x18drag{background:var(--c);box-shadow:var(--sh);opacity:.92;transform:scale(1.02);position:relative;z-index:2;transition:none}
+
+/* folder playlist di Library */
+.x18fd{cursor:pointer}
+.x18fd small{display:block;color:var(--mu);font-size:12px}
+.x18fo{background:linear-gradient(135deg,var(--p),var(--p2));font-size:22px}
+.x18ch{flex:none;width:28px;text-align:center;font-size:22px;line-height:1;color:var(--mu)}
+.rw.x18in{margin-left:18px;padding-left:10px;border-left:2px solid var(--b);border-radius:0 16px 16px 0}
+
+@media (prefers-reduced-motion:reduce){.x18c:active,.rw.x18drag{transform:none}}

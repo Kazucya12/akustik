@@ -2,6 +2,7 @@
 // Saran pencarian ala YouTube/Spotify saat mengetik. Gratis, tanpa API key dan tanpa kuota YouTube Data API.
 // Endpoint saran ini tidak resmi; kalau berhenti bekerja, aplikasi tetap jalan (hanya saran dari koleksi sendiri yang tampil).
 module.exports = async (req, res) => {
+  if (!(await require('./_rl')(req, res, 'sg', 120, 60))) return;
   const q = String(new URL(req.url, 'http://x').searchParams.get('q') || '').replace(/\s+/g, ' ').trim().slice(0, 80);
   if (!q) { res.status(200).json([]); return; }
   const c = new AbortController();

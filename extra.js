@@ -96,7 +96,7 @@ window.arList=function(){
   uniq([...songs,...favs.map(rs).filter(Boolean)]).forEach(t=>{const n=String(t.artist||'').trim();if(!n||GENERIC.test(n))return;const k=n.toLowerCase();if(!m.has(k))m.set(k,{n,c:0,t});m.get(k).c++});
   const a=[...m.values()].sort((x,y)=>y.c-x.c||x.n.localeCompare(y.n));
   alist=a.map(x=>x.n);
-  return a.length?a.map((x,i)=>`<div class="rw" onclick="artistPg(AN(${i}))"><img src="${esc(cov(x.t))}" style="border-radius:50%"><div><b>${esc(x.n)}</b><small>${x.c} lagu</small></div></div>`).join(''):'<div class="em">Belum ada artis. Tambahkan lagu atau tandai favorit dulu.</div>';
+  return a.length?a.map((x,i)=>`<div class="rw" onclick="artistPg(AN(${i}))"><img src="${esc(cov(x.t))}" style="border-radius:50%"><div><b>${esc(x.n)}</b><small>${+x.c||0} lagu</small></div></div>`).join(''):'<div class="em">Belum ada artis. Tambahkan lagu atau tandai favorit dulu.</div>';
 };
 window.artistPg=async function(n){
   n=String(n||'').trim();

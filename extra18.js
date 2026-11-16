@@ -14,7 +14,7 @@
   function alb(){
     var t=Q('#x16t'),b=Q('#x16b');if(!t||!b||!ca)return;
     QA('.chip',t).forEach(function(c){c.classList.toggle('a',c.classList.contains('x18ac'))});
-    var id=ca.id,show=function(l){window.x18A=l;b.innerHTML=l.length?'<div class="x16g2">'+l.map(function(x,i){return'<div class="x18c" onclick="x18Al('+i+')"><img src="'+img(x)+'" alt=""><b>'+E(x.name)+'</b><small>'+(x.n?x.n+' lagu':'Album')+'</small></div>'}).join('')+'</div>':'<div class="em">Belum ada album.</div>'};
+    var id=ca.id,show=function(l){window.x18A=l;b.innerHTML=l.length?'<div class="x16g2">'+l.map(function(x,i){return'<div class="x18c" onclick="x18Al('+i+')"><img src="'+img(x)+'" alt=""><b>'+E(x.name)+'</b><small>'+(+x.n?(+x.n)+' lagu':'Album')+'</small></div>'}).join('')+'</div>':'<div class="em">Belum ada album.</div>'};
     if(AC[id])return show(AC[id]);
     b.innerHTML='<div class="em">Memuat…</div>';
     get('/api/artist?src='+ca.src+'&albums=1&id='+encodeURIComponent(id),'albums').then(function(l){AC[id]=l;if(ca&&ca.id==id&&Q('.x18ac.a'))show(l)});

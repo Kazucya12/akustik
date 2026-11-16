@@ -35,7 +35,7 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
 - `api/import.js`: ambil daftar lagu dari link Spotify/YouTube (YouTube butuh `YOUTUBE_API_KEY`)
 - `index.html`, `style.css`, `app.js`: aplikasi
 - `api/music.js`: stasiun radio (radio-browser) atau API kustom
-- `api/yt-search.js`: pencarian video YouTube
+- `api/yt-music.js`: pencarian YouTube (musik dan video)
 - `api/soundstat.js`: rekomendasi lagu berdasarkan suasana, aktivitas, dan waktu (SoundStat)
 - `manifest.json`, `sw.js`, `icon-*.png`: PWA
 - `.env.example`: daftar variabel lingkungan

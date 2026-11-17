@@ -28,29 +28,39 @@
     for(var i=0;i<8;i++){var a=i*Math.PI/4,r=i%2?s*.18:s;c.lineTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath();c.fill();c.restore()}
   function hue(t){var s=String(t.title||''),n=0;for(var i=0;i<s.length;i++)n=(n*31+s.charCodeAt(i))%360;return n}
   function tm(n){return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
-  var POS={1:[[60,1060,-6]],2:[[50,240,-7],[640,1080,6]],3:[[50,200,-7],[640,700,6],[40,1240,-5]],4:[[40,170,-6],[650,560,5],[30,1180,-5],[660,1290,6]]};
-  var W=1080,H=1920,CW=390,CH=520;
-  function card(c,t,im,x,y,rot,style){var hu=hue(t),F='Sora, system-ui, sans-serif';
+  var POS={1:[[50,1000,-6]],2:[[30,220,-7],[690,1000,6]],3:[[30,120,-7],[690,560,6],[30,1120,-5]],4:[[30,120,-6],[690,470,5],[24,1080,-5],[690,1130,6]]};
+  var W=1080,H=1920,CW=360,CH=612;
+  function tri(c,x,y,d,s){c.beginPath();c.moveTo(x+d*s,y-s);c.lineTo(x-d*s,y);c.lineTo(x+d*s,y+s);c.closePath();c.fill()}
+  function spk(c,x,y,wave){c.beginPath();c.moveTo(x,y-4);c.lineTo(x+6,y-4);c.lineTo(x+13,y-10);c.lineTo(x+13,y+10);c.lineTo(x+6,y+4);c.lineTo(x,y+4);c.closePath();c.fill();
+    if(wave){c.beginPath();c.arc(x+13,y,9,-.9,.9);c.lineWidth=2.5;c.strokeStyle='#fff';c.stroke()}}
+  function fitTxt(c,t,w){t=String(t);if(c.measureText(t).width<=w)return t;while(t.length>2&&c.measureText(t+'…').width>w)t=t.slice(0,-1);return t.trimEnd()+'…'}
+  function card(c,t,im,x,y,rot,style){var hu=hue(t),F='Sora, system-ui, sans-serif',p=24,cs=CW-2*p;
     c.save();c.translate(x+CW/2,y+CH/2);c.rotate(rot*Math.PI/180);c.translate(-CW/2,-CH/2);
-    c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=40;c.shadowOffsetY=14;rr(c,0,0,CW,CH,34);
-    if(style=='kaca'){c.fillStyle='rgba(255,255,255,.22)'}else if(style=='warna'){var g=c.createLinearGradient(0,0,CW,CH);g.addColorStop(0,'hsl('+hu+',70%,35%)');g.addColorStop(1,'hsl('+((hu+50)%360)+',75%,18%)');c.fillStyle=g}else c.fillStyle='rgba(28,28,30,.96)';
-    c.fill();c.shadowColor='transparent';c.lineWidth=2;c.strokeStyle='rgba(255,255,255,.28)';c.stroke();
-    var tx=style=='kaca'?'#fff':'#fff';
-    c.save();rr(c,30,30,CW-60,CW-60,22);c.clip();
-    if(im)fit(c,im,30,30,CW-60,CW-60);else{var g2=c.createLinearGradient(30,30,CW-30,CW-30);g2.addColorStop(0,'hsl('+hu+',70%,32%)');g2.addColorStop(1,'hsl('+((hu+40)%360)+',80%,60%)');c.fillStyle=g2;c.fillRect(30,30,CW-60,CW-60);c.fillStyle='rgba(255,255,255,.85)';c.font='700 120px '+F;c.textAlign='center';c.fillText('♪',CW/2,CW/2+35);c.textAlign='left'}
+    c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=50;c.shadowOffsetY=18;rr(c,0,0,CW,CH,32);
+    if(style=='warna'){var g=c.createLinearGradient(0,0,CW,CH);g.addColorStop(0,'hsl('+hu+',65%,38%)');g.addColorStop(1,'hsl('+((hu+55)%360)+',70%,16%)');c.fillStyle=g}
+    else if(style=='kaca')c.fillStyle='rgba(30,30,45,.4)';else c.fillStyle='#1c1c1e';
+    c.fill();c.shadowColor='transparent';
+    if(style=='kaca'){c.save();rr(c,0,0,CW,CH,32);c.clip();try{c.filter='blur(24px)';fit(c,K.photo,-40,-40,CW+80,CH+80);c.filter='none'}catch(e){}c.fillStyle='rgba(255,255,255,.22)';c.fillRect(0,0,CW,CH);c.restore()}
+    c.save();rr(c,0,0,CW,CH,32);c.clip();var gl=c.createLinearGradient(0,0,0,CH*.5);gl.addColorStop(0,'rgba(255,255,255,.16)');gl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gl;c.fillRect(0,0,CW,CH);c.restore();
+    rr(c,0,0,CW,CH,32);c.lineWidth=2;c.strokeStyle='rgba(255,255,255,.3)';c.stroke();
+    /* cover: tampil utuh (contain) di atas latar blur dari cover itu sendiri */
+    c.save();rr(c,p,p,cs,cs,20);c.clip();
+    if(im){c.fillStyle='#111';c.fillRect(p,p,cs,cs);try{c.filter='blur(16px)';fit(c,im,p-24,p-24,cs+48,cs+48);c.filter='none'}catch(e){}
+      var k=Math.min(cs/im.width,cs/im.height),iw=im.width*k,ih=im.height*k;c.drawImage(im,p+(cs-iw)/2,p+(cs-ih)/2,iw,ih)}
+    else{var g2=c.createLinearGradient(p,p,p+cs,p+cs);g2.addColorStop(0,'hsl('+hu+',70%,32%)');g2.addColorStop(1,'hsl('+((hu+40)%360)+',80%,60%)');c.fillStyle=g2;c.fillRect(p,p,cs,cs);c.fillStyle='rgba(255,255,255,.85)';c.font='700 110px '+F;c.textAlign='center';c.fillText('♪',CW/2,p+cs/2+36);c.textAlign='left'}
     c.restore();
-    c.fillStyle=tx;c.font='700 30px '+F;var ti=String(t.title);while(ti.length>3&&c.measureText(ti).width>CW-120)ti=ti.slice(0,-2);if(ti!=String(t.title))ti+='…';c.fillText(ti,30,CW+28);
-    c.globalAlpha=.7;c.font='400 24px '+F;var ar=String(t.artist);while(ar.length>3&&c.measureText(ar).width>CW-120)ar=ar.slice(0,-2);c.fillText(ar,30,CW+62);c.globalAlpha=1;
-    c.font='400 30px '+F;c.fillText('♡',CW-62,CW+30);
-    var tot=170+(hu%90),pos=Math.round(tot*(.25+(hu%50)/100)),by=CH-106;
-    c.fillStyle='rgba(255,255,255,.3)';rr(c,30,by,CW-60,6,3);c.fill();c.fillStyle='#fff';rr(c,30,by,(CW-60)*pos/tot,6,3);c.fill();
-    c.beginPath();c.arc(30+(CW-60)*pos/tot,by+3,9,0,7);c.fill();
-    c.font='400 19px '+F;c.globalAlpha=.7;c.fillText(tm(pos),30,by+34);c.textAlign='right';c.fillText('-'+tm(tot-pos),CW-30,by+34);c.textAlign='left';c.globalAlpha=1;
-    var cy=CH-34;c.fillStyle='#fff';c.beginPath();c.moveTo(CW/2-70,cy-14);c.lineTo(CW/2-92,cy);c.lineTo(CW/2-70,cy+14);c.fill();c.beginPath();c.moveTo(CW/2-90,cy-14);c.lineTo(CW/2-112,cy);c.lineTo(CW/2-90,cy+14);c.fill();
-    c.fillRect(CW/2-10,cy-15,7,30);c.fillRect(CW/2+4,cy-15,7,30);
-    c.beginPath();c.moveTo(CW/2+70,cy-14);c.lineTo(CW/2+92,cy);c.lineTo(CW/2+70,cy+14);c.fill();c.beginPath();c.moveTo(CW/2+90,cy-14);c.lineTo(CW/2+112,cy);c.lineTo(CW/2+90,cy+14);c.fill();
+    var ly=p+cs+30,ty=ly+36,ay=ty+32,by=ay+30,tt=by+34,cy=tt+36,vy=cy+44;
+    c.fillStyle='#fff';c.globalAlpha=.6;c.font='400 16px '+F;c.fillText('♪  Loopify',p,ly);c.globalAlpha=1;
+    c.font='700 27px '+F;c.fillText(fitTxt(c,t.title,CW-2*p-44),p,ty);
+    c.globalAlpha=.7;c.font='400 21px '+F;c.fillText(fitTxt(c,t.artist,CW-2*p-44),p,ay);c.globalAlpha=1;
+    c.font='400 30px '+F;c.fillText('♡',CW-p-30,ty);
+    var tot=170+(hu%90),pos=Math.round(tot*(.25+(hu%50)/100)),bw=CW-2*p;
+    c.fillStyle='rgba(255,255,255,.3)';rr(c,p,by,bw,6,3);c.fill();c.fillStyle='#fff';rr(c,p,by,bw*pos/tot,6,3);c.fill();c.beginPath();c.arc(p+bw*pos/tot,by+3,9,0,7);c.fill();
+    c.font='400 17px '+F;c.globalAlpha=.7;c.fillText(tm(pos),p,tt);c.textAlign='right';c.fillText('-'+tm(tot-pos),CW-p,tt);c.textAlign='left';c.globalAlpha=1;
+    tri(c,CW/2-62,cy,-1,12);tri(c,CW/2-80,cy,-1,12);c.fillRect(CW/2-9,cy-14,6,28);c.fillRect(CW/2+3,cy-14,6,28);tri(c,CW/2+62,cy,1,12);tri(c,CW/2+80,cy,1,12);
+    c.fillStyle='#fff';spk(c,p,vy,0);c.fillStyle='rgba(255,255,255,.3)';rr(c,p+34,vy-3,bw-76,6,3);c.fill();c.fillStyle='#fff';rr(c,p+34,vy-3,(bw-76)*.62,6,3);c.fill();c.beginPath();c.arc(p+34+(bw-76)*.62,vy,8,0,7);c.fill();spk(c,CW-p-18,vy,1);
     c.restore();
-    c.save();c.translate(x+CW/2,y+CH/2);c.rotate(rot*Math.PI/180);spark(c,-CW/2+8,-CH/2+8,26);spark(c,CW/2-4,-CH/2+30,16);spark(c,-CW/2+30,CH/2-6,14);c.restore()}
+    c.save();c.translate(x+CW/2,y+CH/2);c.rotate(rot*Math.PI/180);spark(c,-CW/2+8,-CH/2+8,26);spark(c,CW/2-4,-CH/2+34,16);spark(c,-CW/2+30,CH/2-6,14);c.restore()}
 
   window.x34m=function(){
     if(!K.photo){toast('Pilih foto dulu');return}if(!K.sel.length){toast('Pilih minimal 1 lagu');return}
@@ -61,7 +71,7 @@
         fit(c,K.photo,0,0,W,H);var g=c.createLinearGradient(0,H*.6,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.45)');c.fillStyle=g;c.fillRect(0,0,W,H);
         T.forEach(function(t,i){var p=POS[T.length][i];card(c,t,ims[i],p[0],p[1],p[2],K.style)});
         spark(c,520,90,22);spark(c,980,860,18);spark(c,90,990,16);
-        c.fillStyle='#fff';c.globalAlpha=.8;c.font='700 26px Sora, system-ui, sans-serif';c.textAlign='center';c.fillText('Loopify',W/2,H-50);
+        c.fillStyle='rgba(0,0,0,.45)';rr(c,W/2-80,H-98,160,50,25);c.fill();c.fillStyle='#fff';c.globalAlpha=.95;c.font='700 24px Sora, system-ui, sans-serif';c.textAlign='center';c.fillText('Loopify',W/2,H-64);c.globalAlpha=1;
         var u;try{u=cv.toDataURL('image/png')}catch(e){toast('Gambar tidak bisa dibuat (foto/cover diblokir). Coba foto lain.');return}
         sub(shd('Kolase Foto Lagu')+'<img class="x34i" src="'+u+'"><button class="btn" id="x34b">Bagikan / simpan</button><button class="btn g" style="margin-top:8px" onclick="goKolase34()">Ubah lagi</button>');
         document.getElementById('x34b').onclick=function(){cv.toBlob(function(bl){var f=new File([bl],'loopify-kolase.png',{type:'image/png'});

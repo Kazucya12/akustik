@@ -1,6 +1,6 @@
 // Service worker: cangkang aplikasi tersimpan supaya bisa dibuka offline. /api dan sumber luar tidak disentuh.
 // v4.29: cangkang = bundle (loopify.css/js) hasil node build.js. v3.5: login Gmail (extra4.js). v3.4: cache-first (buka instan), file diperbarui diam-diam di latar belakang.
-const C = 'ma-v4.37.0-cb5b0c5b';
+const C = 'ma-v4.38.0-a77e0d91';
 const SHELL = ['./', 'index.html', 'loopify.css', 'loopify.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 self.addEventListener('install', (e) => {
   // addAll gagal total kalau satu file hilang, jadi tiap file dicoba sendiri
@@ -11,7 +11,7 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   const r = e.request, u = new URL(r.url);
-  if (r.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/') || u.pathname.endsWith('.apk')) return;
+  if (r.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/') || u.pathname.endsWith('.apk') || u.pathname.startsWith('/__local/')) return;
   e.respondWith(
     caches.match(r, { ignoreSearch: r.mode === 'navigate' }).then((hit) => {
       const net = fetch(r).then((res) => {

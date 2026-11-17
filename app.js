@@ -75,7 +75,7 @@ const onS=v=>{clearTimeout(dt);dt=setTimeout(()=>{if(window.x24H)x24H();const n=
 function link(){const u=$('#lk').value.trim();if(!u)return;const y=ytId(u);if(y){vAdd(y);return}const t={id:'l'+Date.now(),title:decodeURIComponent(u.split('/').pop().split('?')[0])||'Lagu dari link',artist:'Link kustom',url:u,h:hh(u)};play([t],0);openP()}
 /* ===== Halaman ===== */
 const gen=[['Pop',280],['Rock',215],['Indie',260],['EDM',300],['Jazz',190],['Hip-Hop',330]];
-const logo='<svg width="30" height="26" viewBox="0 0 30 26"><path d="M1 25L11 3l5 10 4-6 9 18z" fill="none" stroke="#8b7bff" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+const logo='<img src="logo.png" width="30" height="30" alt="" style="border-radius:8px;display:block">';
 const addBtns=`<div style="display:flex;gap:8px"><button class="btn" onclick="pick()">+ Tambah Lagu</button><button class="btn g" onclick="pickDir()">Pindai Folder</button></div>`;
 function sub(h){$('#sp').innerHTML=h;$('#sp').classList.add('on')}function csp(){csp0();if(rbP){rbP=0;openP()}else go(pg)}const csp0=()=>$('#sp').classList.remove('on');
 const shd=t=>`<div class="hd"><button class="ib g" onclick="csp()">${ic('back')}</button><h3>${t}</h3><span style="width:38px"></span></div>`;

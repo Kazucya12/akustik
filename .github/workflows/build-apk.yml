@@ -240,8 +240,8 @@ jobs:
               /** Dipanggil dari JavaScript halaman: status putar + judul + artis. */
               class Bridge {
                   @JavascriptInterface
-                  public void s(boolean playing, String title, String artist) {
-                      MusicService.update(getApplicationContext(), playing, title, artist);
+                  public void s(boolean playing, String title, String artist, String img) {
+                      MusicService.update(getApplicationContext(), playing, title, artist, img);
                   }
 
                   @JavascriptInterface
@@ -434,7 +434,9 @@ jobs:
                       + "if(!p&&typeof vPlaying==='function'&&vPlaying())p=true;"
                       + "if(!p&&ms&&ms.playbackState==='playing')p=true;"
                       + "if(!t&&typeof cur!=='undefined'&&cur){t=String(cur.title||'');a=String(cur.artist||'')}"
-                      + "LoopifyNative.s(p,t,a)}catch(e){}}"
+                      + "var im='';try{if(typeof cur!=='undefined'&&cur&&cur.img)im=String(cur.img);"
+                      + "if(!im&&m&&m.artwork&&m.artwork.length)im=String(m.artwork[m.artwork.length-1].src||'')}catch(e){}"
+                      + "LoopifyNative.s(p,t,a,im)}catch(e){}}"
                       + "['play','pause','ended','playing','emptied'].forEach(function(e){"
                       + "document.addEventListener(e,function(){setTimeout(st,150)},true)});"
                       + "setInterval(st,1500);st()})();";
@@ -644,6 +646,9 @@ jobs:
               static boolean playing = false;
               static String title = "Loopify";
               static String artist = "";
+              static String img = "";
+              static String artUrl = "";
+              static android.graphics.Bitmap art = null;
 
               private MediaSession session;
               private PowerManager.WakeLock wl;
@@ -658,13 +663,15 @@ jobs:
               };
 
               /** Dipanggil dari JavaScript lewat jembatan. Hanya memicu layanan kalau ada perubahan. */
-              static void update(Context c, boolean p, String t, String a) {
+              static void update(Context c, boolean p, String t, String a, String im) {
                   String nt = (t == null || t.isEmpty()) ? "Loopify" : t;
                   String na = a == null ? "" : a;
-                  boolean changed = p != playing || !nt.equals(title) || !na.equals(artist);
+                  String ni = (im != null && im.startsWith("http")) ? im : "";
+                  boolean changed = p != playing || !nt.equals(title) || !na.equals(artist) || !ni.equals(img);
                   playing = p;
                   title = nt;
                   artist = na;
+                  img = ni;
                   if (!changed) {
                       return;
                   }
@@ -755,7 +762,59 @@ jobs:
                   return START_NOT_STICKY;
               }
 
+              /** Ambil foto lagu di latar belakang, lalu perbarui notifikasi. */
+              private void loadArt() {
+                  final String u = img;
+                  if (u.isEmpty()) {
+                      art = null;
+                      artUrl = "";
+                      return;
+                  }
+                  if (u.equals(artUrl)) {
+                      return;
+                  }
+                  artUrl = u;
+                  art = null;
+                  new Thread(new Runnable() {
+                      @Override
+                      public void run() {
+                          android.graphics.Bitmap b = null;
+                          try {
+                              java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(u).openConnection();
+                              c.setConnectTimeout(8000);
+                              c.setReadTimeout(8000);
+                              c.setInstanceFollowRedirects(true);
+                              java.io.InputStream in = c.getInputStream();
+                              android.graphics.Bitmap raw = android.graphics.BitmapFactory.decodeStream(in);
+                              in.close();
+                              if (raw != null) {
+                                  int w = raw.getWidth(), hh = raw.getHeight(), sz = Math.min(w, hh);
+                                  b = android.graphics.Bitmap.createBitmap(raw, (w - sz) / 2, (hh - sz) / 2, sz, sz);
+                                  if (sz > 512) {
+                                      b = android.graphics.Bitmap.createScaledBitmap(b, 512, 512, true);
+                                  }
+                              }
+                          } catch (Exception e) {
+                              b = null;
+                          }
+                          final android.graphics.Bitmap fb = b;
+                          h.post(new Runnable() {
+                              @Override
+                              public void run() {
+                                  if (fb != null && u.equals(img)) {
+                                      art = fb;
+                                      if (running) {
+                                          refresh();
+                                      }
+                                  }
+                              }
+                          });
+                      }
+                  }).start();
+              }
+
               private void refresh() {
+                  loadArt();
                   Notification n = build();
                   if (Build.VERSION.SDK_INT >= 29) {
                       startForeground(NID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
@@ -763,10 +822,14 @@ jobs:
                       startForeground(NID, n);
                   }
 
-                  session.setMetadata(new MediaMetadata.Builder()
+                  MediaMetadata.Builder mb = new MediaMetadata.Builder()
                           .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                          .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
-                          .build());
+                          .putString(MediaMetadata.METADATA_KEY_ARTIST, artist);
+                  if (art != null) {
+                      mb.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art);
+                      mb.putBitmap(MediaMetadata.METADATA_KEY_ART, art);
+                  }
+                  session.setMetadata(mb.build());
                   session.setPlaybackState(new PlaybackState.Builder()
                           .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE
                                   | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_NEXT
@@ -814,7 +877,7 @@ jobs:
                   Notification.Action next = new Notification.Action.Builder(
                           Icon.createWithResource(this, android.R.drawable.ic_media_next), "Berikutnya", act(A_NEXT)).build();
 
-                  return new Notification.Builder(this, CH)
+                  Notification.Builder nb = new Notification.Builder(this, CH)
                           .setSmallIcon(R.drawable.ic_stat)
                           .setContentTitle(title)
                           .setContentText(artist.isEmpty() ? (playing ? "Memutar" : "Dijeda") : artist)
@@ -828,8 +891,11 @@ jobs:
                           .addAction(next)
                           .setStyle(new Notification.MediaStyle()
                                   .setMediaSession(session.getSessionToken())
-                                  .setShowActionsInCompactView(0, 1, 2))
-                          .build();
+                                  .setShowActionsInCompactView(0, 1, 2));
+                  if (art != null) {
+                      nb.setLargeIcon(art);
+                  }
+                  return nb.build();
               }
 
               @Override

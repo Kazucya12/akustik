@@ -156,8 +156,7 @@
   function about(){
     var el=Q('#x25ab');if(!el||!S)return;
     var a=S.a,mine=own(a.name).length;
-    el.innerHTML='<div class="sec"><h3>Tentang</h3></div><div class="x25ab"><div class="x25abi" style="background-image:url(\''+img(a).replace(/'/g,'%27')+'\')"><div><b>'+E(a.name)+'</b><small>'+(a.subs?fmtN(a.subs)+' subscriber':'Channel YouTube')+(mine?' · '+mine+' lagu di koleksimu':'')+'</small></div></div>'+
-      (a.id?'<a class="btn g" href="https://www.youtube.com/channel/'+E(a.id)+'" target="_blank" rel="noopener noreferrer">Buka di YouTube</a>':'')+'</div>';
+    el.innerHTML='<div class="sec"><h3>Tentang</h3></div><div class="x25ab"><div class="x25abi" style="background-image:url(\''+img(a).replace(/'/g,'%27')+'\')"><div><b>'+E(a.name)+'</b><small>'+(a.subs?fmtN(a.subs)+' subscriber':'Channel YouTube')+(mine?' · '+mine+' lagu di koleksimu':'')+'</small></div></div></div>';
   }
 
   /* ---------- aksi ---------- */

@@ -725,6 +725,19 @@ body.isl-on #toast{top:calc(max(10px,env(safe-area-inset-top)) + 52px)}
 .x26ac b{display:block;font-size:13px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .x26ac small{display:block;font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* ==== extra46.css ==== */
+/* v4.39: mode ringan otomatis (APK / HP spek rendah) + mode latar belakang (layar mati). Audio tidak terpengaruh. */
+.rw{content-visibility:auto;contain-intrinsic-size:auto 66px}
+html.lite *,html.lite *:before,html.lite *:after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.lite .nav,html.lite .mv,html.lite #toast,html.lite #mp,html.lite .upd{background:var(--nv)!important}
+html.lite .orb{animation:none!important;will-change:auto}
+html.bg *,html.bg *:before,html.bg *:after{animation:none!important;transition:none!important}
+html.bg .orb{display:none}
+.x46ic{display:flex;flex-wrap:wrap;gap:12px;padding:6px 2px 14px}
+.x46ic button{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;color:var(--tx,inherit);font:600 11px Sora,system-ui,sans-serif;cursor:pointer}
+.x46ic i{display:block;width:48px;height:48px;border-radius:15px;border:2px solid transparent;box-shadow:var(--sh)}
+.x46ic .on i{border-color:var(--p2,#fff);outline:2px solid var(--p,#ff8a5b);outline-offset:1px}
+
 /* ==== a11y.css ==== */
 /* Loopify v4.29 - aksesibilitas dan kenyamanan ketuk (pasangan a11y.js) */
 

@@ -11,7 +11,7 @@
   function need(){return note('Masuk dulu di tab Profil untuk memakai fitur ini.')}
   function err(e){return note(e&&e.status==401?'Sesi habis. Masuk lagi di tab Profil.':(e&&e.msg)||'Gagal. Coba lagi nanti.')}
   function clean(t){var o={id:t.id,title:t.title,artist:t.artist,img:t.img};if(t.yt){o.yt=1;o.vid=t.vid}else o.url=t.url;return o}
-  function toLocal(t){return t.yt?mkV(t.vid,t.title,t.artist):Object.assign({h:hh(t.title)},t)}
+  function toLocal(t){var r=t.yt?mkV(t.vid,t.title,t.artist):Object.assign({h:hh(t.title)},t);if(t.by)r.by=t.by;return r}
   function ids(a){return a.map(function(x){return String(x&&typeof x=='object'?x.id:x)})}
   function url(k,c){return location.origin+location.pathname+'#'+k+'='+c}
 

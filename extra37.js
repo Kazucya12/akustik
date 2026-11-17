@@ -40,6 +40,7 @@
     var _setR = setR;
     setR = function () {
       _setR.apply(this, arguments);
+      if (window.LoopifyNative) return; /* di dalam aplikasi Android, bagian unduh tidak perlu */
       var sp = document.getElementById('sp');
       if (!sp || sp.querySelector('.x37row')) return;
       var tgt = null;

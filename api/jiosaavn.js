@@ -2,7 +2,8 @@
 // /api/jiosaavn?action=lyrics&id=...           -> { lyrics, id }
 // /api/jiosaavn?action=lyrics&t=JUDUL&a=ARTIS  -> { lyrics, id }  (cari lagunya dulu, lalu ambil liriknya)
 // Butuh env JIOSAAVN_API_URL = alamat backend JioSaavnAPI milikmu, contoh https://api-musik-zeta.vercel.app
-// Backend itu hanya memberi metadata dan lirik. Pemutaran lagu tetap lewat YouTube di sisi aplikasi.
+// /api/jiosaavn?action=stream&id=ID[&t=JUDUL&a=ARTIS] -> { url }  (alamat audio langsung untuk elemen <audio>; v4.37)
+// Lagu diputar langsung dari url ini (stabil di latar belakang APK). Kalau kosong/gagal, aplikasi jatuh ke YouTube.
 const UA = 'Loopify/4.30';
 
 function base() {
@@ -63,6 +64,42 @@ async function lyricsById(b, id) {
   return plain(j && j.lyrics);
 }
 
+// v4.37: ambil alamat audio langsung dari berbagai bentuk respons backend (media_url atau downloadUrl[])
+function mediaOf(x) {
+  if (!x || typeof x !== 'object') return '';
+  if (Array.isArray(x.downloadUrl) && x.downloadUrl.length) {
+    const best = x.downloadUrl.find((d) => /320/.test(String(d.quality || ''))) || x.downloadUrl[x.downloadUrl.length - 1];
+    const u = best && (best.url || best.link);
+    if (u) return https(u);
+  }
+  const mi = x.more_info || {};
+  const m = x.media_url || mi.media_url || '';
+  return /^https?:\/\//i.test(String(m)) ? https(m) : '';
+}
+async function streamOf(b, id, t, a) {
+  const e = encodeURIComponent;
+  const tries = [b + '/song/get/?id=' + e(id), b + '/api/songs/' + e(id), b + '/songs/' + e(id)];
+  for (const u of tries) {
+    try {
+      const j = await jget(u, 7000);
+      const d = j && j.data;
+      const x = Array.isArray(j) ? j[0] : Array.isArray(d) ? d[0] : d || j;
+      const m = mediaOf(x);
+      if (m) return m;
+    } catch (err) { /* coba alamat berikutnya */ }
+  }
+  if (t) {
+    try {
+      const j = await jget(b + '/song/?query=' + e((t + ' ' + (a || '')).trim()) + '&lyrics=false&songdata=true', 9000);
+      const arr = Array.isArray(j) ? j : j && (j.songs || j.data || j.results) || [];
+      const hit = arr.find((x) => x && String(x.id) === String(id)) || arr.find((x) => norm(x && (x.song || x.title || x.name)) === norm(t));
+      const m = mediaOf(hit);
+      if (m) return m;
+    } catch (err) { /* menyerah */ }
+  }
+  return '';
+}
+
 module.exports = async (req, res) => {
   const u = new URL(req.url, 'http://x');
   const action = u.searchParams.get('action') || 'search';
@@ -75,6 +112,15 @@ module.exports = async (req, res) => {
       const list = (await search(b, q)).slice(0, 20);
       res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
       res.status(200).json(list);
+      return;
+    }
+    if (action === 'stream') {
+      if (!(await require('./_rl')(req, res, 'jst', 60, 60))) return;
+      const id = String(u.searchParams.get('id') || '').trim();
+      if (!/^[\w-]{1,40}$/.test(id)) { res.status(400).json({ error: 'id tidak valid' }); return; }
+      const url = await streamOf(b, id, clip(u.searchParams.get('t'), 100), clip(u.searchParams.get('a'), 60));
+      res.setHeader('Cache-Control', 'private, max-age=120');
+      res.status(200).json({ url });
       return;
     }
     if (action === 'lyrics') {

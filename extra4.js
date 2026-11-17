@@ -28,7 +28,7 @@
   function enter(fn){var l=document.querySelectorAll('#lg .in');for(var i=0;i<l.length;i++)l[i].onkeydown=function(e){if(e.key=='Enter')fn()}}
   function go2(s){st.step=s;clearInterval(tm);view()}
   function view(){
-    var c=document.querySelector('#lg .lgc');if(!c)return;var L=typeof logo!=='undefined'?logo:'',s=st.step;
+    var c=document.querySelector('#lg .lgc');if(!c)return;var L=typeof logo!=='undefined'?'<div style="display:flex;justify-content:center;margin-bottom:14px">'+logo.replace('width="30" height="30"','width="88" height="88"').replace('border-radius:8px','border-radius:22px')+'</div>':'',s=st.step;
     if(s=='login'){
       c.innerHTML=L+'<h2>Masuk</h2><p>Masuk dengan username atau Gmail dan password.</p>'
         +field('lgi','Username atau Gmail','text','username')+field('lgp','Password','password','current-password')

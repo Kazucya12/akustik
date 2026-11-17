@@ -2,6 +2,8 @@
    Butuh /api/jiosaavn (api/jiosaavn.js) dan env JIOSAAVN_API_URL di Vercel.
    1) Pencarian: hasil JioSaavn tampil bersama hasil YouTube. Lagunya ditandai rec:1 tanpa url,
       jadi saat diputar, aplikasi otomatis mencari versi YouTube-nya (resolveRec di app.js).
+   (v4.37) Saat diputar, lagu JioSaavn lebih dulu diputar LANGSUNG lewat <audio> (action=stream), jadi tetap bunyi di latar
+      belakang APK. Kalau alamat audio tidak ada atau gagal diputar, baru jatuh ke YouTube seperti sebelumnya.
    2) Lirik: lrclib tetap dicoba lebih dulu (ada lirik berjalan). Kalau kosong, baru ambil dari JioSaavn (teks biasa).
    Kalau JIOSAAVN_API_URL belum diisi atau backend mati, semuanya diam-diam dilewati dan aplikasi jalan seperti biasa. */
 (function () {
@@ -63,4 +65,31 @@
       try { if (lyS[t.id] === 'load') lyS[t.id] = 'none'; } catch (_) {}
     }
   };
+
+  /* ---------- 3. Putar langsung (v4.37) ---------- */
+  var _rr = resolveRec;
+  resolveRec = async function (t) {
+    if (t && t.jio && t.jid && !t._fb) {
+      try {
+        var r = await fetch('/api/jiosaavn?action=stream&id=' + encodeURIComponent(t.jid) +
+          '&t=' + encodeURIComponent(t.title || '') + '&a=' + encodeURIComponent(t.artist || ''));
+        if (r.ok) {
+          var j = await r.json();
+          if (j && /^https:\/\//.test(j.url || '')) { Object.assign(t, { url: j.url, rec: 0, nf: 0, yt: 0 }); return true; }
+        }
+      } catch (e) {}
+    }
+    return _rr(t);
+  };
+  /* audio langsung gagal (link kedaluwarsa/diblokir): pindah ke versi YouTube */
+  B.addEventListener('error', function () {
+    var t = cur;
+    if (!t || !t.jio || !t.url || t._fb || act !== B) return;
+    t._fb = 1; delete t.url; t.rec = 1;
+    _rr(t).then(function (ok) {
+      if (cur !== t) return;
+      if (ok && t.yt) playV(q, qi, 1);
+      else toast('Lagu ini tidak bisa diputar');
+    });
+  });
 })();

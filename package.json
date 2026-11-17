@@ -1,6 +1,6 @@
 {
   "name": "loopify",
-  "version": "4.34.0",
+  "version": "4.35.0",
   "private": true,
   "description": "Loopify - pemutar musik dan video",
   "dependencies": {

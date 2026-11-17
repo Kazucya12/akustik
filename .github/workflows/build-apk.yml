@@ -1391,8 +1391,10 @@ jobs:
           test -f apk-icon.png || { echo "File apk-icon.png belum ada di repo. Upload dulu ke folder utama repo."; exit 1; }
           cp apk-icon.png android/app/src/main/res/drawable-nodpi/ic_launcher_fg.png
           for k in asli biru hijau pink merah neon mono; do
-            test -f apk-icons/$k.png || { echo "File apk-icons/$k.png belum ada di repo."; exit 1; }
-            cp apk-icons/$k.png android/app/src/main/res/drawable-nodpi/ic_launcher_fg_$k.png
+            # Cari ikon varian: icon-$k.png di folder utama, atau apk-icons/$k.png. Kalau tidak ada, pakai apk-icon.png supaya build tidak gagal.
+            src=apk-icon.png
+            if [ -f "icon-$k.png" ]; then src="icon-$k.png"; elif [ -f "apk-icons/$k.png" ]; then src="apk-icons/$k.png"; else echo "Peringatan: ikon varian '$k' tidak ditemukan, memakai apk-icon.png"; fi
+            cp "$src" android/app/src/main/res/drawable-nodpi/ic_launcher_fg_$k.png
             printf '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@android:color/black" />\n    <foreground android:drawable="@drawable/ic_launcher_fg_%s" />\n</adaptive-icon>\n' "$k" > android/app/src/main/res/mipmap-anydpi/ic_launcher_$k.xml
           done
           ls -R android | head -40

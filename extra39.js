@@ -15,10 +15,40 @@
       s:G('t4','#ffe36b','#ff3d2e')+'<path d="M40 12c4 10 10 14 10 22 0 5-3 8-6 10 8-2 16-8 20-18 2 14-4 28-16 34-3 2-6 3-8 8-2-5-5-6-8-8C20 54 14 40 16 26c4 10 12 16 20 18-3-2-6-5-6-10 0-8 6-12 10-22z" fill="url(#t4)"/>'},
     {id:'god',n:'LOOPIFY GOD',r:'Mythic',c:'#b58cff',h:300,d:'Ikon: Cosmic star',
       s:G('t5','#e8d8ff','#6a5cff')+'<circle cx="40" cy="40" r="30" fill="none" stroke="url(#t5)" stroke-width="3"/><circle cx="40" cy="40" r="22" fill="none" stroke="url(#t5)" stroke-width="1.5" opacity=".6"/><path d="M40 16l6 18 18 6-18 6-6 18-6-18-18-6 18-6z" fill="url(#t5)"/>'}
+    ,
+    {id:'owl',n:'NIGHT OWL',r:'Uncommon',c:'#2ed39a',k:'owl',need:5,u:'hari',d:'Ikon: Bulan & bintang',x:'Dengar lewat tengah malam (00.00–04.59) di 5 hari berbeda',
+      s:G('t6','#d9e4ff','#6d7dff')+'<path d="M52 14a28 28 0 1 0 14 40A24 24 0 0 1 52 14z" fill="url(#t6)"/><path d="M58 20l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#fff"/>'},
+    {id:'curator',n:'CURATOR',r:'Uncommon',c:'#2ed39a',k:'pls',need:3,u:'playlist',d:'Ikon: Daftar lagu',x:'Buat 3 playlist',
+      s:G('t7','#9bffd8','#2fa8ff')+'<g stroke="url(#t7)" stroke-width="6" stroke-linecap="round"><path d="M14 22h36M14 38h36M14 54h22"/></g><path d="M66 18v30a8 8 0 1 1-4-7V26l-12 3V18z" fill="url(#t7)" transform="translate(-2 4) scale(.9)"/>'},
+    {id:'explorer',n:'EXPLORER',r:'Rare',c:'#3da5ff',k:'art',need:20,u:'artis',d:'Ikon: Kompas',x:'Dengar 20 artis berbeda',
+      s:G('t8','#aef0ff','#3a7bff')+'<circle cx="40" cy="40" r="28" fill="none" stroke="url(#t8)" stroke-width="5"/><path d="M52 28 44 44 28 52 36 36z" fill="url(#t8)"/><circle cx="40" cy="40" r="3" fill="#0b1030"/>'},
+    {id:'collector',n:'COLLECTOR',r:'Rare',c:'#3da5ff',k:'fav',need:25,u:'favorit',d:'Ikon: Hati permata',x:'Punya 25 lagu favorit',
+      s:G('t9','#ffb3d9','#ff4f8b')+'<path d="M40 66C16 50 10 36 14 25c4-10 18-11 26-1 8-10 22-9 26 1 4 11-2 25-26 41z" fill="url(#t9)"/><path d="M26 30c2-4 7-5 10-2" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round"/>'},
+    {id:'fire',n:'ON FIRE',r:'Epic',c:'#ff8a3d',k:'str',need:7,u:'hari beruntun',d:'Ikon: Api',x:'Streak mendengar 7 hari berturut-turut',
+      s:G('t10','#fff08a','#ff6a1f')+'<path d="M42 10c2 12 16 18 16 34a18 18 0 0 1-36 0c0-8 4-12 8-17 1 6 4 8 7 8-3-9 0-18 5-25z" fill="url(#t10)"/><path d="M40 70a9 9 0 0 1-9-9c0-6 5-8 7-13 4 3 11 6 11 13a9 9 0 0 1-9 9z" fill="#fff" fill-opacity=".55"/>'},
+    {id:'bolt',n:'UNSTOPPABLE',r:'Legendary',c:'#ff5f3d',k:'str',need:30,u:'hari beruntun',d:'Ikon: Petir',x:'Streak mendengar 30 hari berturut-turut',
+      s:G('t11','#fff6a8','#ff4a2e')+'<path d="M46 6 18 44h18l-6 30 32-42H44z" fill="url(#t11)"/>'}
   ];
   function svg(t,z){return'<svg viewBox="0 0 80 80" width="'+z+'" height="'+z+'" aria-hidden="true">'+t.s+'</svg>'}
   function hrs(){try{return(+stt.tot||0)/3600}catch(e){return 0}}
-  function open(t){return hrs()>=t.h}
+  function dk(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function streak(){var wk=ls.get('wk',{}),n=0,d=new Date(),k=0;if((wk[dk(d)]||0)<30)d=new Date(d.getTime()-864e5);
+    while((wk[dk(d)]||0)>=30&&k++<400){n++;d=new Date(d.getTime()-864e5)}return n}
+  function best(){var wk=ls.get('wk',{}),ks=Object.keys(wk).sort(),b=0,c=0,p=null;
+    ks.forEach(function(k){if(wk[k]<30){c=0;p=null;return}var t=new Date(k+'T00:00:00').getTime();c=(p&&Math.round((t-p)/864e5)==1)?c+1:1;p=t;if(c>b)b=c});return b}
+  /* hari-hari saat lagu diputar lewat tengah malam (00.00–04.59), dicatat tiap 30 detik */
+  function nightDays(){var o=ls.get('nd39',{});return Object.keys(o).length}
+  try{setInterval(function(){try{var h=new Date().getHours();if(h<5&&cur&&act&&!act.paused){var o=ls.get('nd39',{});o[dk(new Date())]=1;var ks=Object.keys(o).sort();if(ks.length>60)delete o[ks[0]];ls.set('nd39',o)}}catch(e){}},30000)}catch(e){}
+  function val(t){switch(t.k){
+    case'owl':return nightDays();
+    case'pls':try{return pls.length}catch(e){return 0}
+    case'art':try{return Object.keys(stt.ar||{}).length}catch(e){return 0}
+    case'fav':try{return favs.length}catch(e){return 0}
+    case'str':return Math.max(streak(),best());
+    default:return hrs()}}
+  function open(t){return t.k?val(t)>=t.need:hrs()>=t.h}
+  function req(t){return t.k?t.x:'Dengarkan total '+t.h+' jam'}
+  function prog(t){return t.k?Math.min(val(t),t.need)+' / '+t.need+' '+t.u:''}
   function by(id){for(var i=0;i<T.length;i++)if(T[i].id==id)return T[i];return T[0]}
   function cur(){var t=by(ls.get('ttl39','new'));return open(t)?t:T[0]}
   var css=document.createElement('style');
@@ -27,14 +57,19 @@
   +'.x39i{aspect-ratio:1;border-radius:14px;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.1),rgba(0,0,0,.55));display:grid;place-items:center;margin-bottom:8px}.x39i svg{width:62%;height:62%}'
   +'.x39k b{display:block;font-size:14px}.x39r{display:inline-block;margin:6px 0;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;color:var(--tc);background:rgba(255,255,255,.08)}.x39k small{display:block;color:var(--mu);font-size:11px}.x39l{position:absolute;top:16px;right:16px;font-size:18px}';
   document.head.appendChild(css);
-  function badge(t,z){return'<span class="x39b" data-x39="1" style="--tc:'+t.c+'">'+svg(t,z||18)+t.n+'</span>'}
-  window.goTitle39=function(){rbP=0;var c=cur(),h=hrs(),nx=null;
-    for(var i=0;i<T.length;i++)if(!open(T[i])){nx=T[i];break}
-    sub(shd('Title profil')+'<div class="pcard" style="margin:0 0 12px"><small>Total dengar: <b>'+h.toFixed(1)+' jam</b>'+(nx?' · berikutnya <b>'+nx.n+'</b> di '+nx.h+' jam':' · semua title terbuka 🎉')+'</small></div>'
-      +'<div class="x39g">'+T.map(function(t){var o=open(t);
+  function badge(t,z){return'<span class="x39b" data-x39="1" role="img" aria-label="Title: '+t.n+'" title="'+t.n+'" style="--tc:'+t.c+'">'+svg(t,z||22)+'</span>'}
+  var RK={Common:0,Uncommon:1,Rare:2,Epic:3,Legendary:4,Mythic:5};
+  window.goTitle39=function(){rbP=0;var c=cur(),L=T.slice().sort(function(a,b){return RK[a.r]-RK[b.r]}),n=T.filter(open).length;
+    sub(shd('Title profil')+'<div class="pcard" style="margin:0 0 12px"><small><b>'+n+' dari '+T.length+'</b> title terbuka · total dengar <b>'+hrs().toFixed(1)+' jam</b></small></div>'
+      +'<div class="x39g">'+L.map(function(t){var o=open(t),p=o?'':prog(t);
         return'<div class="x39k'+(t.id==c.id?' on':'')+(o?'':' lk')+'" style="--tc:'+t.c+'" onclick="x39s(\''+t.id+'\')">'+(o?'':'<span class="x39l">🔒</span>')+
-          '<div class="x39i">'+svg(t,80)+'</div><b>'+t.n+'</b><span class="x39r">'+t.r+'</span><small>'+t.d+'</small><small>'+(o?(t.id==c.id?'Sedang dipakai':'Ketuk untuk pakai'):'Terbuka di '+t.h+' jam dengar')+'</small></div>'}).join('')+'</div>')};
-  window.x39s=function(id){var t=by(id);if(!open(t)){toast('Dengarkan '+t.h+' jam untuk membuka '+t.n);return}ls.set('ttl39',id);toast('Title: '+t.n);goTitle39();apply()};
+          '<div class="x39i">'+svg(t,80)+'</div><b>'+t.n+'</b><span class="x39r">'+t.r+'</span><small>'+t.d+'</small><small>'+(o?(t.id==c.id?'✔ Sedang dipakai':'Ketuk untuk pakai'):req(t)+(p?' · '+p:''))+'</small></div>'}).join('')+'</div>')};
+  window.x39s=function(id){var t=by(id);if(!open(t)){toast(req(t)+' untuk membuka '+t.n);return}ls.set('ttl39',id);toast('Title: '+t.n);goTitle39();apply()};
+  window.x39cur=function(){return cur()};window.x39svg=svg;
+  function chk(){try{var ids=T.filter(open).map(function(t){return t.id}),old=ls.get('tu39',null);
+    if(old){var nw=T.filter(function(t){return open(t)&&old.indexOf(t.id)<0});if(nw.length&&typeof toast==='function')toast('🏅 Title baru terbuka: '+nw[0].n)}
+    if(!old||ids.length!==old.length)ls.set('tu39',ids)}catch(e){}}
+  setInterval(chk,20000);setTimeout(chk,3000);
   function apply(){try{var t=cur(),v=document.getElementById('v');if(!v)return;
     [].forEach.call(v.querySelectorAll('[data-x39]'),function(e){if(e.getAttribute('data-t39')!=t.id)e.remove()});
     var h=v.querySelector('h1');

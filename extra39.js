@@ -26,6 +26,8 @@
       s:G('t9','#ffb3d9','#ff4f8b')+'<path d="M40 66C16 50 10 36 14 25c4-10 18-11 26-1 8-10 22-9 26 1 4 11-2 25-26 41z" fill="url(#t9)"/><path d="M26 30c2-4 7-5 10-2" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round"/>'},
     {id:'fire',n:'ON FIRE',r:'Epic',c:'#ff8a3d',k:'str',need:7,u:'hari beruntun',d:'Ikon: Api',x:'Streak mendengar 7 hari berturut-turut',
       s:G('t10','#fff08a','#ff6a1f')+'<path d="M42 10c2 12 16 18 16 34a18 18 0 0 1-36 0c0-8 4-12 8-17 1 6 4 8 7 8-3-9 0-18 5-25z" fill="url(#t10)"/><path d="M40 70a9 9 0 0 1-9-9c0-6 5-8 7-13 4 3 11 6 11 13a9 9 0 0 1-9 9z" fill="#fff" fill-opacity=".55"/>'},
+    {id:'champ',n:'CHALLENGER',r:'Epic',c:'#ff8a3d',k:'chal',need:10,u:'tantangan',d:'Ikon: Piala',x:'Selesaikan 10 tantangan mingguan',
+      s:G('t12','#fff0a8','#e8962b')+'<path d="M24 12h32v18a16 16 0 0 1-32 0z" fill="url(#t12)"/><path d="M24 18H12c0 12 6 18 14 18M56 18h12c0 12-6 18-14 18" fill="none" stroke="url(#t12)" stroke-width="5"/><rect x="36" y="44" width="8" height="12" fill="url(#t12)"/><rect x="26" y="58" width="28" height="8" rx="3" fill="url(#t12)"/>'},
     {id:'bolt',n:'UNSTOPPABLE',r:'Legendary',c:'#ff5f3d',k:'str',need:30,u:'hari beruntun',d:'Ikon: Petir',x:'Streak mendengar 30 hari berturut-turut',
       s:G('t11','#fff6a8','#ff4a2e')+'<path d="M46 6 18 44h18l-6 30 32-42H44z" fill="url(#t11)"/>'}
   ];
@@ -45,6 +47,7 @@
     case'art':try{return Object.keys(stt.ar||{}).length}catch(e){return 0}
     case'fav':try{return favs.length}catch(e){return 0}
     case'str':return Math.max(streak(),best());
+    case'chal':return +ls.get('wcTot',0)||0;
     default:return hrs()}}
   function open(t){return t.k?val(t)>=t.need:hrs()>=t.h}
   function req(t){return t.k?t.x:'Dengarkan total '+t.h+' jam'}

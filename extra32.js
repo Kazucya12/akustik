@@ -76,8 +76,7 @@
     var v=$('#v');if(v&&!v.querySelector('[data-x32]')){var s=v.querySelector('.ft[onclick="goStat()"]');
       if(s){[['🗓','Rekap Loopify','rekap32()'],['🔥','Streak & Lencana','goStreak32()']].forEach(function(m){var d=document.createElement('div');d.className='ft';d.setAttribute('data-x32','1');d.setAttribute('onclick',m[2]);d.innerHTML='<span>'+m[0]+'</span><div>'+m[1].replace('&','&amp;')+'</div>';s.parentNode.insertBefore(d,s)})}}
     var pl=$('#pl'),has=pl&&pl.querySelector('.lyr'),bt=pl&&pl.querySelector('.x32k');
-    if(has&&!bt){bt=document.createElement('button');bt.className='btn x32k';bt.textContent='🖼 Kartu';bt.onclick=function(e){e.stopPropagation();kartuLirik32()};pl.appendChild(bt)}
-    else if(!has&&bt)bt.remove();
+    if(bt)bt.remove();
   }catch(e){}}
   var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(inject,150)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
   inject();

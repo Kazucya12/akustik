@@ -284,7 +284,30 @@ function tgSet(g){tg=g;cfg.tg=g;ls.set('cfg',cfg);trRes=null;trBusy=null;trR();t
 function trRetry(){trRes=null;trBusy=null;trR();trend(tg)}
 const RC=[['mood:happy','😊 Senang'],['mood:sad','😢 Sendu'],['mood:energetic','⚡ Semangat'],['mood:relaxed','😌 Santai'],['mood:danceable','💃 Joget'],['activity:workout','🏋 Olahraga'],['activity:study','📚 Belajar'],['activity:focus','🎯 Fokus'],['activity:party','🎉 Pesta'],['activity:sleep','😴 Tidur'],['time:morning','🌅 Pagi'],['time:afternoon','☀ Siang'],['time:evening','🌇 Sore'],['time:night','🌙 Malam']];
 let recSel=(()=>{const h=new Date().getHours();return 'time:'+(h<11?'morning':h<15?'afternoon':h<18?'evening':'night')})();
-async function recFetch(k,fresh){recBusy=k;const [ty,va]=k.split(':');let res;try{const r=await fetch('/api/soundstat?type='+ty+'&value='+va+(fresh?'&r='+Date.now():''));if(r.status==501)res={err:'Rekomendasi belum diaktifkan di server (isi SOUNDSTAT_API_KEY di Vercel).'};else if(!r.ok)throw 0;else res=arrOf(await r.json()).map(x=>({...x,rec:1,h:hh(x.title)}))}catch(e){res={err:'Rekomendasi belum bisa dimuat. Coba lagi nanti.'}}
+/* Rekomendasi suasana: cari lagu yang cocok dengan suasana/aktivitas/waktu lewat pencarian lagu (YouTube Music).
+   Tiap kunci punya beberapa kata kunci; "Segarkan" memilih kata kunci lain supaya daftar berganti. SoundStat jadi cadangan. */
+const RQ={'mood:happy':['lagu ceria bahagia indonesia','feel good happy pop songs','lagu semangat bahagia','happy upbeat pop hits'],
+'mood:sad':['lagu sedih galau indonesia','sad heartbreak songs','lagu patah hati sendu','lagu galau terbaru'],
+'mood:energetic':['lagu semangat energik','upbeat energetic rock pop','lagu penyemangat hari','high energy dance songs'],
+'mood:relaxed':['lagu santai akustik indonesia','chill acoustic relax songs','lagu santai sore hari','lofi chill relax songs'],
+'mood:danceable':['lagu joget dance remix','dance pop hits','lagu goyang dangdut koplo','edm dance hits'],
+'activity:workout':['gym workout motivation songs','lagu olahraga semangat','running workout rock pop','hip hop workout songs'],
+'activity:study':['lagu belajar tenang instrumental','lofi study songs','calm piano study music','instrumental belajar fokus'],
+'activity:focus':['focus instrumental music','deep focus lofi songs','lagu konsentrasi kerja instrumental','ambient focus music'],
+'activity:party':['lagu pesta dance party','party hits club songs','lagu dj pesta remix','indonesia party hits'],
+'activity:sleep':['lagu pengantar tidur tenang','sleep calm songs','relaxing piano songs sleep','lagu tidur akustik'],
+'time:morning':['lagu pagi semangat','good morning acoustic songs','morning chill pop songs','lagu pagi ceria'],
+'time:afternoon':['lagu siang santai','afternoon chill pop songs','lagu santai siang hari','sunny pop songs'],
+'time:evening':['lagu sore santai senja','sunset chill songs','lagu senja akustik','evening acoustic songs'],
+'time:night':['lagu malam santai','late night chill songs','lagu malam tenang','night drive songs']};
+async function recFetch(k,fresh){recBusy=k;let res;const Q=(RQ[k]||[]).slice();
+if(Q.length){for(let a=Q.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[Q[a],Q[b]]=[Q[b],Q[a]]}
+try{const part=await Promise.all(Q.slice(0,2).map(x=>ytSearch(x).catch(()=>[])));const seen=new Set(),m=[];
+const mx=Math.max(...part.map(x=>x.length),0);for(let i=0;i<mx;i++)for(const l of part){const t=l[i];if(t&&!seen.has(t.id)){seen.add(t.id);m.push(t)}}
+if(m.length)res=m.slice(0,30)}catch(e){}}
+if(res){recC[k]=res;if(recBusy===k)recBusy='';if(recSel==k)rrec();return}
+return recFetchSS(k,fresh)}
+async function recFetchSS(k,fresh){recBusy=k;const [ty,va]=k.split(':');let res;try{const r=await fetch('/api/soundstat?type='+ty+'&value='+va+(fresh?'&r='+Date.now():''));if(r.status==501)res={err:'Rekomendasi belum diaktifkan di server (isi SOUNDSTAT_API_KEY di Vercel).'};else if(!r.ok)throw 0;else res=arrOf(await r.json()).map(x=>({...x,rec:1,h:hh(x.title)}))}catch(e){res={err:'Rekomendasi belum bisa dimuat. Coba lagi nanti.'}}
 recC[k]=res;if(recBusy===k)recBusy='';if(recSel==k)rrec()}
 function recHtml(){const c=recC[recSel];if(!c){if(recBusy!=recSel)recFetch(recSel);return'<div class="em">Mencari lagu yang pas…</div>'}
 if(c.err)return`<div class="em">${esc(c.err)}<br><a style="color:var(--p2)" onclick="recGo('${recSel}',1)">Coba lagi</a></div>`;

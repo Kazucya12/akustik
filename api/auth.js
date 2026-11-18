@@ -55,7 +55,12 @@ function readSession(secret, tok) {
   if (!p || !s || !same(s, sign(secret, 'sess.' + p))) return null;
   try { const d = JSON.parse(Buffer.from(p, 'base64url').toString()); return d.x > Date.now() && d.e ? d : null; } catch (e) { return null; }
 }
-const pub = (u, s) => ({ session: s.session, exp: s.exp, email: u.email, username: u.username });
+/* Lencana developer: hanya email yang ada di env DEV_EMAILS (pisahkan dengan koma). Ditentukan di server, tidak bisa dipalsukan dari aplikasi. */
+const devSet = () => new Set(String(process.env.DEV_EMAILS || '').toLowerCase().split(/[\s,;]+/).filter(Boolean));
+const isDev = (e) => devSet().has(String(e || '').toLowerCase());
+/* Username yang menyerupai peran resmi hanya boleh dipakai akun developer. */
+const RESERVED = /(admin|developer|official|verified|loopify|support|moderator|staff)/;
+const pub = (u, s) => ({ session: s.session, exp: s.exp, email: u.email, username: u.username, dev: isDev(u.email) });
 
 async function sendMail(to, code, why) {
   const user = process.env.GMAIL_USER, pass = String(process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '');
@@ -109,12 +114,18 @@ module.exports = async (req, res) => {
         if (!d) throw fail(401, 'Sesi tidak valid');
         const u = await getJ('user:' + d.e);
         if (!u || (u.sv || 0) !== d.v) throw fail(401, 'Sesi tidak valid');
-        res.status(200).json({ email: u.email, username: u.username, exp: d.x }); return;
+        res.status(200).json({ email: u.email, username: u.username, exp: d.x, dev: isDev(u.email) }); return;
+      }
+      case 'devs': {
+        const out = [];
+        for (const e of devSet()) { const u = await getJ('user:' + e); if (u && u.username) out.push(u.username); }
+        res.status(200).json({ devs: out }); return;
       }
       case 'register_start': {
         const username = cleanUser(b.username), email = cleanEmail(b.email);
         if (!username) throw fail(400, 'Username 3-20 karakter: huruf kecil, angka, titik, atau _');
         if (!email) throw fail(400, 'Pakai alamat Gmail yang valid (@gmail.com)');
+        if (RESERVED.test(username) && !isDev(email)) throw fail(400, 'Username ini dicadangkan. Pilih yang lain');
         if (!okPw(b.password)) throw fail(400, 'Password minimal 8 karakter');
         if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) throw fail(501, 'GMAIL_USER / GMAIL_APP_PASSWORD belum diatur di Vercel');
         if (await rd('EXISTS', 'user:' + email)) throw fail(409, 'Email ini sudah terdaftar. Silakan masuk');

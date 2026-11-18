@@ -86,6 +86,6 @@
     var f=v.querySelector('.ft');if(!f)return;load();var L=list(),n=L.filter(function(x){return x[3]}).length;
     var a=row('x43','goChal43()','🎯','Tantangan Mingguan',W.done.length+' dari 3 selesai minggu ini'),b=row('x43b','goBadge43()','🏆','Lencana',n+' dari '+L.length+' terbuka');
     f.parentNode.insertBefore(a,f);f.parentNode.insertBefore(b,f)}catch(e){}}
-  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,200)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,200)}).observe(document.getElementById('v'),{childList:true})}catch(e){}
   apply();
 })();

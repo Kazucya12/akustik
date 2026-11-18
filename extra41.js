@@ -16,6 +16,6 @@
     var s=v.querySelector('.ft');if(!s)return;
     var d=document.createElement('div');d.className='ft';d.setAttribute('data-x41','1');d.setAttribute('onclick','goOff41()');
     d.innerHTML='<span>⬇</span><div>Unduhan Offline<br><small>'+list().length+' lagu</small></div>';s.parentNode.insertBefore(d,s)}catch(e){}}
-  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,150)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,150)}).observe(document.getElementById('v'),{childList:true})}catch(e){}
   apply();
 })();

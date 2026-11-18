@@ -82,6 +82,6 @@
         d.innerHTML='<button class="btn g" onclick="goTitle39()">🏅 Title profil</button>';(c.nextSibling&&c.nextSibling.parentNode||c.parentNode).insertBefore(d,c.nextSibling)}}
     var g=v.querySelector('.x33g b');if(g&&!g.querySelector('[data-x39]'))g.insertAdjacentHTML('beforeend',badge(t,16));
     [].forEach.call(v.querySelectorAll('[data-x39]'),function(e){e.setAttribute('data-t39',t.id)})}catch(e){}}
-  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,150)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,150)}).observe(document.getElementById('v'),{childList:true})}catch(e){}
   apply();
 })();

@@ -9,3 +9,4 @@ html.bg .orb{display:none}
 .x46ic button{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;color:var(--tx,inherit);font:600 11px Sora,system-ui,sans-serif;cursor:pointer}
 .x46ic i{display:block;width:48px;height:48px;border-radius:15px;border:2px solid transparent;box-shadow:var(--sh)}
 .x46ic .on i{border-color:var(--p2,#fff);outline:2px solid var(--p,#ff8a5b);outline-offset:1px}
+.x46v{display:inline-block;vertical-align:-3px;margin-left:2px;flex:none}

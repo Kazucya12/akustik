@@ -38,3 +38,28 @@
     return r;
   };
 })();
+
+/* v4.39: tanda centang biru untuk developer. Ditentukan server (env DEV_EMAILS di Vercel); aplikasi hanya menampilkannya. */
+(function(){
+  var V='<svg class="x46v" viewBox="0 0 24 24" width="16" height="16" role="img" aria-label="Developer terverifikasi"><title>Developer terverifikasi</title><path fill="#1d9bf0" d="M12 1.5l2.7 1.9 3.3-.2 1.2 3.1 2.7 1.9-.9 3.2.9 3.2-2.7 1.9-1.2 3.1-3.3-.2L12 22.5l-2.7-1.9-3.3.2-1.2-3.1-2.7-1.9.9-3.2-.9-3.2 2.7-1.9L6 3.2l3.3.2z"/><path d="M8 12.3l2.7 2.7L16.2 9.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var devs=[],self=false;
+  window.x46v=V;
+  window.x46dv=function(u){return devs.indexOf(String(u||'').toLowerCase())>=0};
+  function api(b){return fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.ok?r.json():{}}).catch(function(){return{}})}
+  function paint(){
+    try{
+      if(!self)return;
+      var v=document.getElementById('v');if(!v)return;
+      var b=v.querySelector('.pcard b[style*="font-size:16px"]');
+      if(b&&!b.querySelector('.x46v'))b.insertAdjacentHTML('beforeend',' '+V);
+    }catch(e){}
+  }
+  function start(){
+    var a=null;try{a=JSON.parse(localStorage.getItem('mx_auth'))}catch(e){}
+    api({action:'devs'}).then(function(j){devs=(j.devs||[]).map(function(x){return String(x).toLowerCase()})});
+    if(a&&a.session&&a.exp>Date.now())api({action:'me',session:a.session}).then(function(j){self=!!j.dev;paint()});
+    var v=document.getElementById('v');
+    if(v)new MutationObserver(paint).observe(v,{childList:true});
+  }
+  setTimeout(start,1500);
+})();

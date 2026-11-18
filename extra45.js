@@ -50,7 +50,7 @@
   var last='';
   function shake(){try{var l=document.getElementById('lg');if(!l)return;var er=l.querySelector('.er'),t=er?er.textContent.trim():'';
     if(t&&t!==last){var c=l.querySelector('.lgc');if(c){c.classList.remove('shk');void c.offsetWidth;c.classList.add('shk')}}last=t}catch(e){}}
-  try{new MutationObserver(shake).observe(document.body,{childList:true,subtree:true,characterData:true})}catch(e){}
+  try{new MutationObserver(function(){if(document.getElementById('lg'))shake()}).observe(document.body,{childList:true,subtree:true,characterData:true})}catch(e){}
 
   /* ---- transisi halus saat pindah halaman ---- */
   var lp=null,pt=0;

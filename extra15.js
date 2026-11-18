@@ -172,12 +172,13 @@
       if(y!==lyY){lyY=y;el.lst.style.transform='translate3d(0,'+(-y)+'px,0)'}
     }
   }
-  function frame(){raf=0;if(!big||document.hidden)return;upd();if(playing())raf=requestAnimationFrame(frame)}
-  function kick(){if(!raf&&big&&!document.hidden&&playing())raf=requestAnimationFrame(frame)}
+  function frame(){raf=0;if(!big||document.hidden||BG())return;upd();if(playing())raf=requestAnimationFrame(frame)}
+  function kick(){if(!raf&&big&&!document.hidden&&!BG()&&playing())raf=requestAnimationFrame(frame)}
 
   /* ---------- sinkron ringan (status, ganti lagu) ---------- */
+  function BG(){return document.documentElement.classList.contains('bg')}
   function slow(){
-    if(document.hidden)return;
+    if(document.hidden||BG())return;
     if(!started&&cur&&playing())started=1;
     var on=!!(enabled()&&started&&cur);
     if(on&&(cur.id!==lastId||(cur.title||'Tanpa judul')!==lastTitle))gone=0;

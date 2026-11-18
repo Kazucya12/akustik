@@ -15,7 +15,7 @@
     try{
       if(N.getIcon()===k)return;
       if(N.setIcon(k)){
-        try{toast('Ikon diganti. Kalau aplikasi tertutup sendiri, buka lagi dari ikon baru.')}catch(e){}
+        try{toast('Ikon dipilih. Tekan tombol Home untuk menerapkannya, lalu cek di layar utama.')}catch(e){}
         setTimeout(function(){try{setR()}catch(e){}},250);
       }
     }catch(e){}

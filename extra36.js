@@ -41,6 +41,6 @@
     d.innerHTML='<div class="x36c" style="margin:10px 0"><button class="btn g" onclick="goEditPf36()">✎ Edit profil</button></div>'+
       (T.length?'<div class="sec"><h3>🎵 Lagu favoritku</h3></div>'+rows('x36',T):'');
     c.parentNode.insertBefore(d,c.nextSibling)}catch(e){}}
-  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,120)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,120)}).observe(document.getElementById('v'),{childList:true})}catch(e){}
   apply();
 })();

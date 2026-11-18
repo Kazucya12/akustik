@@ -52,6 +52,7 @@
     else box.innerHTML=String(L).split(/\r?\n/).map(function(l){return l.trim()?'<div class="x22p">'+E(l)+'</div>':'<div class="x22g"></div>'}).join('');
   }
   function tick(){
+    if(document.documentElement.classList.contains('bg'))return;
     var el=Q('#x22l');
     if(!el||!el.classList.contains('on')){clearInterval(LY.t);LY.t=0;return}
     if(!cur)return;

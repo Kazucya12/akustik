@@ -16,8 +16,16 @@ const JS = ['dialog.js', 'app.js', 'extra.js', 'extra2.js', 'extra3.js', 'extra4
 // File lain berupa IIFE: dibungkus try/catch supaya satu file yang error tidak menghentikan file sesudahnya.
 const RAW = new Set(['app.js']);
 
+// Minify opsional (aman): hanya membuang spasi & komentar, TIDAK mengganti nama variabel/fungsi (onclick di HTML tetap jalan).
+// Aktif bila terser / clean-css terpasang (npm i). Kalau tidak ada, bundel dibuat apa adanya seperti sebelumnya.
+let terser = null, CleanCSS = null;
+try { terser = require('terser'); } catch (e) {}
+try { CleanCSS = require('clean-css'); } catch (e) {}
+
 const css = CSS.map((f) => `/* ==== ${f} ==== */\n${fs.readFileSync(f, 'utf8').trim()}\n`).join('\n');
-fs.writeFileSync('loopify.css', css);
+let cssOut = css;
+if (CleanCSS) { try { const r = new CleanCSS({ level: 1 }).minify(css); if (!r.errors.length && r.styles) cssOut = r.styles; } catch (e) {} }
+fs.writeFileSync('loopify.css', cssOut);
 
 const js = JS.map((f) => {
   const s = fs.readFileSync(f, 'utf8').trim();
@@ -25,7 +33,9 @@ const js = JS.map((f) => {
     ? `/* ==== ${f} ==== */\n${s}\n;`
     : `/* ==== ${f} ==== */\ntry{\n${s}\n}catch(e){console.error('[loopify] ${f}',e)}`;
 }).join('\n\n');
-fs.writeFileSync('loopify.js', js);
+let jsOut = js;
+if (terser && terser.minify_sync) { try { const r = terser.minify_sync(js, { compress: false, mangle: false, format: { comments: false } }); if (r.code) jsOut = r.code; } catch (e) {} }
+fs.writeFileSync('loopify.js', jsOut);
 
 // Nama cache service worker = versi + hash isi cangkang. Tiap kali bundle/index/manifest berubah, SW dianggap baru,
 // jadi pengguna otomatis mendapat toast "Versi baru tersedia" (tidak perlu mengubah angka di sw.js manual).
@@ -38,4 +48,4 @@ const sw = fs.readFileSync('sw.js', 'utf8');
 const sw2 = sw.replace(/^const C = '[^']*';/m, `const C = '${tag}';`);
 if (sw2 !== sw) fs.writeFileSync('sw.js', sw2);
 
-console.log(`SW cache ${tag}\nloopify.css ${css.length} byte, loopify.js ${js.length} byte`);
+console.log(`SW cache ${tag}\nloopify.css ${cssOut.length} byte, loopify.js ${jsOut.length} byte${terser || CleanCSS ? ' (minify)' : ''}`);

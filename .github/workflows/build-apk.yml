@@ -1,0 +1,1434 @@
+# Membuat Loopify.apk (pembungkus Android native dengan foreground service musik).
+# Cara pakai: simpan file ini di repo GitHub-mu dengan nama .github/workflows/build-apk.yml
+# Build jalan otomatis. Hasilnya ada di tab Releases (Loopify.apk) dan di Actions > Artifacts.
+# Ikon aplikasi diambil dari file apk-icon.png di folder utama repo (upload dulu sebelum build).
+# Ganti APP_URL di bawah kalau alamat situsmu berbeda (harus diakhiri tanda /).
+name: Build Loopify APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-apk.yml'
+      - 'apk-icon.png'
+
+permissions:
+  contents: write
+
+env:
+  APP_URL: https://loopify1.vercel.app/
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Terima lisensi Android SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Tulis proyek Android
+        run: |
+          set -e
+          mkdir -p android/app/src/main/java/com/loopify/app android/app/src/main/res/drawable android/app/src/main/res/drawable-nodpi android/app/src/main/res/mipmap-anydpi android/app/src/main/res/layout android/app/src/main/res/xml
+          cat > android/settings.gradle <<'LOOPIFY_EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = 'Loopify'
+          include ':app'
+          LOOPIFY_EOF
+          cat > android/build.gradle <<'LOOPIFY_EOF'
+          plugins {
+              id 'com.android.application' version '8.5.2' apply false
+          }
+          LOOPIFY_EOF
+          cat > android/gradle.properties <<'LOOPIFY_EOF'
+          org.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8
+          android.nonTransitiveRClass=true
+          LOOPIFY_EOF
+          cat > android/app/build.gradle <<'LOOPIFY_EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.loopify.app'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId 'com.loopify.app'
+                  minSdk 26
+                  targetSdk 34
+                  versionCode __VC__
+                  versionName '1.0.__VC__'
+                  buildConfigField 'String', 'APP_URL', '"__URL__"'
+              }
+
+              buildFeatures {
+                  buildConfig true
+              }
+
+              signingConfigs {
+                  release {
+                      storeFile file('loopify.jks')
+                      storePassword 'loopify123'
+                      keyAlias 'loopify'
+                      keyPassword 'loopify123'
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      signingConfig signingConfigs.release
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              lint {
+                  checkReleaseBuilds false
+                  abortOnError false
+              }
+          }
+          LOOPIFY_EOF
+          cat > android/app/src/main/AndroidManifest.xml <<'LOOPIFY_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+              <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+              <uses-permission
+                  android:name="android.permission.READ_EXTERNAL_STORAGE"
+                  android:maxSdkVersion="32" />
+
+              <application
+                  android:allowBackup="false"
+                  android:hardwareAccelerated="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="Loopify"
+                  android:theme="@android:style/Theme.Black.NoTitleBar">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTask"
+                      android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode|density"
+                      android:windowSoftInputMode="adjustResize" />
+
+                  <activity-alias
+                      android:name=".IconAsli"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="true"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_asli"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <activity-alias
+                      android:name=".IconBiru"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="false"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_biru"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <activity-alias
+                      android:name=".IconHijau"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="false"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_hijau"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <activity-alias
+                      android:name=".IconPink"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="false"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_pink"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <activity-alias
+                      android:name=".IconMerah"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="false"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_merah"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <activity-alias
+                      android:name=".IconNeon"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="false"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_neon"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <activity-alias
+                      android:name=".IconMono"
+                      android:targetActivity=".MainActivity"
+                      android:enabled="false"
+                      android:exported="true"
+                      android:icon="@mipmap/ic_launcher_mono"
+                      android:label="Loopify">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity-alias>
+
+                  <receiver
+                      android:name=".LoopifyWidget"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                      </intent-filter>
+                      <meta-data
+                          android:name="android.appwidget.provider"
+                          android:resource="@xml/loopify_widget_info" />
+                  </receiver>
+
+                  <service
+                      android:name=".MusicService"
+                      android:exported="false"
+                      android:foregroundServiceType="mediaPlayback" />
+              </application>
+          </manifest>
+          LOOPIFY_EOF
+          cat > android/app/src/main/res/drawable/ic_stat.xml <<'LOOPIFY_EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#FFFFFF"
+                  android:pathData="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z" />
+          </vector>
+          LOOPIFY_EOF
+          cat > android/app/src/main/java/com/loopify/app/MainActivity.java <<'LOOPIFY_EOF'
+          package com.loopify.app;
+
+          import android.Manifest;
+          import android.app.Activity;
+          import android.content.ContentUris;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.content.pm.PackageManager;
+          import android.content.res.AssetFileDescriptor;
+          import android.database.Cursor;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.os.PowerManager;
+          import android.provider.MediaStore;
+          import android.provider.Settings;
+          import android.view.View;
+          import android.webkit.CookieManager;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.ServiceWorkerClient;
+          import android.webkit.ServiceWorkerController;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebResourceResponse;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          import java.io.ByteArrayInputStream;
+          import java.io.FileInputStream;
+          import java.io.FilterInputStream;
+          import java.io.IOException;
+          import java.io.InputStream;
+          import java.util.HashMap;
+          import java.util.Map;
+
+          public class MainActivity extends Activity {
+
+              static final Handler UI = new Handler(Looper.getMainLooper());
+              static BgWebView web;
+
+              private ValueCallback<Uri[]> fileCb;
+              private String host = "";
+
+              /** WebView yang menganggap jendela selalu terlihat, supaya suara tidak dijeda saat layar mati / app di latar belakang. */
+              static class BgWebView extends WebView {
+                  BgWebView(Context c) {
+                      super(c);
+                  }
+
+                  @Override
+                  protected void onWindowVisibilityChanged(int visibility) {
+                      if (visibility != View.GONE) {
+                          super.onWindowVisibilityChanged(View.VISIBLE);
+                      }
+                  }
+              }
+
+              /** Dipanggil dari JavaScript halaman: status putar + judul + artis. */
+              class Bridge {
+                  @JavascriptInterface
+                  public void s(boolean playing, String title, String artist, String img) {
+                      MusicService.update(getApplicationContext(), playing, title, artist, img);
+                  }
+
+                  @JavascriptInterface
+                  public boolean hasAudio() {
+                      return checkSelfPermission(audioPerm()) == PackageManager.PERMISSION_GRANTED;
+                  }
+
+                  private final String[] ICONS = {"asli", "biru", "hijau", "pink", "merah", "neon", "mono"};
+
+                  private android.content.ComponentName iconCn(String k) {
+                      return new android.content.ComponentName(MainActivity.this, "com.loopify.app.Icon" + Character.toUpperCase(k.charAt(0)) + k.substring(1));
+                  }
+
+                  /** Kunci ikon peluncur yang sedang aktif. */
+                  @JavascriptInterface
+                  public String getIcon() {
+                      if (pendingIcon != null) return pendingIcon;
+                      try {
+                          PackageManager pm = getPackageManager();
+                          for (String k : ICONS) {
+                              int st = pm.getComponentEnabledSetting(iconCn(k));
+                              if (st == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                                  || (st == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && k.equals("asli"))) {
+                                  return k;
+                              }
+                          }
+                      } catch (Exception e) {
+                          // abaikan
+                      }
+                      return "asli";
+                  }
+
+                  /** Catat ikon pilihan. Penggantian sebenarnya dilakukan saat aplikasi masuk ke latar belakang (onStop), supaya peluncur bisa memuat ulang ikon dan aplikasi tidak tertutup di depan mata pengguna. */
+                  @JavascriptInterface
+                  public boolean setIcon(final String key) {
+                      boolean ok = false;
+                      for (String k : ICONS) {
+                          if (k.equals(key)) ok = true;
+                      }
+                      if (!ok) return false;
+                      pendingIcon = key;
+                      return true;
+                  }
+
+                  @JavascriptInterface
+                  public void askAudio() {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              requestPermissions(new String[]{audioPerm()}, 2);
+                          }
+                      });
+                  }
+
+                  @JavascriptInterface
+                  public void scan() {
+                      doScan();
+                  }
+
+                  /** Simpan gambar (base64) ke Galeri lalu buka menu Bagikan. */
+                  @JavascriptInterface
+                  public void shareImg(final String b64, final String name, final String mime) {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              try {
+                                  byte[] data = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+                                  String fn = (name == null || name.isEmpty()) ? "loopify.png" : name;
+                                  String mt = (mime == null || mime.isEmpty()) ? "image/png" : mime;
+                                  Uri uri;
+                                  if (Build.VERSION.SDK_INT >= 29) {
+                                      android.content.ContentValues v = new android.content.ContentValues();
+                                      v.put(MediaStore.Images.Media.DISPLAY_NAME, fn);
+                                      v.put(MediaStore.Images.Media.MIME_TYPE, mt);
+                                      v.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Loopify");
+                                      v.put(MediaStore.Images.Media.IS_PENDING, 1);
+                                      uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+                                      java.io.OutputStream os = getContentResolver().openOutputStream(uri);
+                                      os.write(data);
+                                      os.close();
+                                      v.clear();
+                                      v.put(MediaStore.Images.Media.IS_PENDING, 0);
+                                      getContentResolver().update(uri, v, null, null);
+                                  } else {
+                                      android.graphics.Bitmap bm = android.graphics.BitmapFactory.decodeByteArray(data, 0, data.length);
+                                      String r = MediaStore.Images.Media.insertImage(getContentResolver(), bm, fn, null);
+                                      uri = Uri.parse(r);
+                                  }
+                                  android.widget.Toast.makeText(MainActivity.this, "Tersimpan di Galeri (Pictures/Loopify)", android.widget.Toast.LENGTH_SHORT).show();
+                                  Intent send = new Intent(Intent.ACTION_SEND);
+                                  send.setType(mt);
+                                  send.putExtra(Intent.EXTRA_STREAM, uri);
+                                  send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                  startActivity(Intent.createChooser(send, "Bagikan"));
+                              } catch (Exception e) {
+                                  android.widget.Toast.makeText(MainActivity.this, "Gagal menyimpan gambar: " + e.getClass().getSimpleName(), android.widget.Toast.LENGTH_LONG).show();
+                              }
+                          }
+                      });
+                  }
+
+                  /** Notifikasi musik Android: true = lengkap (cover + kontrol), false = ringkas. */
+                  @JavascriptInterface
+                  public void n(boolean on) {
+                      MusicService.setRich(getApplicationContext(), on);
+                  }
+
+                  /** Pencarian suara lewat layar pengenal suara bawaan Android. */
+                  @JavascriptInterface
+                  public void voice() {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              try {
+                                  Intent vi = new Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                                  vi.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                          android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                                  vi.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "id-ID");
+                                  vi.putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Sebut judul lagu atau artis");
+                                  startActivityForResult(vi, 78);
+                              } catch (Exception e) {
+                                  android.widget.Toast.makeText(MainActivity.this, "Pencarian suara tidak tersedia di perangkat ini", android.widget.Toast.LENGTH_LONG).show();
+                              }
+                          }
+                      });
+                  }
+
+                  /** Bagikan teks / tautan lewat menu Bagikan Android. */
+                  @JavascriptInterface
+                  public void shareText(final String text) {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              try {
+                                  Intent send = new Intent(Intent.ACTION_SEND);
+                                  send.setType("text/plain");
+                                  send.putExtra(Intent.EXTRA_TEXT, text);
+                                  startActivity(Intent.createChooser(send, "Bagikan"));
+                              } catch (Exception e) {
+                                  // abaikan
+                              }
+                          }
+                      });
+                  }
+              }
+
+              static String audioPerm() {
+                  return Build.VERSION.SDK_INT >= 33 ? Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE;
+              }
+
+              /** Membaca daftar musik dari MediaStore, lalu mengirimnya ke halaman (window.x38done). */
+              private void doScan() {
+                  new Thread(new Runnable() {
+                      @Override
+                      public void run() {
+                          JSONArray arr = new JSONArray();
+                          Cursor c = null;
+                          try {
+                              c = getContentResolver().query(
+                                      MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                      new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE,
+                                              MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION},
+                                      MediaStore.Audio.Media.IS_MUSIC + "!=0 AND " + MediaStore.Audio.Media.DURATION + ">=30000",
+                                      null, MediaStore.Audio.Media.DATE_ADDED + " DESC");
+                              if (c != null) {
+                                  while (c.moveToNext()) {
+                                      JSONObject o = new JSONObject();
+                                      o.put("i", c.getLong(0));
+                                      o.put("t", c.getString(1));
+                                      o.put("a", c.getString(2));
+                                      o.put("d", c.getLong(3));
+                                      arr.put(o);
+                                  }
+                              }
+                          } catch (Exception e) {
+                              // izin ditolak atau MediaStore bermasalah: kirim daftar kosong
+                          } finally {
+                              if (c != null) {
+                                  c.close();
+                              }
+                          }
+                          js("window.x38done&&x38done(" + arr.toString() + ")");
+                      }
+                  }).start();
+              }
+
+              /** Menyajikan file musik perangkat sebagai https://situs/__local/ID (mendukung Range supaya bisa seek). */
+              private WebResourceResponse serve(Uri u, Map<String, String> hd) {
+                  String path = u.getPath();
+                  String uh = u.getHost();
+                  if (path == null || uh == null || !uh.equals(host) || !path.startsWith("/__local/")) {
+                      return null;
+                  }
+                  try {
+                      long id = Long.parseLong(path.substring(9));
+                      Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+                      AssetFileDescriptor afd = getContentResolver().openAssetFileDescriptor(uri, "r");
+                      if (afd == null) {
+                          return err(404);
+                      }
+                      long len = afd.getLength();
+                      String mime = getContentResolver().getType(uri);
+                      if (mime == null || !mime.startsWith("audio/")) {
+                          mime = "audio/mpeg";
+                      }
+                      Map<String, String> h = new HashMap<String, String>();
+                      h.put("Accept-Ranges", "bytes");
+                      h.put("Cache-Control", "no-store");
+                      String rg = null;
+                      if (hd != null) {
+                          rg = hd.get("Range");
+                          if (rg == null) {
+                              rg = hd.get("range");
+                          }
+                      }
+                      FileInputStream fis = afd.createInputStream();
+                      if (rg != null && rg.startsWith("bytes=") && len > 0) {
+                          String[] p = rg.substring(6).split("-", 2);
+                          long s;
+                          long e;
+                          if (p[0].isEmpty()) {
+                              long sx = Long.parseLong(p[1]);
+                              s = Math.max(0, len - sx);
+                              e = len - 1;
+                          } else {
+                              s = Long.parseLong(p[0]);
+                              e = (p.length > 1 && !p[1].isEmpty()) ? Long.parseLong(p[1]) : len - 1;
+                          }
+                          if (e >= len) {
+                              e = len - 1;
+                          }
+                          if (s > e) {
+                              fis.close();
+                              return err(416);
+                          }
+                          long sk = s;
+                          while (sk > 0) {
+                              long k = fis.skip(sk);
+                              if (k <= 0) {
+                                  break;
+                              }
+                              sk -= k;
+                          }
+                          h.put("Content-Range", "bytes " + s + "-" + e + "/" + len);
+                          h.put("Content-Length", String.valueOf(e - s + 1));
+                          return new WebResourceResponse(mime, null, 206, "Partial Content", h, new Lim(fis, e - s + 1));
+                      }
+                      if (len >= 0) {
+                          h.put("Content-Length", String.valueOf(len));
+                      }
+                      return new WebResourceResponse(mime, null, 200, "OK", h, fis);
+                  } catch (Exception ex) {
+                      return err(404);
+                  }
+              }
+
+              private static WebResourceResponse err(int code) {
+                  return new WebResourceResponse("text/plain", "utf-8", code,
+                          code == 416 ? "Range Not Satisfiable" : "Not Found",
+                          new HashMap<String, String>(), new ByteArrayInputStream(new byte[0]));
+              }
+
+              /** Aliran yang dibatasi sejumlah byte (untuk respons 206). */
+              static class Lim extends FilterInputStream {
+                  private long left;
+
+                  Lim(InputStream in, long n) {
+                      super(in);
+                      left = n;
+                  }
+
+                  @Override
+                  public int read() throws IOException {
+                      if (left <= 0) {
+                          return -1;
+                      }
+                      int b = super.read();
+                      if (b >= 0) {
+                          left--;
+                      }
+                      return b;
+                  }
+
+                  @Override
+                  public int read(byte[] b, int o, int l) throws IOException {
+                      if (left <= 0) {
+                          return -1;
+                      }
+                      int n = super.read(b, o, (int) Math.min((long) l, left));
+                      if (n > 0) {
+                          left -= n;
+                      }
+                      return n;
+                  }
+              }
+
+              static void js(final String code) {
+                  UI.post(new Runnable() {
+                      @Override
+                      public void run() {
+                          if (web != null) {
+                              web.evaluateJavascript(code, null);
+                          }
+                      }
+                  });
+              }
+
+              private static final String PROBE =
+                      "(function(){if(window.__lpn)return;window.__lpn=1;"
+                      + "function st(){try{var ms=navigator.mediaSession,m=ms&&ms.metadata,p=false;"
+                      + "var t=m?String(m.title||''):'',a=m?String(m.artist||''):'';"
+                      + "document.querySelectorAll('audio,video').forEach(function(x){if(!x.paused&&!x.ended&&x.readyState>2)p=true});"
+                      + "if(!p&&typeof vPlaying==='function'&&vPlaying())p=true;"
+                      + "if(!p&&ms&&ms.playbackState==='playing')p=true;"
+                      + "if(!t&&typeof cur!=='undefined'&&cur){t=String(cur.title||'');a=String(cur.artist||'')}"
+                      + "var im='';try{if(typeof cur!=='undefined'&&cur&&cur.img)im=String(cur.img);"
+                      + "if(!im&&m&&m.artwork&&m.artwork.length)im=String(m.artwork[m.artwork.length-1].src||'')}catch(e){}"
+                      + "LoopifyNative.s(p,t,a,im)}catch(e){}}"
+                      + "['play','pause','ended','playing','emptied'].forEach(function(e){"
+                      + "document.addEventListener(e,function(){setTimeout(st,150)},true)});"
+                      + "setInterval(st,1500);st()})();";
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  String h = Uri.parse(BuildConfig.APP_URL).getHost();
+                  host = h == null ? "" : h;
+
+                  getWindow().setStatusBarColor(0xFF060928);
+                  getWindow().setNavigationBarColor(0xFF060928);
+
+                  web = new BgWebView(this);
+                  web.setBackgroundColor(0xFF060928);
+                  setContentView(web);
+
+                  WebSettings s = web.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setMediaPlaybackRequiresUserGesture(false);
+                  s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+                  s.setSupportZoom(false);
+                  s.setBuiltInZoomControls(false);
+                  s.setCacheMode(WebSettings.LOAD_DEFAULT);
+                  s.setUserAgentString(s.getUserAgentString().replace("; wv", ""));
+
+                  CookieManager cm = CookieManager.getInstance();
+                  cm.setAcceptCookie(true);
+                  cm.setAcceptThirdPartyCookies(web, true);
+
+                  web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
+                  web.addJavascriptInterface(new Bridge(), "LoopifyNative");
+
+                  try {
+                      ServiceWorkerController.getInstance().setServiceWorkerClient(new ServiceWorkerClient() {
+                          @Override
+                          public WebResourceResponse shouldInterceptRequest(WebResourceRequest r) {
+                              return serve(r.getUrl(), r.getRequestHeaders());
+                          }
+                      });
+                  } catch (Exception e) {
+                      // abaikan
+                  }
+
+                  web.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
+                          if (!r.isForMainFrame()) {
+                              return false;
+                          }
+                          Uri u = r.getUrl();
+                          String uh = u.getHost();
+                          if (uh != null && uh.equals(host)) {
+                              return false;
+                          }
+                          try {
+                              startActivity(new Intent(Intent.ACTION_VIEW, u));
+                          } catch (Exception e) {
+                              // tidak ada aplikasi yang bisa membuka tautan ini
+                          }
+                          return true;
+                      }
+
+                      @Override
+                      public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
+                          WebResourceResponse x = serve(r.getUrl(), r.getRequestHeaders());
+                          return x != null ? x : super.shouldInterceptRequest(v, r);
+                      }
+
+                      @Override
+                      public void onPageFinished(WebView v, String url) {
+                          try {
+                              String uh = Uri.parse(url).getHost();
+                              if (uh != null && uh.equals(host)) {
+                                  v.evaluateJavascript(PROBE, null);
+                              }
+                          } catch (Exception e) {
+                              // abaikan
+                          }
+                      }
+                  });
+
+                  web.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public boolean onShowFileChooser(WebView w, ValueCallback<Uri[]> cb, WebChromeClient.FileChooserParams p) {
+                          if (fileCb != null) {
+                              fileCb.onReceiveValue(null);
+                          }
+                          fileCb = cb;
+                          try {
+                              startActivityForResult(p.createIntent(), 77);
+                          } catch (Exception e) {
+                              fileCb = null;
+                              return false;
+                          }
+                          return true;
+                      }
+                  });
+
+                  web.loadUrl(BuildConfig.APP_URL);
+
+                  if (Build.VERSION.SDK_INT >= 33) {
+                      requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+                  }
+                  askBattery();
+              }
+
+              /** Pada pembukaan kedua, minta pengecualian penghemat baterai (sekali saja). */
+              private void askBattery() {
+                  try {
+                      SharedPreferences sp = getSharedPreferences("p", MODE_PRIVATE);
+                      int n = sp.getInt("n", 0);
+                      sp.edit().putInt("n", n + 1).apply();
+                      PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                      if (n == 1 && pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                          Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                          i.setData(Uri.parse("package:" + getPackageName()));
+                          startActivity(i);
+                      }
+                  } catch (Exception e) {
+                      // abaikan
+                  }
+              }
+
+              @Override
+              protected void onActivityResult(int rq, int rs, Intent d) {
+                  if (rq == 77 && fileCb != null) {
+                      fileCb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(rs, d));
+                      fileCb = null;
+                  } else if (rq == 78) {
+                      if (rs == RESULT_OK && d != null) {
+                          java.util.ArrayList<String> r = d.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS);
+                          if (r != null && !r.isEmpty()) {
+                              js("window.x42voice&&x42voice(" + org.json.JSONObject.quote(r.get(0)) + ")");
+                          }
+                      }
+                  } else {
+                      super.onActivityResult(rq, rs, d);
+                  }
+              }
+
+              @Override
+              public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
+                  super.onRequestPermissionsResult(code, perms, res);
+                  if (code == 2) {
+                      boolean ok = res.length > 0 && res[0] == PackageManager.PERMISSION_GRANTED;
+                      js("window.x38perm&&x38perm(" + ok + ")");
+                  }
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (web != null && web.canGoBack()) {
+                      web.goBack();
+                  } else {
+                      moveTaskToBack(true);
+                  }
+              }
+
+              private String pendingIcon = null;
+
+              /** Terapkan ikon yang dipilih: aktifkan alias baru dulu, lalu matikan yang lain. */
+              private void applyIcon() {
+                  final String key = pendingIcon;
+                  if (key == null) return;
+                  pendingIcon = null;
+                  try {
+                      String[] keys = {"asli", "biru", "hijau", "pink", "merah", "neon", "mono"};
+                      PackageManager pm = getPackageManager();
+                      pm.setComponentEnabledSetting(new android.content.ComponentName(this, "com.loopify.app.Icon" + Character.toUpperCase(key.charAt(0)) + key.substring(1)),
+                          PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                      for (String k : keys) {
+                          if (!k.equals(key)) {
+                              pm.setComponentEnabledSetting(new android.content.ComponentName(this, "com.loopify.app.Icon" + Character.toUpperCase(k.charAt(0)) + k.substring(1)),
+                                  PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                          }
+                      }
+                  } catch (Exception e) {
+                      // abaikan
+                  }
+              }
+
+              @Override
+              protected void onStop() {
+                  super.onStop();
+                  applyIcon();
+              }
+
+              /** Layar mati / app ke latar belakang: beri tahu halaman supaya animasi dan gambar dihentikan. Audio tidak terpengaruh. */
+              private void bgFlag(boolean on) {
+                  try {
+                      if (web != null) {
+                          web.evaluateJavascript("document.documentElement.classList." + (on ? "add" : "remove") + "('bg')", null);
+                      }
+                  } catch (Exception e) {
+                      // abaikan
+                  }
+              }
+
+              @Override
+              protected void onPause() {
+                  bgFlag(true);
+                  super.onPause();
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  bgFlag(false);
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (isFinishing()) {
+                      MusicService.shutdown(getApplicationContext());
+                      if (web != null) {
+                          web.destroy();
+                          web = null;
+                      }
+                  }
+                  super.onDestroy();
+              }
+          }
+          LOOPIFY_EOF
+          cat > android/app/src/main/java/com/loopify/app/MusicService.java <<'LOOPIFY_EOF'
+          package com.loopify.app;
+
+          import android.app.Notification;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.app.Service;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.pm.ServiceInfo;
+          import android.graphics.drawable.Icon;
+          import android.media.MediaMetadata;
+          import android.media.session.MediaSession;
+          import android.media.session.PlaybackState;
+          import android.net.wifi.WifiManager;
+          import android.os.Build;
+          import android.os.Handler;
+          import android.os.IBinder;
+          import android.os.Looper;
+          import android.os.PowerManager;
+          import android.widget.Toast;
+
+          public class MusicService extends Service {
+
+              static final String CH = "loopify_music";
+              static final String CH_MIN = "loopify_music_min";
+              /** true = notifikasi lengkap (cover + kontrol); false = notifikasi kecil agar musik tetap jalan di latar. */
+              static boolean rich = true;
+              static final int NID = 7;
+              static final String A_UPDATE = "com.loopify.app.UPDATE";
+              static final String A_TOGGLE = "com.loopify.app.TOGGLE";
+              static final String A_NEXT = "com.loopify.app.NEXT";
+              static final String A_PREV = "com.loopify.app.PREV";
+              static final String A_STOP = "com.loopify.app.STOP";
+
+              static final String JS_TOGGLE = "try{if(act.paused)act.play();else act.pause()}catch(e){}";
+              static final String JS_NEXT = "try{nxt(1)}catch(e){}";
+              static final String JS_PREV = "try{nxt(-1)}catch(e){}";
+              static final String JS_PAUSE = "try{act.pause()}catch(e){}";
+
+              static boolean running = false;
+              static boolean playing = false;
+              static String title = "Loopify";
+              static String artist = "";
+              static String img = "";
+              static String artUrl = "";
+              static android.graphics.Bitmap art = null;
+
+              private MediaSession session;
+              private PowerManager.WakeLock wl;
+              private WifiManager.WifiLock wfl;
+              private final Handler h = new Handler(Looper.getMainLooper());
+              private final Runnable idleStop = new Runnable() {
+                  @Override
+                  public void run() {
+                      stopForeground(Service.STOP_FOREGROUND_REMOVE);
+                      stopSelf();
+                  }
+              };
+
+              /** Dipanggil dari JavaScript lewat jembatan. Hanya memicu layanan kalau ada perubahan. */
+              static void update(Context c, boolean p, String t, String a, String im) {
+                  String nt = (t == null || t.isEmpty()) ? "Loopify" : t;
+                  String na = a == null ? "" : a;
+                  String ni = (im != null && im.startsWith("http")) ? im : "";
+                  boolean changed = p != playing || !nt.equals(title) || !na.equals(artist) || !ni.equals(img);
+                  playing = p;
+                  title = nt;
+                  artist = na;
+                  img = ni;
+                  if (!changed) {
+                      return;
+                  }
+                  if (p || running) {
+                      try {
+                          Intent i = new Intent(c, MusicService.class).setAction(A_UPDATE);
+                          c.startForegroundService(i);
+                      } catch (final Exception e) {
+                          final Context cc = c;
+                          MainActivity.UI.post(new Runnable() {
+                              @Override
+                              public void run() {
+                                  Toast.makeText(cc, "Notifikasi musik gagal: " + e.getClass().getSimpleName(), Toast.LENGTH_LONG).show();
+                              }
+                          });
+                      }
+                  }
+              }
+
+              /** Ganti antara notifikasi lengkap dan ringkas. */
+              static void setRich(Context c, boolean on) {
+                  if (rich == on) {
+                      return;
+                  }
+                  rich = on;
+                  if (running) {
+                      try {
+                          c.startForegroundService(new Intent(c, MusicService.class).setAction(A_UPDATE));
+                      } catch (Exception e) {
+                          // abaikan
+                      }
+                  }
+              }
+
+              static void shutdown(Context c) {
+                  playing = false;
+                  try {
+                      c.stopService(new Intent(c, MusicService.class));
+                  } catch (Exception e) {
+                      // abaikan
+                  }
+              }
+
+              @Override
+              public void onCreate() {
+                  super.onCreate();
+                  running = true;
+                  NotificationManager nm = getSystemService(NotificationManager.class);
+                  NotificationChannel ch = new NotificationChannel(CH, "Pemutar musik", NotificationManager.IMPORTANCE_LOW);
+                  ch.setShowBadge(false);
+                  nm.createNotificationChannel(ch);
+                  NotificationChannel chMin = new NotificationChannel(CH_MIN, "Pemutar musik (ringkas)", NotificationManager.IMPORTANCE_MIN);
+                  chMin.setShowBadge(false);
+                  nm.createNotificationChannel(chMin);
+
+                  session = new MediaSession(this, "Loopify");
+                  session.setCallback(new MediaSession.Callback() {
+                      @Override
+                      public void onPlay() {
+                          MainActivity.js(JS_TOGGLE);
+                      }
+
+                      @Override
+                      public void onPause() {
+                          MainActivity.js(JS_TOGGLE);
+                      }
+
+                      @Override
+                      public void onSkipToNext() {
+                          MainActivity.js(JS_NEXT);
+                      }
+
+                      @Override
+                      public void onSkipToPrevious() {
+                          MainActivity.js(JS_PREV);
+                      }
+                  });
+                  session.setActive(true);
+
+                  PowerManager pm = getSystemService(PowerManager.class);
+                  wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "loopify:play");
+                  wl.setReferenceCounted(false);
+                  WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                  if (wm != null) {
+                      wfl = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "loopify:wifi");
+                      wfl.setReferenceCounted(false);
+                  }
+              }
+
+              @Override
+              public int onStartCommand(Intent intent, int flags, int startId) {
+                  String a = intent == null ? null : intent.getAction();
+                  if (A_TOGGLE.equals(a)) {
+                      MainActivity.js(JS_TOGGLE);
+                  } else if (A_NEXT.equals(a)) {
+                      MainActivity.js(JS_NEXT);
+                  } else if (A_PREV.equals(a)) {
+                      MainActivity.js(JS_PREV);
+                  } else if (A_STOP.equals(a)) {
+                      MainActivity.js(JS_PAUSE);
+                      stopForeground(Service.STOP_FOREGROUND_REMOVE);
+                      stopSelf();
+                      return START_NOT_STICKY;
+                  }
+                  refresh();
+                  return START_NOT_STICKY;
+              }
+
+              /** Ambil foto lagu di latar belakang, lalu perbarui notifikasi. */
+              private void loadArt() {
+                  final String u = img;
+                  if (u.isEmpty()) {
+                      art = null;
+                      artUrl = "";
+                      return;
+                  }
+                  if (u.equals(artUrl)) {
+                      return;
+                  }
+                  artUrl = u;
+                  art = null;
+                  new Thread(new Runnable() {
+                      @Override
+                      public void run() {
+                          android.graphics.Bitmap b = null;
+                          try {
+                              java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(u).openConnection();
+                              c.setConnectTimeout(8000);
+                              c.setReadTimeout(8000);
+                              c.setInstanceFollowRedirects(true);
+                              java.io.InputStream in = c.getInputStream();
+                              android.graphics.Bitmap raw = android.graphics.BitmapFactory.decodeStream(in);
+                              in.close();
+                              if (raw != null) {
+                                  int w = raw.getWidth(), hh = raw.getHeight(), sz = Math.min(w, hh);
+                                  b = android.graphics.Bitmap.createBitmap(raw, (w - sz) / 2, (hh - sz) / 2, sz, sz);
+                                  if (sz > 512) {
+                                      b = android.graphics.Bitmap.createScaledBitmap(b, 512, 512, true);
+                                  }
+                              }
+                          } catch (Exception e) {
+                              b = null;
+                          }
+                          final android.graphics.Bitmap fb = b;
+                          h.post(new Runnable() {
+                              @Override
+                              public void run() {
+                                  if (fb != null && u.equals(img)) {
+                                      art = fb;
+                                      if (running) {
+                                          refresh();
+                                      }
+                                  }
+                              }
+                          });
+                      }
+                  }).start();
+              }
+
+              private void refresh() {
+                  loadArt();
+                  Notification n = build();
+                  if (Build.VERSION.SDK_INT >= 29) {
+                      startForeground(NID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+                  } else {
+                      startForeground(NID, n);
+                  }
+
+                  MediaMetadata.Builder mb = new MediaMetadata.Builder()
+                          .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                          .putString(MediaMetadata.METADATA_KEY_ARTIST, artist);
+                  if (art != null) {
+                      mb.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art);
+                      mb.putBitmap(MediaMetadata.METADATA_KEY_ART, art);
+                  }
+                  session.setMetadata(mb.build());
+                  session.setPlaybackState(new PlaybackState.Builder()
+                          .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE
+                                  | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_NEXT
+                                  | PlaybackState.ACTION_SKIP_TO_PREVIOUS)
+                          .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED,
+                                  PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1f)
+                          .build());
+
+                  LoopifyWidget.refreshAll(this);
+                  h.removeCallbacks(idleStop);
+                  if (playing) {
+                      if (!wl.isHeld()) {
+                          wl.acquire();
+                      }
+                      if (wfl != null && !wfl.isHeld()) {
+                          wfl.acquire();
+                      }
+                  } else {
+                      if (wl.isHeld()) {
+                          wl.release();
+                      }
+                      if (wfl != null && wfl.isHeld()) {
+                          wfl.release();
+                      }
+                      h.postDelayed(idleStop, 10 * 60 * 1000L);
+                  }
+              }
+
+              private PendingIntent act(String action) {
+                  Intent i = new Intent(this, MusicService.class).setAction(action);
+                  return PendingIntent.getService(this, action.hashCode(), i,
+                          PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+              }
+
+              private Notification build() {
+                  Intent open = new Intent(this, MainActivity.class)
+                          .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                  PendingIntent pOpen = PendingIntent.getActivity(this, 0, open,
+                          PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                  if (!rich) {
+                      return new Notification.Builder(this, CH_MIN)
+                              .setSmallIcon(R.drawable.ic_stat)
+                              .setContentTitle("Loopify")
+                              .setContentText(playing ? "Memutar musik" : "Dijeda")
+                              .setContentIntent(pOpen)
+                              .setOngoing(true)
+                              .setShowWhen(false)
+                              .setVisibility(Notification.VISIBILITY_SECRET)
+                              .build();
+                  }
+
+                  Notification.Action prev = new Notification.Action.Builder(
+                          Icon.createWithResource(this, android.R.drawable.ic_media_previous), "Sebelumnya", act(A_PREV)).build();
+                  Notification.Action toggle = new Notification.Action.Builder(
+                          Icon.createWithResource(this, playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play),
+                          playing ? "Jeda" : "Putar", act(A_TOGGLE)).build();
+                  Notification.Action next = new Notification.Action.Builder(
+                          Icon.createWithResource(this, android.R.drawable.ic_media_next), "Berikutnya", act(A_NEXT)).build();
+
+                  Notification.Builder nb = new Notification.Builder(this, CH)
+                          .setSmallIcon(R.drawable.ic_stat)
+                          .setContentTitle(title)
+                          .setContentText(artist.isEmpty() ? (playing ? "Memutar" : "Dijeda") : artist)
+                          .setContentIntent(pOpen)
+                          .setDeleteIntent(act(A_STOP))
+                          .setOnlyAlertOnce(true)
+                          .setShowWhen(false)
+                          .setVisibility(Notification.VISIBILITY_PUBLIC)
+                          .addAction(prev)
+                          .addAction(toggle)
+                          .addAction(next)
+                          .setStyle(new Notification.MediaStyle()
+                                  .setMediaSession(session.getSessionToken())
+                                  .setShowActionsInCompactView(0, 1, 2));
+                  if (art != null) {
+                      nb.setLargeIcon(art);
+                  }
+                  return nb.build();
+              }
+
+              @Override
+              public void onTaskRemoved(Intent rootIntent) {
+                  stopForeground(Service.STOP_FOREGROUND_REMOVE);
+                  stopSelf();
+                  super.onTaskRemoved(rootIntent);
+              }
+
+              @Override
+              public void onDestroy() {
+                  running = false;
+                  playing = false;
+                  LoopifyWidget.refreshAll(this);
+                  h.removeCallbacks(idleStop);
+                  if (wl != null && wl.isHeld()) {
+                      wl.release();
+                  }
+                  if (wfl != null && wfl.isHeld()) {
+                      wfl.release();
+                  }
+                  if (session != null) {
+                      session.setActive(false);
+                      session.release();
+                  }
+                  super.onDestroy();
+              }
+
+              @Override
+              public IBinder onBind(Intent intent) {
+                  return null;
+              }
+          }
+          LOOPIFY_EOF
+          cat > android/app/src/main/java/com/loopify/app/LoopifyWidget.java <<'LOOPIFY_EOF'
+          package com.loopify.app;
+
+          import android.app.PendingIntent;
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.ComponentName;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.widget.RemoteViews;
+
+          /** Widget layar utama: cover, judul, dan tombol sebelumnya / putar-jeda / berikutnya. */
+          public class LoopifyWidget extends AppWidgetProvider {
+
+              @Override
+              public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
+                  render(c, m, ids);
+              }
+
+              static void refreshAll(Context c) {
+                  try {
+                      AppWidgetManager m = AppWidgetManager.getInstance(c);
+                      int[] ids = m.getAppWidgetIds(new ComponentName(c, LoopifyWidget.class));
+                      if (ids != null && ids.length > 0) {
+                          render(c, m, ids);
+                      }
+                  } catch (Exception e) {
+                      // abaikan
+                  }
+              }
+
+              private static PendingIntent open(Context c) {
+                  Intent i = new Intent(c, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                  return PendingIntent.getActivity(c, 11, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+              }
+
+              private static PendingIntent svc(Context c, String action) {
+                  Intent i = new Intent(c, MusicService.class).setAction(action);
+                  return PendingIntent.getService(c, action.hashCode() + 5, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+              }
+
+              static void render(Context c, AppWidgetManager m, int[] ids) {
+                  RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_player);
+                  boolean on = MusicService.running;
+                  v.setTextViewText(R.id.w_title, on ? MusicService.title : "Loopify");
+                  v.setTextViewText(R.id.w_artist, on ? (MusicService.artist.isEmpty() ? "Memutar" : MusicService.artist) : "Ketuk untuk membuka");
+                  if (on && MusicService.art != null) {
+                      v.setImageViewBitmap(R.id.w_cover, MusicService.art);
+                  } else {
+                      v.setImageViewResource(R.id.w_cover, R.drawable.ic_launcher_fg);
+                  }
+                  v.setImageViewResource(R.id.w_toggle, on && MusicService.playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
+                  PendingIntent o = open(c);
+                  v.setOnClickPendingIntent(R.id.w_cover, o);
+                  v.setOnClickPendingIntent(R.id.w_info, o);
+                  v.setOnClickPendingIntent(R.id.w_prev, on ? svc(c, MusicService.A_PREV) : o);
+                  v.setOnClickPendingIntent(R.id.w_toggle, on ? svc(c, MusicService.A_TOGGLE) : o);
+                  v.setOnClickPendingIntent(R.id.w_next, on ? svc(c, MusicService.A_NEXT) : o);
+                  for (int id : ids) {
+                      m.updateAppWidget(id, v);
+                  }
+              }
+          }
+          LOOPIFY_EOF
+          cat > android/app/src/main/res/layout/widget_player.xml <<'LOOPIFY_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/widget_bg"
+              android:gravity="center_vertical"
+              android:orientation="horizontal"
+              android:padding="10dp">
+
+              <ImageView
+                  android:id="@+id/w_cover"
+                  android:layout_width="56dp"
+                  android:layout_height="56dp"
+                  android:scaleType="centerCrop" />
+
+              <LinearLayout
+                  android:id="@+id/w_info"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_marginStart="10dp"
+                  android:layout_weight="1"
+                  android:orientation="vertical">
+
+                  <TextView
+                      android:id="@+id/w_title"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:ellipsize="end"
+                      android:maxLines="1"
+                      android:text="Loopify"
+                      android:textColor="#FFFFFF"
+                      android:textSize="14sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/w_artist"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:ellipsize="end"
+                      android:maxLines="1"
+                      android:text="Ketuk untuk membuka"
+                      android:textColor="#B8BCE8"
+                      android:textSize="12sp" />
+              </LinearLayout>
+
+              <ImageView
+                  android:id="@+id/w_prev"
+                  android:layout_width="38dp"
+                  android:layout_height="38dp"
+                  android:padding="7dp"
+                  android:src="@android:drawable/ic_media_previous" />
+
+              <ImageView
+                  android:id="@+id/w_toggle"
+                  android:layout_width="44dp"
+                  android:layout_height="44dp"
+                  android:padding="7dp"
+                  android:src="@android:drawable/ic_media_play" />
+
+              <ImageView
+                  android:id="@+id/w_next"
+                  android:layout_width="38dp"
+                  android:layout_height="38dp"
+                  android:padding="7dp"
+                  android:src="@android:drawable/ic_media_next" />
+          </LinearLayout>
+          LOOPIFY_EOF
+          cat > android/app/src/main/res/drawable/widget_bg.xml <<'LOOPIFY_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <gradient
+                  android:angle="315"
+                  android:endColor="#3A1F3D"
+                  android:startColor="#0B0D22" />
+              <corners android:radius="22dp" />
+          </shape>
+          LOOPIFY_EOF
+          cat > android/app/src/main/res/xml/loopify_widget_info.xml <<'LOOPIFY_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+              android:initialLayout="@layout/widget_player"
+              android:minHeight="70dp"
+              android:minWidth="250dp"
+              android:resizeMode="horizontal"
+              android:updatePeriodMillis="0"
+              android:widgetCategory="home_screen" />
+          LOOPIFY_EOF
+          cat > android/app/src/main/res/mipmap-anydpi/ic_launcher.xml <<'LOOPIFY_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@android:color/black" />
+              <foreground android:drawable="@drawable/ic_launcher_fg" />
+          </adaptive-icon>
+          LOOPIFY_EOF
+          echo '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' | base64 -d > android/app/loopify.jks
+          sed -i "s|__URL__|$APP_URL|; s|__VC__|$GITHUB_RUN_NUMBER|g" android/app/build.gradle
+          test -f apk-icon.png || { echo "File apk-icon.png belum ada di repo. Upload dulu ke folder utama repo."; exit 1; }
+          cp apk-icon.png android/app/src/main/res/drawable-nodpi/ic_launcher_fg.png
+          for k in asli biru hijau pink merah neon mono; do
+            # Cari ikon varian: icon-$k.png di folder utama, atau apk-icons/$k.png. Kalau tidak ada, pakai apk-icon.png supaya build tidak gagal.
+            src=apk-icon.png
+            if [ -f "icon-$k.png" ]; then src="icon-$k.png"; elif [ -f "apk-icons/$k.png" ]; then src="apk-icons/$k.png"; else echo "Peringatan: ikon varian '$k' tidak ditemukan, memakai apk-icon.png"; fi
+            cp "$src" android/app/src/main/res/drawable-nodpi/ic_launcher_fg_$k.png
+            printf '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@android:color/black" />\n    <foreground android:drawable="@drawable/ic_launcher_fg_%s" />\n</adaptive-icon>\n' "$k" > android/app/src/main/res/mipmap-anydpi/ic_launcher_$k.xml
+          done
+          ls -R android | head -40
+
+      - name: Build APK
+        working-directory: android
+        run: gradle --no-daemon assembleRelease
+
+      - name: Ganti nama APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk Loopify.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Loopify-APK
+          path: Loopify.apk
+
+      - name: Rilis (unduhan langsung)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: Loopify APK ${{ github.run_number }}
+          files: Loopify.apk

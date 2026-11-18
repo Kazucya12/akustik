@@ -10,10 +10,12 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "test": "node test/smoke.js"
   },
   "devDependencies": {
     "terser": "^5.31.0",
-    "clean-css": "^5.3.3"
+    "clean-css": "^5.3.3",
+    "jsdom": "^24.1.0"
   }
 }

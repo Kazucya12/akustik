@@ -44,7 +44,7 @@
       [].forEach.call(sp.querySelectorAll('.rw[onclick^="P("]'),function(e){
         var m=/^P\('?(\w+)'?,\s*(\d+)\)/.exec(e.getAttribute('onclick')||'');if(!m)return;
         var t=lists[m[1]]&&lists[m[1]][+m[2]];if(!first)first=e;
-        if(t&&t.by){cnt[t.by]=(cnt[t.by]||0)+1;var s=e.querySelector('small');if(s)s.textContent+=' · oleh '+t.by}});
+        if(t&&t.by){cnt[t.by]=(cnt[t.by]||0)+1;var s=e.querySelector('small');if(s){s.textContent+=' · oleh '+t.by;if(window.x46dv&&window.x46dv(t.by))s.insertAdjacentHTML('beforeend',' '+window.x46v)}}});
       var ks=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]});
       if(first&&ks.length){var d=document.createElement('div');d.className='pcard';d.setAttribute('data-x33b','1');
         d.innerHTML='<b>👥 Playlist bersama</b><br><small>'+ks.map(function(n){return esc(n)+' '+cnt[n]+' lagu'}).join(' · ')+'</small>';

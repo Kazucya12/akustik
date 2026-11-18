@@ -67,6 +67,6 @@
   function apply(){try{var v=document.getElementById('v');if(!v||v.querySelector('[data-x42]'))return;var h=v.querySelector('h1');if(!h||h.textContent!=='Profil')return;
     var tb=v.querySelector('[data-x39b]');if(!tb)return;
     var b=document.createElement('button');b.className='btn g';b.setAttribute('data-x42','1');b.textContent='🖼 Kartu profil';b.setAttribute('onclick','goCard42()');tb.appendChild(b)}catch(e){}}
-  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,200)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(apply,200)}).observe(document.getElementById('v'),{childList:true})}catch(e){}
   apply();
 })();

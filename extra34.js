@@ -81,6 +81,6 @@
   function inject(){try{var v=document.getElementById('v');if(!v||v.querySelector('[data-x34]'))return;
     var s=v.querySelector('.ft[onclick="goStat()"]');if(!s)return;
     var d=document.createElement('div');d.className='ft';d.setAttribute('data-x34','1');d.setAttribute('onclick','goKolase34()');d.innerHTML='<span>✨</span><div>Kolase Foto Lagu</div>';s.parentNode.insertBefore(d,s)}catch(e){}}
-  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(inject,150)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+  var it;try{new MutationObserver(function(){clearTimeout(it);it=setTimeout(inject,150)}).observe(document.getElementById('v'),{childList:true})}catch(e){}
   inject();
 })();

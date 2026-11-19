@@ -92,6 +92,8 @@
   function done(j,msg){
     wr(KEY,{email:j.email,username:j.username,session:j.session,exp:j.exp});rm(SKIP);
     if(!cfg.name){cfg.name=String(j.username||'').slice(0,30);ls.set('cfg',cfg)}
+    /* sudah punya akun: lewati layar sambutan (yang meminta nama lagi) di perangkat baru */
+    try{ls.set('ob',1)}catch(e){}var ob=document.getElementById('ob');if(ob)ob.remove();
     close();toast(msg||'Masuk sebagai '+j.username);refresh();
   }
   function fin(p,label){return p.catch(function(x){busy(0,label);err(x.msg)})}

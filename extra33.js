@@ -63,7 +63,7 @@
   var _home=V.home;
   V.home=function(){var h=_home.apply(this,arguments);
     try{var s=slot(),late=new Date().getHours()<4||new Date().getHours()>=18,
-      c='<div class="x33g" style="--a:'+s[4]+';--b:'+s[5]+'"><div class="e">'+s[1]+'</div><div style="flex:1;min-width:0"><b>'+s[2]+', '+esc(nm())+'</b><small>'+s[3]+'</small>'+
+      c='<div class="x33g" style="--a:'+s[4]+';--b:'+s[5]+'"><div class="e">'+s[1]+'</div><div style="flex:1;min-width:0">'+(s[2]==='Masih terjaga?'?'<b>'+s[2]+'</b><small>'+s[3]+'</small>':'<b>'+s[3]+'</b>')+
       '<div class="x33c" style="margin:10px 0 0"><button class="btn" onclick="x33Play(\''+s[6]+'\')">▶ '+s[7]+'</button>'+(late?'<button class="btn g" onclick="goFocus33()">😴 Mode Tidur</button>':'')+'</div></div></div>';
       var k='</div></div></div>',i=h.indexOf(k);return i<0?c+h:h.slice(0,i+k.length)+c+h.slice(i+k.length)}catch(e){return h}};
 

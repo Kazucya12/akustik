@@ -30,8 +30,8 @@
   function enabled(){try{return cfg.npn!==false}catch(e){return true}}
   function vib(n){try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}}
   function playing(){try{return !!(cur&&act&&!act.paused)}catch(e){return false}}
-  function playerOpen(){var p=document.getElementById('pl'),v=document.getElementById('vo'),k=document.getElementById('kr');
-    return !!((p&&p.classList.contains('on'))||(v&&v.classList.contains('on'))||(k&&k.classList.contains('on')))}
+  function playerOpen(){var ids=['pl','vo','kr','sp','dr'];
+    for(var i=0;i<ids.length;i++){var e=document.getElementById(ids[i]);if(e&&e.classList.contains('on'))return true}return false}
 
   /* ---------- foto sesuai penyanyi ---------- */
   var ART_KEY='ma_isl_art',artC={},artNeg={};

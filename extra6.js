@@ -285,7 +285,8 @@
     var S=780,cx=(W-S)/2,cy=330;
     x.save();x.shadowColor='rgba(0,0,0,.6)';x.shadowBlur=90;x.shadowOffsetY=40;rr(x,cx,cy,S,S,72);x.fillStyle='#111';x.fill();x.restore();
     x.save();rr(x,cx,cy,S,S,72);x.clip();
-    if(img){var m=Math.min(img.naturalWidth||S,img.naturalHeight||S)||S,sx=((img.naturalWidth||S)-m)/2,sy=((img.naturalHeight||S)-m)/2;x.drawImage(img,sx,sy,m,m,cx,cy,S,S)}
+    if(img&&/^data:image\/svg/i.test(img.src||'')){x.drawImage(img,cx,cy,S,S)}
+    else if(img){var m=Math.min(img.naturalWidth||S,img.naturalHeight||S)||S,sx=((img.naturalWidth||S)-m)/2,sy=((img.naturalHeight||S)-m)/2;x.drawImage(img,sx,sy,m,m,cx,cy,S,S)}
     else{var hu=(t.h!=null?t.h:hh(String(t.title||'')))%360,ga=x.createLinearGradient(cx,cy,cx+S,cy+S);ga.addColorStop(0,'hsl('+hu+',70%,52%)');ga.addColorStop(1,'hsl('+((hu+60)%360)+',70%,28%)');x.fillStyle=ga;x.fillRect(cx,cy,S,S);
       x.fillStyle='rgba(255,255,255,.85)';x.font='700 360px '+F;x.textBaseline='middle';x.fillText('\u266A',W/2,cy+S/2+10);x.textBaseline='alphabetic'}
     x.restore();

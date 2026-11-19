@@ -8,10 +8,10 @@
   /* ---------- 1. Sinkron lewat akun (butuh login; data: favorit, playlist, artis diikuti, pin, riwayat cari) ----------
      v4.30: gabung tiga arah (dasar = hasil sinkron terakhir 'syncB', lokal, server). Penambahan dan penghapusan dari
      dua perangkat sama-sama dipertahankan. Server menolak (409) simpanan yang berdasar versi lama, jadi tidak ada lagi yang saling menimpa. */
-  var KS=['favs','pls','fol','pin','plr','lsrt','lgrid','qh'],last='',ready=0,busy=0;
+  var KS=['favs','pls','fol','pin','plr','lsrt','lgrid','qh','pf36','pname'],last='',ready=0,busy=0,pulling=0;
   function J(x){return JSON.stringify(x)}
   function union(a,b,f){var s={},o=[];(a||[]).concat(b||[]).forEach(function(x){var k=f(x);if(!s[k]){s[k]=1;o.push(x)}});return o}
-  function snap(){var o={};KS.forEach(function(k){var v=ls.get(k,null);if(v!==null)o[k]=v});return o}
+  function snap(){var o={};KS.forEach(function(k){var v=k=='pname'?(cfg.name||null):ls.get(k,null);if(v!==null)o[k]=v});return o}
   function auth(){try{var a=JSON.parse(localStorage.getItem('mx_auth'));return a&&a.session&&a.exp>Date.now()?a:null}catch(e){return null}}
   function call(b){return fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:J(b)}).then(function(r){return r.ok||r.status==409?r.json():null}).catch(function(){return null})}
   function tk(t){return t&&t.id!=null?String(t.id):J(t)}
@@ -50,9 +50,13 @@
     if(has('plr'))o.plr=mo(B.plr,l.plr,r.plr,1);
     if(has('lsrt'))o.lsrt=mo(B.lsrt,l.lsrt,r.lsrt);
     if(has('lgrid'))o.lgrid=l.lgrid!==undefined&&J(l.lgrid)!=J(B.lgrid)?l.lgrid:(r.lgrid!==undefined?r.lgrid:l.lgrid);
+    // nilai tunggal (foto/bio/lagu favorit profil, nama): perangkat baru ikut server; selain itu yang diubah lokal menang
+    function one(k){var b=B[k],L=l[k],R=r[k];if(L===undefined)return R;if(R===undefined)return L;if(b===undefined)return R;return J(L)!=J(b)?L:R}
+    if(has('pf36'))o.pf36=one('pf36');
+    if(has('pname'))o.pname=one('pname');
     return typeof scrubData=='function'?scrubData(o):o;
   }
-  function apply(m){KS.forEach(function(k){if(m[k]!==undefined)ls.set(k,m[k])})}
+  function apply(m){KS.forEach(function(k){if(m[k]===undefined)return;if(k=='pname'){cfg.name=String(m[k]).slice(0,30);ls.set('cfg',cfg)}else ls.set(k,m[k])})}
   function push(f,n){
     var a=auth(),s=J(snap());
     if(!a||!ready||busy||(!f&&s==last))return Promise.resolve();
@@ -70,8 +74,9 @@
     });
   }
   function pull(){
-    var a=auth();if(!a)return;
+    var a=auth();if(!a||pulling)return;pulling=1;
     call({action:'get',session:a.session}).then(function(j){
+      pulling=0;
       if(!j||j.conflict)return;
       var T=ls.get('syncT',0),l=snap(),B=ls.get('syncB',null);
       if(!j.data){ready=1;last='';return}
@@ -87,7 +92,7 @@
     });
   }
   setTimeout(pull,1500);
-  setInterval(function(){push()},5000);
+  setInterval(function(){if(!ready&&!pulling&&auth())pull();push()},5000); // pull diulang sampai berhasil, termasuk setelah login tanpa memuat ulang halaman
   document.addEventListener('visibilitychange',function(){if(!document.hidden)pull()});
 
   /* ---------- 8. Riwayat & saran pencarian ---------- */

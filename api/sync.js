@@ -2,7 +2,7 @@
 // Pakai database & AUTH_SECRET yang sama dengan /api/auth. Tidak ada env baru.
 const crypto = require('crypto');
 const PREFIX = 'ma:';
-const KEYS = ['favs', 'pls', 'fol', 'pin', 'plr', 'lsrt', 'lgrid', 'qh'];
+const KEYS = ['favs', 'pls', 'fol', 'pin', 'plr', 'lsrt', 'lgrid', 'qh', 'pf36', 'pname'];
 const MAX = 400000; // byte
 
 async function rd(...cmd) {

@@ -6,10 +6,10 @@
 
 Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) dan dua fungsi server di `api/` supaya API key tidak terlihat di browser.
 
-## Fitur (v2.4)
+## Fitur (v2.4, versi awal; lihat bagian v3.x–v4.x di bawah)
 - Kontrol di layar kunci dan notifikasi (Media Session), antrean (putar berikutnya, hapus), sleep timer, kecepatan putar 0.75x-2x, transisi halus fade in/out (Pengaturan)
 - Lirik otomatis dari LRCLIB (tanpa key), baris berjalan bila tersedia, ketuk baris untuk melompat
-- Trending Audius per genre (Home dan Explore), rekomendasi SoundStat dengan Putar Semua dan Segarkan
+- Trending per genre (Home dan Explore), rekomendasi SoundStat dengan Putar Semua dan Segarkan
 - Equalizer: preset tambahan dan simpan preset sendiri
 - Playlist: putar, ekspor/impor JSON, bagikan lewat tautan
 - Statistik dengar, mode audio untuk video YouTube, PWA (bisa diinstal dan dibuka offline)
@@ -113,3 +113,17 @@ Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah 
 - **Hardening:** data dari file cadangan/sinkron dibersihkan (`scrubData`), tombol unduh menolak alamat non-https, angka yang dicetak ke HTML dipaksa numerik, alamat autentikasi MusicAPI harus https.
 - **Update otomatis:** `node build.js` mengisi nama cache `sw.js` dengan hash bundle; aplikasi memeriksa versi baru tiap 30 menit dan saat dibuka kembali.
 - Splash: bar dan tagline kini selesai dalam durasi splash.
+
+
+## Struktur folder (v4.38)
+- `api/` fungsi server Vercel: `auth` (masuk/daftar), `sync` (sinkron akun), `collab` (playlist bersama), `artist` (halaman artis & rilis baru), `stream` (alamat putar), `suggest` (saran pencarian), `yt-music` (pencarian YouTube), `jiosaavn` (butuh `JIOSAAVN_API_URL`), `music` (radio), `musicapi` (YouTube Music), `soundstat`, `import`. `_rl.js` = rate limit (bukan fungsi).
+- `test/smoke.js`: uji asap (`npm test`). `.github/workflows/test.yml`: menjalankan uji tiap push. `.github/workflows/build-apk.yml`: membuat APK.
+- Sumber Audius, Jamendo, dan Internet Archive sudah dihapus; bagian README lama yang menyebutnya hanya riwayat.
+
+## Pembaruan paket (package-lock.json)
+- `package-lock.json` mengunci versi persis semua paket. **Commit file ini.** CI memakai `npm ci`, yang gagal kalau lockfile tidak cocok dengan `package.json`.
+- Mengubah kode biasa tidak perlu menyentuh lockfile. Hanya saat menambah atau memperbarui paket: jalankan `npm install nama-paket@versi` (atau `npm update`), lalu commit `package.json` dan `package-lock.json` bersama-sama. Jangan edit lockfile manual.
+
+## Variabel tambahan
+- `JIOSAAVN_API_URL`: alamat backend JioSaavn milikmu.
+- `DEV_EMAILS`: email (pisahkan koma) yang mendapat lencana developer.

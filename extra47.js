@@ -11,6 +11,7 @@
 
   function say(message) {
     try {
+      if (typeof toast === 'function') { toast(message); return; }
       var node = document.getElementById('offline47-toast');
       if (!node) {
         node = document.createElement('div');
@@ -30,7 +31,7 @@
   function validUrl(value) {
     try {
       var u = new URL(value, location.href);
-      return (u.protocol === 'https:' || u.protocol === 'http:') && !!u.hostname;
+      return u.protocol === 'https:' && !!u.hostname;
     } catch (_) { return false; }
   }
 
@@ -53,8 +54,13 @@
       return;
     }
 
-    if (track.dl !== 1) {
-      say('Sumber lagu tidak mengizinkan unduhan');
+    if (track.radio) {
+      say('Siaran radio langsung tidak bisa disimpan offline');
+      return;
+    }
+
+    if (track.dl === 0) {
+      say('Artis tidak mengizinkan unduhan lagu ini');
       return;
     }
 
@@ -157,6 +163,13 @@
         window.x41Refresh();
       }
 
+      try {
+        var v = document.getElementById('v');
+        if (v && typeof window.goOff41 === 'function' && /Unduhan Offline/.test(v.textContent || '') && !v.querySelector('[data-x41]')) {
+          window.goOff41();
+        }
+      } catch (_) {}
+
     } catch (error) {
       var message = 'Gagal mengunduh lagu';
 
@@ -192,22 +205,7 @@
       return;
     }
 
-    if (cur.dl === 0) {
-      say('Sumber lagu tidak mengizinkan unduhan');
-      return;
-    }
-
-    if (cur.dl === 1) {
-      window.dlOff(cur);
-      return;
-    }
-
-    if (!validUrl(cur.url)) {
-      say('Alamat lagu tidak valid');
-      return;
-    }
-
-    window.open(cur.url, '_blank', 'noopener');
+    window.dlOff(cur);
   };
 
   window.x41Refresh = function () {

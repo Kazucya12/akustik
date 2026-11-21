@@ -23,6 +23,12 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
 ## Tambahan v3.1
 - Sumber online campuran: Semua (gabungan), Audius, Jamendo, Internet Archive, dan Radio (stasiun HTTPS, siaran langsung, tab Indonesia/Dunia/Pop/Rock/Jazz/Berita)
 - Pencarian gabungan: satu kolom mencari Library, musik online, dan video YouTube sekaligus, plus riwayat dan saran pencarian
+- **v4.40, pencarian & lirik** (`extra48.js`, `extra49.js`, `extra50.js`, plus mode `asearch`/`aid` di `api/artist.js`):
+  - Hasil Library muncul seketika, cache hasil per sesi (8 menit), riwayat berisi artis/lagu/album dengan foto, album dicari lewat nama (iTunes, tanpa kuota YouTube), pencarian lirik (lirik tersimpan + tebakan YouTube untuk potongan lirik).
+  - Menu ⋯ di tiap baris lagu (Putar, antrean, Suka, playlist, artis, bagikan) menggantikan tombol +. Kartu genre membuka halaman genre sendiri.
+  - Lirik otomatis: pencarian lirik berlapis (variasi judul, dipilih lewat kemiripan judul + durasi), waktu perkiraan untuk lirik tanpa penanda waktu, dan lirik dari audio (Whisper di Groq, khusus lagu dari perangkat; API key Groq milik pengguna disimpan di perangkat). Lagu YouTube tidak bisa dibaca otomatis karena audionya tidak dapat diambil dari browser.
+  - Lirik di layar kunci: sudah ada sejak v3.7 (Profil > Pengaturan > "Lirik di notifikasi"); lirik perkiraan dan lirik AI ikut tampil di sana. Tampilan akhir mengikuti OS (Android/iOS).
+  - Fungsi Vercel tetap 12 (mode album iTunes digabung ke `api/artist.js`). Uji: `npm test`.
 - **v4.39, pencarian ala Spotify** (`extra48.js/.css`): hasil langsung saat mengetik, kartu **Hasil teratas** (dipilih lewat skor relevansi), bagian Lagu / Artis / Album / Playlist dengan "Lihat semua", chip filter termasuk **Album**, koreksi ejaan "Maksud kamu …?" (otomatis bila hasil kosong), Pencarian terbaru berupa daftar yang bisa dihapus satu per satu, tombol hapus teks, kartu genre dengan ikon, dan "Pencarian terkait". Album dicari lewat artis YouTube yang cocok. Uji: `node test/search48.js`
 - Halaman Artis: ketuk nama artis di pemutar, atau buka Library > Artis
 - Playlist: ganti nama, ganti cover, atur urutan (naik/turun), hapus lagu, urut A-Z/Artis/Balik

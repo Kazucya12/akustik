@@ -26,8 +26,10 @@
 
   /* saklar di Pengaturan: nyalakan -> minta izin layar penuh bila Android 14+ memerlukannya */
   var _t=cfgTg;
-  cfgTg=function(k){_t(k);if(k==='lkf'){try{N.lk(!!cfg.lkf,true)}catch(e){}}if(k==='lyn'){try{if(N.ln)N.ln(cfg.lyn!==false)}catch(e){}}};
+  cfgTg=function(k){_t(k);if(k==='lkf'){try{N.lk(!!cfg.lkf,true)}catch(e){}}if(k==='lyn'){try{if(N.ln)N.ln(cfg.lyn!==false)}catch(e){}}if(k==='ovl'){try{if(N.ov)N.ov(!!cfg.ovl,true)}catch(e){}}};
   try{N.lk(!!cfg.lkf,false)}catch(e){}
   /* baris lirik di notifikasi dan kontrol layar kunci mengikuti saklar "Lirik di notifikasi" (APK baru saja; APK lama tanpa ln mengabaikan) */
   try{if(N.ln)N.ln(cfg.lyn!==false)}catch(e){}
+  /* Lirik mengambang di atas game/aplikasi lain (FloatLyric.java); butuh izin "Tampil di atas aplikasi lain" */
+  try{if(N.ov)N.ov(!!cfg.ovl,false)}catch(e){}
 })();

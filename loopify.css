@@ -812,6 +812,50 @@ html.bg .orb{display:none}
 
 @media (prefers-reduced-motion:reduce){.x48t,.x48p,#v.x48 .x16c{transition:none}}
 
+/* ---- v4.40: riwayat berisi artis/lagu/album, nomor lagu album iTunes ---- */
+.x48rc img{width:50px;height:50px;object-fit:cover;flex:none;box-shadow:var(--sh,none)}
+.x48rc img.x48r{border-radius:50%}
+.x48rc img.x48sq{border-radius:8px}
+.x48rc small{display:block;font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x48n{width:26px;flex:none;text-align:center;font-size:13px;font-weight:700;color:var(--mu)}
+#x48 .rw small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+
+/* ==== extra49.css ==== */
+/* Loopify v4.40 - Menu ⋯ dan halaman genre (pasangan extra49.js). */
+.x49m{color:var(--mu);width:34px!important;height:34px;display:grid;place-items:center;flex:none;border-radius:50%}
+.x49m:active{background:var(--c)}
+
+.x49sh{position:fixed;inset:0;z-index:320;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.x49sh.on{opacity:1;pointer-events:auto}
+.x49bk{position:absolute;inset:0;background:rgba(3,5,22,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.x49pn{position:relative;width:min(100%,520px);max-height:86%;overflow:auto;border-radius:26px 26px 0 0;padding:10px 14px max(18px,env(safe-area-inset-bottom));background:var(--ov,#0a0e24);border:1px solid var(--b);border-bottom:0;color:var(--tx);
+  box-shadow:0 -20px 60px rgba(0,0,0,.5);transform:translateY(30px);transition:transform .24s cubic-bezier(.2,.9,.3,1)}
+.x49sh.on .x49pn{transform:none}
+.x49pn:before{content:"";display:block;width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.25);margin:0 auto 10px}
+.x49hd{display:flex;gap:12px;align-items:center;padding:6px 6px 14px;border-bottom:1px solid var(--b);margin-bottom:6px}
+.x49hd img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none}
+.x49hd div{min-width:0}
+.x49hd b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x49hd small{color:var(--mu);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.x49a{display:flex;align-items:center;gap:16px;width:100%;padding:13px 8px;border:0;background:none;color:var(--tx);font:inherit;text-align:left;cursor:pointer;border-radius:12px}
+.x49a span{width:26px;text-align:center;font-size:19px;color:var(--p2);flex:none}
+.x49a b{font-size:15px;font-weight:600}
+.x49a:active,.x49a:hover{background:var(--c)}
+.x49a.ok b{color:var(--p2)}
+
+.x49gh{position:relative;overflow:hidden;border-radius:22px;padding:34px 20px 22px;margin:4px 0 4px;color:#fff;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end}
+.x49gh b{font-size:34px;font-weight:800;letter-spacing:-.8px;line-height:1.05;position:relative;z-index:1}
+.x49gh small{opacity:.85;font-size:12px;position:relative;z-index:1;margin-top:4px}
+.x49gh i{position:absolute;right:14px;bottom:2px;font-size:78px;font-style:normal;line-height:1;transform:rotate(16deg);filter:drop-shadow(0 8px 12px rgba(0,0,0,.35))}
+@media (prefers-reduced-motion:reduce){.x49pn,.x49sh{transition:none}}
+
+/* ==== extra50.css ==== */
+/* Loopify v4.40 - catatan lirik otomatis (pasangan extra50.js). */
+.ly50n{margin:2px 0 12px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.08);font-size:11px;line-height:1.5;color:var(--mu)}
+.ly50a{margin:14px 0}
+.ly50a .btn{width:100%}
+.ly50a small{display:block;margin-top:8px;font-size:11px;color:var(--mu);text-align:center}
+
 /* ==== a11y.css ==== */
 /* Loopify v4.29 - aksesibilitas dan kenyamanan ketuk (pasangan a11y.js) */
 

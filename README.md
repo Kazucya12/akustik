@@ -49,7 +49,7 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
 
 ## Deploy
 1. Upload folder ini ke repositori GitHub baru.
-2. Di Vercel: Add New > Project > pilih repo tadi > Deploy (tanpa build command).
+2. Di Vercel: Add New > Project > pilih repo tadi > Deploy (build command otomatis dari `vercel.json`: `node build.js`).
 3. Buka Project > Settings > Environment Variables, lalu isi:
    - `YOUTUBE_API_KEY` (wajib untuk cari video)
    - `SOUNDSTAT_API_KEY` (wajib untuk Rekomendasi Suasana)

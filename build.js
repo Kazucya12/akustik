@@ -5,7 +5,7 @@
 const fs = require('fs');
 
 const CSS = ['style.css', 'web.css', 'extra9.css', 'extra10.css', 'extra15.css', 'extra16.css', 'extra17.css',
-  'extra18.css', 'extra19.css', 'extra21.css', 'extra22.css', 'extra24.css', 'extra25.css', 'extra26.css', 'extra46.css', 'extra48.css', 'extra49.css', 'extra50.css', 'extra51.css', 'a11y.css'];
+  'extra18.css', 'extra19.css', 'extra21.css', 'extra22.css', 'extra24.css', 'extra25.css', 'extra26.css', 'extra46.css', 'extra48.css', 'extra49.css', 'extra50.css', 'a11y.css'];
 
 const JS = ['dialog.js', 'app.js', 'extra.js', 'extra2.js', 'extra3.js', 'extra4.js', 'extra5.js', 'extra6.js', 'extra7.js',
   'extra8.js', 'extra9.js', 'extra10.js', 'extra14.js', 'extra15.js', 'extra16.js', 'extra17.js', 'extra18.js', 'extra19.js',

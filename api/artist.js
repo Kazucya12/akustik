@@ -5,7 +5,9 @@
 // /api/artist?src=yt&id=CHANNEL_ID       -> { tracks: [{..., yt, vid, rmx}] }   (video channel YouTube)
 // /api/artist?names=A~VID|B~VID|C&s=1   -> { res: { A: {id,name,img,subs}|null, ... }, quota }   (foto channel banyak artis; maks 25; s=1 = boleh pakai pencarian yang mahal)
 // /api/artist?src=yt&id=CHANNEL_ID&top=1 -> { tracks: [{id,title,artist,rmx,v,ts,d}] }  (lagu populer + terbaru, ±8 unit kuota)
-// Hanya YouTube (butuh YOUTUBE_API_KEY). Permintaan src=au lama dijawab kosong.
+// /api/artist?asearch=nama                -> [{ id, name, artist, img, n, year }]   (cari album lewat iTunes Search, tanpa API key & tanpa kuota YouTube)
+// /api/artist?aid=123                    -> { album: {...}|null, tracks: [{ n, title, artist }] }   (isi album iTunes; tanpa alamat putar)
+// Selain dua mode iTunes di atas, hanya YouTube (butuh YOUTUBE_API_KEY). Permintaan src=au lama dijawab kosong.
 const UA = 'MidnightAcoustic/4.6';
 const RMX = /\b(remix|mix|edit|bootleg|flip|rework|vip|mashup|slowed|sped up|nightcore)\b/i;
 
@@ -197,12 +199,55 @@ function tidy(rawTitle, rawArtist) {
   return { title: t || String(rawTitle || ''), artist: a || String(rawArtist || '') };
 }
 
+// ---- Album lewat iTunes Search (gratis, tanpa kunci). Digabung di sini karena paket Hobby Vercel dibatasi 12 fungsi. ----
+const itArt = (x) => { x = String(x || ''); return /^https:\/\//.test(x) ? x.replace(/\/\d+x\d+(bb)?\.(jpg|png)$/i, '/300x300bb.jpg') : ''; };
+const itAlb = (x) => ({
+  id: String(x.collectionId), name: String(x.collectionName || '').slice(0, 120), artist: String(x.artistName || '').slice(0, 100),
+  img: itArt(x.artworkUrl100), n: x.trackCount || 0, year: /^\d{4}/.test(String(x.releaseDate || '')) ? String(x.releaseDate).slice(0, 4) : '',
+});
+async function itunesAlbum(as, aid, res) {
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+  try {
+    if (aid) {
+      if (!/^\d{1,12}$/.test(aid)) { res.status(400).json({ error: 'id tidak valid' }); return; }
+      const j = await jget('https://itunes.apple.com/lookup?id=' + aid + '&entity=song&limit=80', {}, 4500);
+      const rs = Array.isArray(j.results) ? j.results : [];
+      const al = rs.find((x) => x.wrapperType === 'collection');
+      const tracks = rs.filter((x) => x.wrapperType === 'track' && x.kind === 'song')
+        .sort((a, b) => (a.discNumber || 1) - (b.discNumber || 1) || (a.trackNumber || 0) - (b.trackNumber || 0))
+        .map((x, i) => ({ n: i + 1, title: String(x.trackName || '').slice(0, 160), artist: String(x.artistName || '').slice(0, 100) }))
+        .filter((x) => x.title);
+      res.status(200).json({ album: al ? itAlb(al) : null, tracks });
+      return;
+    }
+    let list = [];
+    for (const c of ['ID', 'US']) {
+      const j = await jget('https://itunes.apple.com/search?media=music&entity=album&limit=10&country=' + c + '&term=' + encodeURIComponent(as), {}, 4500);
+      list = (Array.isArray(j.results) ? j.results : []).filter((x) => x.wrapperType === 'collection' && x.collectionId && x.collectionName);
+      if (list.length) break;
+    }
+    const seen = new Set(), out = [];
+    for (const x of list) {
+      const a = itAlb(x), k = (a.name + '|' + a.artist).toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k); out.push(a);
+      if (out.length >= 8) break;
+    }
+    res.status(200).json(out);
+  } catch (e) {
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).json(aid ? { album: null, tracks: [] } : []);
+  }
+}
+
 module.exports = async (req, res) => {
   if (!(await require('./_rl')(req, res, 'ar', 60, 60))) return;
   const u = new URL(req.url, 'http://x').searchParams;
   const q = clip(u.get('q'), 100), id = clip(u.get('id'), 60), src = u.get('src') === 'yt' ? 'yt' : 'au';
   const name = clip(u.get('name'), 100);
   const n = Math.min(30, Math.max(1, parseInt(u.get('n'), 10) || 8));
+  const as = clip(u.get('asearch'), 80), aid = clip(u.get('aid'), 14);
+  if (as || aid) { await itunesAlbum(as, aid, res); return; }
   res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
   if (!ytKey()) {
     res.setHeader('Cache-Control', 'no-store');

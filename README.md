@@ -23,6 +23,7 @@ Pemutar musik dan video. Frontend statis (`index.html`, `style.css`, `app.js`) d
 ## Tambahan v3.1
 - Sumber online campuran: Semua (gabungan), Audius, Jamendo, Internet Archive, dan Radio (stasiun HTTPS, siaran langsung, tab Indonesia/Dunia/Pop/Rock/Jazz/Berita)
 - Pencarian gabungan: satu kolom mencari Library, musik online, dan video YouTube sekaligus, plus riwayat dan saran pencarian
+- **v4.39, pencarian ala Spotify** (`extra48.js/.css`): hasil langsung saat mengetik, kartu **Hasil teratas** (dipilih lewat skor relevansi), bagian Lagu / Artis / Album / Playlist dengan "Lihat semua", chip filter termasuk **Album**, koreksi ejaan "Maksud kamu …?" (otomatis bila hasil kosong), Pencarian terbaru berupa daftar yang bisa dihapus satu per satu, tombol hapus teks, kartu genre dengan ikon, dan "Pencarian terkait". Album dicari lewat artis YouTube yang cocok. Uji: `node test/search48.js`
 - Halaman Artis: ketuk nama artis di pemutar, atau buka Library > Artis
 - Playlist: ganti nama, ganti cover, atur urutan (naik/turun), hapus lagu, urut A-Z/Artis/Balik
 
@@ -115,7 +116,7 @@ Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah 
 - Splash: bar dan tagline kini selesai dalam durasi splash.
 
 
-## Struktur folder (v4.38)
+## Struktur folder (v4.39)
 - `api/` fungsi server Vercel: `auth` (masuk/daftar), `sync` (sinkron akun), `collab` (playlist bersama), `artist` (halaman artis & rilis baru), `stream` (alamat putar), `suggest` (saran pencarian), `yt-music` (pencarian YouTube), `jiosaavn` (butuh `JIOSAAVN_API_URL`), `music` (radio), `musicapi` (YouTube Music), `soundstat`, `import`. `_rl.js` = rate limit (bukan fungsi).
 - `test/smoke.js`: uji asap (`npm test`). `.github/workflows/test.yml`: menjalankan uji tiap push. `.github/workflows/build-apk.yml`: membuat APK.
 - Sumber Audius, Jamendo, dan Internet Archive sudah dihapus; bagian README lama yang menyebutnya hanya riwayat.

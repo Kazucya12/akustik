@@ -29,19 +29,52 @@ function tidy(rawTitle, rawArtist) {
 
 // Mode "lagu saja": buang kompilasi, album penuh, mix panjang, karaoke, dll.
 const BADT = /(kumpulan|full album|compilation|non[\s-]?stop|megamix|medley|playlist|\bbest of\b|\btop\s*\d+|\b\d+\s*(lagu|songs?|hits|tracks)\b|\b\d+\s*(jam|hours?|hrs?)\b|tanpa iklan|karaoke|reaction|tutorial|podcast|interview|trailer|\bmix\b)|(\blagu\b.*\b(terbaru|terpopuler|terbaik|viral|populer|hits)\b.*\b20\d\d\b)/i;
+// Satu panggilan videos.list (1 unit kuota per 50 video): durasi + deskripsi (untuk daftar lagu/timestamp album)
 async function durations(ids, key) {
   if (!ids.length) return null;
   try {
-    const r = await fetch('https://www.googleapis.com/youtube/v3/videos?part=contentDetails&maxResults=50&id=' + ids.join(',') + '&key=' + encodeURIComponent(key));
+    const r = await fetch('https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&maxResults=50&id=' + ids.join(',') + '&key=' + encodeURIComponent(key));
     if (!r.ok) return null;
     const j = await r.json();
-    const o = {};
+    const o = {}, d = {};
     (j.items || []).forEach((v) => {
       const m = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec((v.contentDetails || {}).duration || '');
       o[v.id] = m ? (+m[1] || 0) * 86400 + (+m[2] || 0) * 3600 + (+m[3] || 0) * 60 + (+m[4] || 0) : 0;
+      d[v.id] = String((v.snippet || {}).description || '').slice(0, 20000);
     });
+    Object.defineProperty(o, '_desc', { value: d, enumerable: false });
     return o;
   } catch (e) { return null; }
+}
+
+// Baca daftar lagu dari deskripsi: "00:00 Judul", "1. 03:45 - Judul", atau "Judul 03:45".
+// Hasil: [[mulai, selesai, judul], ...]; kosong kalau bukan daftar lagu yang masuk akal.
+const TS = '(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})';
+const LEAD = new RegExp('^\\s*(?:[\\[(▶►•*\\-–]\\s*)?(?:\\d{1,3}[.)]\\s+)?[\\[(]?' + TS + '[\\])]?\\s*[-–—:.|)]*\\s*(.{2,})$');
+const TRAIL = new RegExp('^(.{2,}?)\\s*[-–—:|(\\[]*\\s*[\\[(]?' + TS + '[\\])]?\\s*$');
+const toSec = (h, m, s) => (+h || 0) * 3600 + +m * 60 + +s;
+const clipT = (t) => String(t).replace(/^\s*\d{1,3}[.)]\s+/, '').replace(/^[\s\-–—:.|)\]]+|[\s\-–—:.|(\[]+$/g, '').replace(/\s+/g, ' ').slice(0, 100);
+function parseTracks(desc, total) {
+  const lines = String(desc || '').split(/\r?\n/).slice(0, 400);
+  const run = (mode) => {
+    const out = [];
+    for (const ln of lines) {
+      if (ln.length > 300) continue;
+      let st, title;
+      if (mode === 'lead') { const m = LEAD.exec(ln); if (!m) continue; st = toSec(m[1], m[2], m[3]); title = clipT(m[4]); }
+      else { const m = TRAIL.exec(ln); if (!m) continue; st = toSec(m[2], m[3], m[4]); title = clipT(m[1]); }
+      if (!title) continue;
+      if (out.length && st <= out[out.length - 1][0]) break; // urutan harus naik; daftar kedua/pengulangan diabaikan
+      out.push([st, 0, title]);
+    }
+    return out;
+  };
+  let a = run('lead'), b = run('trail');
+  let t = b.length > a.length ? b : a;
+  if (t.length < 3 || t[0][0] > 60) return [];
+  for (let i = 0; i < t.length; i++) t[i][1] = i + 1 < t.length ? t[i + 1][0] : total;
+  t = t.filter((x) => x[1] - x[0] >= 20 && x[0] < total);
+  return t.length >= 3 ? t.slice(0, 80) : [];
 }
 
 const crypto = require('crypto');
@@ -58,7 +91,7 @@ module.exports = async (req, res) => {
   const o = String(new URL(req.url, 'http://x').searchParams.get('order') || '');
   const ord = o === 'viewCount' || o === 'date' ? '&order=' + o : '';
   const sm0 = String(new URL(req.url, 'http://x').searchParams.get('songs') || '');
-  const ck = 'ma:yt:' + crypto.createHash('sha1').update([q.toLowerCase(), o, sm0].join('|')).digest('hex').slice(0, 24);
+  const ck = 'ma:yt2:' + crypto.createHash('sha1').update([q.toLowerCase(), o, sm0].join('|')).digest('hex').slice(0, 24);
   let hit = null;
   try { const raw = await rl.redis(['GET', ck]); hit = raw ? JSON.parse(raw) : null; } catch (e) { hit = null; }
   if (hit && Array.isArray(hit.out) && Date.now() - hit.t < FRESH) {
@@ -86,12 +119,23 @@ module.exports = async (req, res) => {
       const dur = await durations(uniq.map((x) => x.id.videoId), key);
       const isSong = (x) => !BADT.test(dec(x.snippet.title)) && (!dur || (dur[x.id.videoId] >= 90 && dur[x.id.videoId] <= 540));
       const good = uniq.filter(isSong);
-      if (sm === '2') list = good.concat(uniq.filter((x) => !isSong(x))); // pencarian: lagu dulu, sisanya menyusul
+      if (sm === '2') {
+        // pencarian: lagu dulu, lalu album/video panjang yang punya daftar lagu (dipecah per lagu di aplikasi), lalu sisanya
+        const rest = uniq.filter((x) => !isSong(x));
+        const desc = (dur && dur._desc) || {};
+        rest.forEach((x) => {
+          const d = dur ? dur[x.id.videoId] : 0;
+          if (d >= 600) { const tr = parseTracks(desc[x.id.videoId], d); if (tr.length) x._tracks = tr; }
+        });
+        list = good.concat(rest.filter((x) => x._tracks), rest.filter((x) => !x._tracks));
+      }
       else list = good.length ? good : uniq;                              // rekomendasi: lagu saja
     }
     const out = list.map((x) => {
       const n = tidy(dec(x.snippet.title), dec(x.snippet.channelTitle));
-      return { id: x.id.videoId, title: n.title.slice(0, 200), artist: n.artist.slice(0, 100) };
+      const o = { id: x.id.videoId, title: n.title.slice(0, 200), artist: n.artist.slice(0, 100) };
+      if (x._tracks) o.tracks = x._tracks;
+      return o;
     });
     if (out.length) { try { await rl.redis(['SET', ck, JSON.stringify({ t: Date.now(), out }), 'EX', KEEP]); } catch (e) { /* abaikan */ } }
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');

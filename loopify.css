@@ -739,6 +739,79 @@ html.bg .orb{display:none}
 .x46ic .on i{border-color:var(--p2,#fff);outline:2px solid var(--p,#ff8a5b);outline-offset:1px}
 .x46v{display:inline-block;vertical-align:-3px;margin-left:2px;flex:none}
 
+/* ==== extra48.css ==== */
+/* Loopify v4.39 - Pencarian ala Spotify (pasangan extra48.js).
+   Saat halaman Cari dalam mode Semua, #v mendapat kelas .x48; saat ada kata kunci juga .x48q.
+   Tampilan lama (chip mode/urutan, riwayat berupa chip, hasil lama) disembunyikan, isinya digambar ulang di #x48. */
+
+/* ---- sembunyikan tampilan lama ---- */
+#v.x48 > .chips,#v.x48 #sh,#v.x48 #x16f,#v.x48 #x16,#v.x48 #res{display:none!important}
+#v.x48q > :not(.srch):not(#x48){display:none!important}
+
+/* ---- kolom pencarian ---- */
+#v.x48 .srch{position:relative;height:50px;border-radius:99px;padding:0 16px;gap:10px;border:1px solid var(--b);background:var(--c)}
+#v.x48 .srch input{font-size:15px}
+#v.x48 .srch:focus-within{border-color:var(--p2);box-shadow:0 0 0 3px color-mix(in srgb,var(--p) 28%,transparent)}
+.x48x{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--mu);background:rgba(127,127,160,.2)}
+.x48x:active{transform:scale(.9)}
+
+/* ---- chip filter (menempel di atas saat digulir) ---- */
+#x48{min-height:4px}
+#x48f{position:sticky;top:0;z-index:5;margin:10px -4px 4px;padding:8px 4px;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#x48f .chip{padding:8px 18px;font-size:13px;font-weight:600;background:var(--c);border:1px solid var(--b);color:var(--tx)}
+#x48f .chip.a{background:var(--g,linear-gradient(135deg,#8b7bff,#5a46f0));border-color:transparent;color:#fff}
+.x48so{margin:2px 0 8px}
+.x48so .chip{padding:6px 14px;font-size:12px;background:var(--c);border:1px solid var(--b);color:var(--mu)}
+.x48so .chip.a{background:rgba(255,255,255,.16);color:var(--tx);border-color:transparent}
+.x48rel .chip{background:var(--c);border:1px solid var(--b);color:var(--tx)}
+#x48 .sec{margin:22px 0 10px}
+#x48 .sec h3{font-size:19px;font-weight:800;letter-spacing:-.2px}
+#x48 .sec a{font-size:12px;font-weight:700;color:var(--p2)}
+
+/* ---- Maksud kamu ---- */
+.x48fx{margin:10px 2px 4px;padding:12px 14px;border-radius:14px;background:var(--c);border:1px solid var(--b);font-size:13px;color:var(--mu);line-height:1.5}
+.x48fx a,.x48fx b{color:var(--tx);cursor:pointer}
+.x48fx a b{color:var(--p2);text-decoration:underline;text-underline-offset:3px}
+.x48fx a{cursor:pointer}
+.x48fx small{display:block;font-size:12px;margin-top:2px}
+.x48fx small a{color:var(--p2);text-decoration:underline;text-underline-offset:3px}
+
+/* ---- Hasil teratas ---- */
+.x48top{display:grid;grid-template-columns:1fr;gap:0 28px}
+.x48t{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:18px 18px 20px;border-radius:20px;cursor:pointer;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--p) 26%,transparent),var(--c) 62%);border:1px solid var(--b);box-shadow:var(--sh,none);transition:transform .18s,background .2s}
+.x48t:active{transform:scale(.985)}
+.x48t img{width:96px;height:96px;border-radius:12px;object-fit:cover;box-shadow:0 10px 26px rgba(0,0,0,.4);margin-bottom:10px}
+.x48t img.r{border-radius:50%}
+.x48t b{font-size:26px;line-height:1.12;font-weight:800;letter-spacing:-.4px;max-width:calc(100% - 60px);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.x48t small{font-size:12px;color:var(--mu);max-width:calc(100% - 60px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x48t small i{font-style:normal;display:inline-block;padding:2px 10px;border-radius:99px;background:rgba(0,0,0,.32);color:#fff;font-weight:700;font-size:11px}
+.x48p{position:absolute;right:16px;bottom:16px;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;padding-left:3px;background:var(--g,var(--p));color:#fff;font-size:19px;box-shadow:0 10px 22px rgba(0,0,0,.4);opacity:.96;transition:transform .18s}
+.x48p.o{padding:0 0 3px;font-size:28px;line-height:1}
+.x48t:hover .x48p{transform:scale(1.08)}
+@media (min-width:900px){
+  .x48top{grid-template-columns:minmax(300px,380px) 1fr;align-items:start}
+  .x48t{min-height:210px}
+}
+
+/* ---- baris hasil ---- */
+#x48 .rw img.x48r{border-radius:50%}
+#x48 .rw img.x48sq{border-radius:8px}
+
+/* ---- Pencarian terbaru ---- */
+.x48rc{padding:6px 8px}
+.x48ci{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--mu);background:rgba(127,127,160,.16)}
+.x48rc b{font-size:14px;font-weight:600}
+.x48d{width:34px;height:34px;color:var(--mu);flex:none}
+
+/* ---- kartu genre dengan ikon ---- */
+#v.x48 .x16c{height:92px;border-radius:16px;padding:14px;font-size:16px;font-weight:800;letter-spacing:-.2px;box-shadow:0 8px 20px rgba(0,0,0,.22);transition:transform .16s}
+#v.x48 .x16c:active{transform:scale(.96)}
+#v.x48 .x16c:after{width:70px;height:70px;right:-18px;bottom:-22px;border-radius:50%;opacity:.55}
+#v.x48 .x16c .x48e{position:absolute;right:6px;bottom:2px;font-size:40px;line-height:1;font-style:normal;transform:rotate(18deg);filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));z-index:1;pointer-events:none}
+
+@media (prefers-reduced-motion:reduce){.x48t,.x48p,#v.x48 .x16c{transition:none}}
+
 /* ==== a11y.css ==== */
 /* Loopify v4.29 - aksesibilitas dan kenyamanan ketuk (pasangan a11y.js) */
 

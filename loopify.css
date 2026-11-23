@@ -777,7 +777,7 @@ html.bg .orb{display:none}
 .x48fx small a{color:var(--p2);text-decoration:underline;text-underline-offset:3px}
 
 /* ---- Hasil teratas ---- */
-.x48top{display:grid;grid-template-columns:1fr;gap:0 28px}
+.x48top{display:grid;grid-template-columns:minmax(0,1fr);gap:0 28px}.x48top>*{min-width:0}
 .x48t{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:18px 18px 20px;border-radius:20px;cursor:pointer;overflow:hidden;
   background:linear-gradient(160deg,color-mix(in srgb,var(--p) 26%,transparent),var(--c) 62%);border:1px solid var(--b);box-shadow:var(--sh,none);transition:transform .18s,background .2s}
 .x48t:active{transform:scale(.985)}
@@ -790,7 +790,7 @@ html.bg .orb{display:none}
 .x48p.o{padding:0 0 3px;font-size:28px;line-height:1}
 .x48t:hover .x48p{transform:scale(1.08)}
 @media (min-width:900px){
-  .x48top{grid-template-columns:minmax(300px,380px) 1fr;align-items:start}
+  .x48top{grid-template-columns:minmax(300px,380px) minmax(0,1fr);align-items:start}
   .x48t{min-height:210px}
 }
 

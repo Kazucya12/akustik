@@ -84,6 +84,11 @@
   }
   function notify(title,body,tag){
     try{
+      var N=window.LoopifyNative;
+      if(N&&typeof N.systemNotify==='function'){
+        N.systemNotify(String(title||'Loopify'),String(body||''),String(tag||'loopify'));
+        return;
+      }
       if(!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker)return;
       navigator.serviceWorker.ready.then(function(r){r.showNotification(title,{body:body,icon:'icon-192.png',badge:'icon-192.png',tag:tag,renotify:true})}).catch(function(){});
     }catch(e){}

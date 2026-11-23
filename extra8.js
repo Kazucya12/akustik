@@ -8,6 +8,11 @@
   /* ---------- Notifikasi sistem (hanya saat aplikasi tidak sedang dibuka) ---------- */
   function sysNotify(title,body,tag){
     try{
+      var N=window.LoopifyNative;
+      if(N&&typeof N.systemNotify==='function'){
+        N.systemNotify(String(title||'Loopify'),String(body||''),String(tag||'loopify'));
+        return;
+      }
       if(!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker)return;
       navigator.serviceWorker.ready.then(function(r){
         r.showNotification(title,{body:body,icon:'icon-192.png',badge:'icon-192.png',tag:tag||'loopify',renotify:true,silent:false});
@@ -82,6 +87,13 @@
   window.notifTest=function(){
     toast('Notifikasi dalam aplikasi aktif. Ini contoh banner dari Loopify.');
     try{
+      var NB=window.LoopifyNative;
+      if(NB&&typeof NB.systemNotify==='function'){
+        /* APK: WebView tidak punya Notification API, jadi langsung lewat jembatan native */
+        var okN=NB.systemNotify('Loopify','Notifikasi sistem berfungsi.','loopify-test');
+        if(okN===false)toast('Notifikasi Loopify diblokir. Aktifkan lewat Pengaturan Android > Aplikasi > Loopify > Notifikasi');
+        return;
+      }
       if(!('Notification' in window)){toast('Browser ini tidak mendukung notifikasi sistem');return}
       if(Notification.permission==='default'){askPerm();return}
       if(Notification.permission==='denied'){toast('Notifikasi diblokir. Aktifkan lewat pengaturan situs di browser');return}

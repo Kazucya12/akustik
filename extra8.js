@@ -41,6 +41,10 @@
         ?{title:cur.title,artist:'♪ '+line,album:cur.artist||'Loopify',artwork:art}
         :{title:cur.title,artist:cur.artist,album:'Loopify',artwork:art});
     }catch(e){}
+    try{
+      var N=window.LoopifyNative;
+      if(N&&N.s){var im=cur.img&&/^https?:/.test(cur.img)?cur.img:'';N.s(!(act&&act.paused),String(cur.title||''),N.lyS?String(cur.artist||''):(line?'\u266a '+line:String(cur.artist||'')),im)}
+    }catch(e){}
   }
   function lyricNow(a){
     if(!on()||!cur||a!==act||cur.radio)return;

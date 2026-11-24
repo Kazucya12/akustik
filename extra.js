@@ -153,6 +153,11 @@ window.plCv=i=>{
   P=function(k,i){
     const t=lists[k]&&lists[k][i];
     if(k!='sv'||!t||!t.yt)return _P0(k,i);
+    if(t.alb&&t.ss!=null){   // lagu hasil pecahan album penuh: antrean = lagu-lagu album itu, urut nomor, mulai dari yang diketuk
+      const sib=lists[k].filter(x=>x&&x.yt&&x.alb===t.alb&&x.vid===t.vid).sort((a,b)=>(a.tn||0)-(b.tn||0));
+      const at=sib.indexOf(t);
+      if(sib.length>1&&at>=0){lists.alb1=sib;return _P0('alb1',at)}
+    }
     lists.sv1=[t];          // putar lagu pilihan dulu, lagu terkait menyusul di antrean
     _P0('sv1',0);
     fill(t);

@@ -28,7 +28,7 @@
     for(const u of ['/api/yt-music','/api/yt-search']){
       const r=await fetch(u+'?q='+encodeURIComponent(s)+(o?'&order='+o:'')+(m=='v'?'':'&songs='+(m==2?2:1)));
       if(r.status==404)continue;
-      if(!r.ok){let c='';try{c=(await r.json()).code||''}catch(e){}throw Object.assign(new Error('yt'),{status:r.status,code:c})}
+      if(!r.ok){let c='',d='';try{const j=await r.json();c=j.code||'';d=j.error||''}catch(e){}throw Object.assign(new Error('yt'),{status:r.status,code:c,detail:d})}
       return expand(arrOf(await r.json()));
     }
     throw Object.assign(new Error('yt'),{status:404});

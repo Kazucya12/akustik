@@ -147,18 +147,47 @@
     sub(shd(E(al.name))+'<div class="x16hd"><img src="'+av(al)+'" alt=""><h2>'+E(al.name)+'</h2><small>Album · '+E(al.artist||'')+'</small></div><div id="x48at"><div class="em">Memuat…</div></div>');
     fetch('/api/artist?aid='+encodeURIComponent(al.cid)).then(function(r){return r.ok?r.json():{}}).catch(function(){return{}}).then(function(j){
       var t=(j&&j.tracks)||[];
-      ITT=t.map(function(x){return{title:x.title,artist:x.artist||al.artist}});
+      window.x48AlbName=al.name||'';ITT=t.map(function(x){return{title:x.title,artist:x.artist||al.artist}});
       var el=Q('#x48at'),sm=Q('.x16hd small');
       if(sm)sm.textContent='Album · '+(al.artist||'')+(t.length?' · '+t.length+' lagu':'');
       if(el)el.innerHTML=t.length?'<div class="x16pb"><button class="btn" onclick="x48Pt(0)">▶ Putar</button></div>'+t.map(function(x,i){return'<div class="rw" onclick="x48Pt('+i+')"><span class="x48n">'+(i+1)+'</span><div><b>'+E(x.title)+'</b><small>'+E(x.artist||al.artist||'')+'</small></div></div>'}).join(''):'<div class="em">Daftar lagu album ini tidak tersedia.</div>';
     });
   }
+  /* Putar album iTunes: seluruh album masuk antrean (lagu "rec" dicarikan versi YouTube-nya saat giliran diputar).
+     Pemutar langsung terbuka dengan judul + artis; kalau pencarian gagal, muncul pesan yang terlihat (toast() aplikasi dimatikan). */
+  function x48Note(m){
+    var d=document.getElementById('x48note');
+    if(!d){d=document.createElement('div');d.id='x48note';
+      d.style.cssText='position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(20,20,40,.96);color:#fff;padding:10px 16px;border-radius:14px;font-size:13px;line-height:1.4;z-index:500;max-width:86%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+      (document.getElementById('app')||document.body).appendChild(d)}
+    d.textContent=m;d.style.display='block';clearTimeout(d._t);d._t=setTimeout(function(){d.style.display='none'},4500);
+  }
+  function x48Queries(t){
+    var ti=String(t.title||''),ar=String(t.artist||'').trim(),clean=ti.replace(/\s*[\(\[][^\)\]]*[\)\]]/g,' ').replace(/\s+/g,' ').trim(),o=[];
+    function add(x){x=String(x||'').replace(/\s+/g,' ').trim();if(x&&o.indexOf(x)<0)o.push(x)}
+    add(ar+' '+ti);add(ar+' '+clean);add(clean+' remix');add(clean+' '+(t.alb48||''));
+    return o.slice(0,4);
+  }
+  var _rr=resolveRec;
+  resolveRec=async function(t){
+    if(!t||!t.alb48)return _rr(t);
+    var qs=x48Queries(t),err=null;
+    for(var k=0;k<qs.length;k++){
+      try{
+        var y=await ytSearch(qs[k],'',2),v=y&&y[0];
+        if(v){Object.assign(t,{yt:1,vid:v.vid,img:t.img||v.img,rec:0,nf:0});return true}
+      }catch(e){err=e;if(e&&(e.status==429||e.status==501||e.status==403))break}
+    }
+    t.nf=1;
+    x48Note(err?ytMsg(err):'"'+t.title+'" tidak ditemukan di YouTube. Lanjut ke lagu berikutnya.');
+    return false;
+  };
   window.x48Pt=function(i){
-    var t=ITT[i];if(!t)return;
-    ytSearch((t.artist+' '+t.title).trim(),'',2).then(function(a){
-      if(!a||!a.length)return;
-      lists.x48pt=[a[0]];P('x48pt',0);
-    }).catch(function(){});
+    if(!ITT[i])return;
+    var al=window.x48AlbName||'';
+    var l=ITT.map(function(x,k){return{id:'x48'+hh(al+'|'+x.title)+'_'+k,title:x.title,artist:x.artist||'',rec:1,alb48:al,h:hh(x.title)}});
+    lists.x48al=l;
+    try{play(l,i);openP()}catch(e){x48Note('Gagal memutar: '+(e&&e.message||e))}
   };
   function openAl(al){if(!al)return;if(al.src=='it')itAlbum(al);else if(typeof window.x26Alb=='function')window.x26Alb(al)}
 

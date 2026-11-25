@@ -1,0 +1,112 @@
+# Membuat Loopify.apk (pembungkus Android native dengan foreground service musik).
+# Cara pakai: simpan file ini di repo GitHub-mu dengan nama .github/workflows/build-apk.yml
+# Build jalan otomatis. Hasilnya ada di tab Releases (Loopify.apk) dan di Actions > Artifacts.
+# Ikon aplikasi diambil dari file apk-icon.png di folder utama repo (upload dulu sebelum build).
+# Ganti APP_URL di bawah kalau alamat situsmu berbeda (harus diakhiri tanda /).
+name: Build Loopify APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      # Setiap perubahan situs (file di folder utama) membuat APK baru, karena isi situs dibundel di dalam APK.
+      - '.github/workflows/build-apk.yml'
+      - 'apk-icon.png'
+      - 'index.html'
+      - 'manifest.json'
+      - 'sw-apk.js'
+      - 'build.js'
+      - '*.js'
+      - '*.css'
+      - 'icon-*.png'
+      - 'android/**'
+      - 'og.png'
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  APP_URL: https://loopify1.vercel.app/
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Siapkan situs untuk dibundel ke APK
+        run: |
+          set -e
+          # Bundel loopify.js/css dibuat ulang supaya APK selalu memuat versi terbaru walau lupa commit hasil build.
+          node build.js
+          W=android/app/src/main/assets/www
+          mkdir -p "$W"
+          cp index.html manifest.json loopify.js loopify.css sw-apk.js "$W"/
+          cp ./*.png "$W"/
+          # Di APK, service worker memakai sw-apk.js (tanpa cache) supaya isi tidak pernah basi.
+          n=$(grep -o "navigator.serviceWorker.register('sw.js')" "$W/loopify.js" | wc -l)
+          if [ "$n" != "1" ]; then echo "Gagal: pendaftaran service worker di loopify.js ditemukan $n kali (seharusnya 1)."; exit 1; fi
+          sed -i "s|navigator.serviceWorker.register('sw.js')|navigator.serviceWorker.register('sw-apk.js')|" "$W/loopify.js"
+          grep -q "register('sw-apk.js')" "$W/loopify.js"
+          ls -la "$W" | head -30
+          du -sh "$W"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Terima lisensi Android SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Siapkan proyek Android
+        run: |
+          # Kode Android (Java, XML, Gradle) ada di folder android/ di repo; step ini hanya menyiapkan keystore, ikon, dan versi.
+          set -e
+          test -f android/app/build.gradle || { echo "Folder android/ belum ada di repo (isinya dulu ada di workflow ini). Upload folder android/ sebelum build."; exit 1; }
+          mkdir -p android/app/src/main/java/com/loopify/app android/app/src/main/res/drawable android/app/src/main/res/drawable-nodpi android/app/src/main/res/mipmap-anydpi android/app/src/main/res/layout android/app/src/main/res/xml
+          echo 'MIIKRgIBAzCCCfAGCSqGSIb3DQEHAaCCCeEEggndMIIJ2TCCBbAGCSqGSIb3DQEHAaCCBaEEggWdMIIFmTCCBZUGCyqGSIb3DQEMCgECoIIFQDCCBTwwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFLaWPkdhVGQv/6YO1DlVEfZs+NIGAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQ3ajEbyrVwrfLHPpO3EPeVgSCBNB4Qc+cfObnO+MIkYwf+RnI6dgQSw47+InMCsxl7ndm1YUQE3Bds/2+wHBQBmA6kU1zMv8T2mWAvlgMhcWXkehh2oSv2j+fb79fqaHl4RMieMNfg4MoEzTDW5JBMo4cYp0bOTyXlPxixsIgQhkHMC6I5b1Kx+d+S0B8soY+oafGMGFO9WLnAuCkRElTTzdY6roQhZb+QcZCfnUKM/NNJCCLnr2n9l6HZ/8KEEwJWMgJB9nWuBUMbXUX4BUolRDTtxZhcTxH+4JIaXbILITzEDUFXvSqeo/EEzYG5He2KPClDuK7fIgMC99cvd3R+Ovrk3QkELXMBoWKuIo0sc7jvFiRA1n1C0WzNukIGMvFOPAPm7krNW5NeLCLJGbwn92DHs/M5KjX2WUlr5NU3xysT4KznpbEo+OTbZc7hxoFWFkqHtNMEwNh3bHpYbSK1qDMTpgsjgVebkVUljf5NMu9aPYnNgi7i9dsy1n+omYXNV1sctg05fZ9REosDCXZ1fUGYyaV7IU/wcb9D/Tm+Y5k3mWPddAYNswWKz92dPSYtvi2g/QVpheuIcMBXa/Dw5XGX8SuPQs6FIjjY9xkqZJEWMQ211Y/kAihf6fxIGpx3dw9icM8Z2VITu3ghT9ja7b/HgKuggwaHbMbwc5HJ0HvqK7TF3pIBz2BNK5b3Ht6QdPQ8kfFecfxj07vqsutOp2xu9CMRMJR3XXAMS5C20wzDyTJoHiBp+VWgaPUYzu3YAgU5quU/gh5JshNGSTWRiEpGMJ/DQNLr5ehBToPuSjsrXfKWyz4N3hrWq9qMLAUtAYQf+JtpUfk7gn7xrtYtZEsk9FjUyTAQpg3LdbqWymsSIzEAfiW0lqTzdwuBCVG/sEzNIqs3fLE11ZtYR0SXgsAHJ3xbCWgatYWp7gyx1SfdS8q2MfoAFIeUx89bxlfTRjp1QAnJNlW4bc3skSH26NxY5RbFjE2NeIo0pX5ierpseZ6WFL8CCUIG9mFEvgxJKwNN5kKsCmfAe8svIjbqRqkdcLUMGcxQSL+witXaTLgmHFtrwWbJ8HgfYs402CFgzpP89APWRPIkUWxurY1w9Jlg9oqVTf4cnswrxojFt2UtUf/dZKygjoc2VukVUxkFwR6gaBB7nEUSzrxYyNh1Bp1iGJTslvFMNw5K4HNtowFyscq0jA9w0HIylnuIfkIUFq5h5I9EUPBQs2mZoT/AyNGK4ZcR5OKL3T7w7Q8a5buJ9UqTD/I0e95XIaQKohdpQ1JKlvKOujOIB4LC/FJlH38XSbtBTaFPKZuWfyEBi4y/67JjmDAsPBP3LggO8UMnseunk1s23dLg8FyLfr5DXJburFONYkuXKVqYR7w3rwny6z7mBZAAEInNa4dhbCIQSlWG4oqRVKnfdaV1ZBc4086wl28OcbZC+0bR95uXwMxb0bQyu+DmfU7EpTPhIGWrx1LUEicItg5l+N8V5FHk7nGB8NCLuUY9c751J6QP77AgXwnptHeJL58cSENzdW56dONJ518BL53nZ/pMhwagICl0U6SRY2UPRRaJMOXjad15GhJJzSfHbi78OGk4KM7PWTEnry0f4wfyMnfZrKCXVw6Wg6TOuiazzgCLkxQqrzTSQPqxlVsXtNhZp0E3ZL9Zv9r6jFCMB0GCSqGSIb3DQEJFDEQHg4AbABvAG8AcABpAGYAeTAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzk0OTAzMzA0OTUwMIIEIQYJKoZIhvcNAQcGoIIEEjCCBA4CAQAwggQHBgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFGMX+ddS7ocVfSz341U1l8kBEznhAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQu1HrRFV5jx9+OyOt64yeAYCCA5Ds69RRru1oFsfxDOjIDW6V2r+ybs9ly5dl+0K+DwmSJltFn+5hyZ3/WHddLbYihPN7SIPYeiPcT/oHtfjCTaPQtBNcRrzzTr9egxYEq+C5LwP8Gp4dOi1a36sY11Uddl+i9kXjLjpPSESFzLQFdXlcf5Cqh/OnJG1Dv3VeS//j/4r2zyK44y0a7f6hKSU9Eqp+CzTtCz+ltpnlmPw/jRs4/jXp/cQzac8QiEJ8pc5fNYTASdT+AzeThb+1ksOzz2V6SzN0cBoow0dIRFK2fkUz6oTkTHgbe9/qUvLojF4+iSvC8z55H/HMiMtDG9X7NdGKywdbHBtg4y8tFW2hYTmiThA+8p7Wn28HQ8FvMXBFd4otDzm2CoQ+viH/R8Xm5mJ/VPSxi23jyPy+VMjfIFzjDmMkPFXRwKu8NBm+GE6DUDnyLjYTG+uqpoxrV0evYFtW0hrvWbpo5EqZyYNFEyVtdaesObFjSQA5nwshdGf82kuDB/9uAW1XIz7GB6deFrtza5qv42/vO0o1BtDPATO95mjkUAkGTfQ5jnS6fL1T4vdYKS6qIW/WTvfpuOxAU8qVTTfCrZddUSwi4GhPA/WvkCGz7pKCjFHYiEINeY6skV6c+ZWKy2B0vPuUGeH1Dciv5gUix/MSj50y9HVbjEG/swbi41yKSlQdRo2T6eW8VPc8QmNhPn9Xtuc8zJoSVKbOD/YC3tgSSor8QFvD19Rfb2YUUAOLZAljN8GTpdGTH7fUqYakB+Dpq8O3RHsTaUMAfE9yEITkZpL2sqv5E3ps3fOaHtndJAWbnB00bkotVGK2mp91/LU2Z7LSy8hlNhHDB8e/ZtvJF5xE12xzgybIQEUUtWbqopEdkt6mQxrMFuOfgkaZqWkAFt0KJcsAzaaZsltXS2xeDDbTmzE6SqJNKpqTpSL96m0bKSRcEWu05l0HF8WhR75ZBVtHda4xVm+rd8wsjyPxOjubLp6vUxvSqaAzxHCTkX0i8Z9EFdzlCuR4tsGELCtQPmJObXApNAG5XntMKvP/syqh22xtKo2LmJu52tYk4mOkrxUFqauOSX7YL+1p8xyZKbqOTTOB1MWFhYEoENwRzqY1Bn9QgrE/W/C8HyWX8kyTnX+0lh74sSFyo8obnjeUZHpZM7B3N1x/pGaW5I0qWAXgMcgrTY+iLENwoA/AP/v+LNO3B6+SCBtMsvdDXjllZZH5P3naxXwwTTAxMA0GCWCGSAFlAwQCAQUABCDxHIi4rFjllnp1pjhdzqfC5s8yR56aJ7SvwtzfxmzkTQQUdSOM8K+VKSAXnNAlqgRJw+tXxscCAicQ' | base64 -d > android/app/loopify.jks
+          sed -i "s|__URL__|$APP_URL|; s|__REPO__|$GITHUB_REPOSITORY|; s|__VC__|$GITHUB_RUN_NUMBER|g" android/app/build.gradle
+          test -f apk-icon.png || { echo "File apk-icon.png belum ada di repo. Upload dulu ke folder utama repo."; exit 1; }
+          cp apk-icon.png android/app/src/main/res/drawable-nodpi/ic_launcher_fg.png
+          for k in asli biru hijau pink merah neon mono; do
+            # Cari ikon varian: icon-$k.png di folder utama, atau apk-icons/$k.png. Kalau tidak ada, pakai apk-icon.png supaya build tidak gagal.
+            src=apk-icon.png
+            if [ -f "icon-$k.png" ]; then src="icon-$k.png"; elif [ -f "apk-icons/$k.png" ]; then src="apk-icons/$k.png"; else echo "Peringatan: ikon varian '$k' tidak ditemukan, memakai apk-icon.png"; fi
+            cp "$src" android/app/src/main/res/drawable-nodpi/ic_launcher_fg_$k.png
+            printf '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@android:color/black" />\n    <foreground android:drawable="@drawable/ic_launcher_fg_%s" />\n</adaptive-icon>\n' "$k" > android/app/src/main/res/mipmap-anydpi/ic_launcher_$k.xml
+          done
+          ls -R android | head -40
+
+      - name: Build APK
+        working-directory: android
+        run: gradle --no-daemon assembleRelease
+
+      - name: Ganti nama APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk Loopify.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Loopify-APK
+          path: Loopify.apk
+
+      - name: Rilis (unduhan langsung)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: Loopify APK ${{ github.run_number }}
+          body: ${{ github.event.head_commit.message }}
+          files: Loopify.apk

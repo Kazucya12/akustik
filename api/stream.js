@@ -1,7 +1,7 @@
 // LEGACY: hanya untuk lagu lama yang tersimpan dengan alamat api.audius.co (sumber Audius sudah dihapus dari pencarian sejak v4.12). Aman dihapus jika tidak ada lagi yang memakainya.
 // /api/stream?ids=ID1,ID2,...  (maks 10 id lagu Audius) -> { ID: "https://alamat-server-akhir/..." }
 // Mengikuti pengalihan api.audius.co di server dan memeriksa alamat akhirnya, supaya pemutar langsung terhubung ke server lagu.
-const UA = 'Loopify/4.43';
+const UA = 'Loopify/4.44';
 const AUD = 'https://api.audius.co/v1';
 module.exports = async (req, res) => {
   if (!(await require('../api/_rl')(req, res, 'st', 60, 60))) return;

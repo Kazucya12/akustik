@@ -8,6 +8,7 @@
      dibuka, ditutup, dan berganti isi (memeriksa -> hasil). Mode hemat / "kurangi gerakan" mematikan animasi.
    v4.53 juga: pembaruan isi aplikasi (service worker) yang dulu muncul sebagai banner "Versi baru tersedia" di atas layar
      sekarang masuk ke fitur ini (dialog + lencana BARU di Pengaturan), dan ikut diperiksa saat cek manual.
+   Di APK yang membundel situs (N.bundled()), pembaruan isi lewat service worker dimatikan: semuanya lewat pembaruan APK.
    Tidak aktif di browser/PWA atau di APK lama yang belum punya fungsi native pembaruan.
    Dimuat SEBELUM extra57.js (pembungkus setR terakhir). */
 (function(){
@@ -17,6 +18,9 @@
   var KEY='x59',cur={code:0,name:''},info=null,checking=0,manual=0,working=0,last=0,at=0;
   var pct=0,ph=0,dis='x59Close',closing=0,closeT=0,swapT=0,web=null,webAsked=0,wman=0;
   try{var vv=String(N.appVersion()).split('|');cur.code=parseInt(vv[0],10)||0;cur.name=vv[1]||''}catch(e){}
+  /* APK baru membundel isi situs: semua perubahan (tampilan + fitur) hanya datang lewat pembaruan APK, tanpa muat ulang halaman */
+  var bundled=false;
+  try{bundled=typeof N.bundled==='function'&&!!N.bundled()}catch(e){}
 
   function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function S(){var o=ls.get(KEY,{});return(o&&typeof o==='object')?o:{}}
@@ -140,7 +144,7 @@
   /* ---------- keadaan dialog ---------- */
   function ask(r){
     modal({icon:'up',title:'Pembaruan tersedia',
-      text:'Aplikasi akan mengunduh versi baru, lalu Android meminta kamu mengetuk Pasang.',
+      text:bundled?'Semua perubahan tampilan dan fitur datang lewat pembaruan ini. Aplikasi mengunduh versi baru, lalu Android meminta kamu mengetuk Pasang.':'Aplikasi akan mengunduh versi baru, lalu Android meminta kamu mengetuk Pasang.',
       vers:{from:verLabel(),to:r.name,size:r.size},notes:r.notes||'',
       btns:[['Nanti','x59Later()',0],['Perbarui sekarang','x59Go()',1]],
       hint:'Pilih Nanti: pengingat muncul lagi dalam 12 jam.',dismiss:'x59Later'});
@@ -196,6 +200,7 @@
   }
   /* menggantikan banner lama di app.js: dipanggil saat ada service worker baru yang menunggu */
   window.updShow=function(reg){
+    if(bundled)return;
     web=reg||web;refreshRow();
     if(wman||webAsked||$m()||working)return;
     webAsked=1;askWeb();
@@ -274,7 +279,7 @@
     info=r;at=Date.now();refreshRow();
     if(r.newer){if(man||canPrompt(r))ask(r)}
     else if(man){
-      if(!navigator.serviceWorker||typeof navigator.serviceWorker.getRegistration!=='function'){upToDate(r);return}
+      if(bundled||!navigator.serviceWorker||typeof navigator.serviceWorker.getRegistration!=='function'){upToDate(r);return}
       webCheck(function(){
         if(!$m()||closing)return;
         if(web)askWeb();else upToDate(r);

@@ -53,7 +53,7 @@
   function bar(){
     var b=Q('#x19b');if(!J){if(b)b.remove();return}
     if(!b){b=document.createElement('div');b.id='x19b';document.body.appendChild(b)}
-    b.innerHTML='👥 Jam '+J.code+' · '+(J.role=='host'?'Host':'Tamu')+' <button class="ib g" onclick="x19End()">✕</button>';
+    b.innerHTML='👥 Jam '+esc(J.code)+' · '+(J.role=='host'?'Host':'Tamu')+' <button class="ib g" onclick="x19End()">✕</button>';
   }
   window.x19End=function(){if(J){clearInterval(J.t);if(J.role=='host')api({action:'jam_end',code:J.code}).catch(function(){})}J=null;bar()};
   function pos(){return cur&&!cur.yt?+act.currentTime||0:0}

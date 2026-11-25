@@ -140,9 +140,14 @@ Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah 
 - `JIOSAAVN_API_URL`: alamat backend JioSaavn milikmu.
 - `DEV_EMAILS`: email (pisahkan koma) yang mendapat lencana developer.
 
-## v4.44 - Mobil, bagikan, pintasan, tanpa jeda
+## v4.5.6 - Mobil, bagikan, pintasan, tanpa jeda
 - **Android Auto / Bluetooth mobil / asisten suara:** `MusicService` kini juga `MediaBrowserService`. Mobil bisa menelusuri Lanjutkan, Acak Favorit, Favorit, dan Terakhir diputar (dikirim halaman lewat `LoopifyNative.setLibrary`). Perintah masuk lewat antrean `MainActivity.putCmd` dan diambil halaman lewat `takeCmd()` / `loopifyPoll()` (`extra60.js`). Android Auto hanya menampilkan APK non-Play bila "Sumber tidak dikenal" dinyalakan di pengaturan pengembang Android Auto.
 - **Bagikan / buka tautan:** bagikan teks atau tautan YouTube, YouTube Music, Spotify (playlist/album) ke Loopify; tautan video langsung diputar, playlist membuka layar Impor, teks biasa jadi pencarian.
 - **Pintasan ikon (tahan ikon):** Acak Favorit, Lanjutkan, Cari.
 - **Tanpa jeda antar lagu (eksperimental):** Pengaturan, untuk file perangkat dan stream langsung (bukan YouTube). Mati bila Crossfade menyala.
 - `MusicService` diekspor untuk mobil; perintah start dari aplikasi lain diabaikan (kunci acak per instalasi, `MusicService.key`).
+
+## v4.5.6 - Toast, HP landscape, tablet
+- **Toast hidup lagi** (`extra61.js`): `toast()` sebelumnya langsung `return`, jadi semua pesan umpan balik tidak pernah tampil. Sekarang tampil di atas bilah bawah, lama menyesuaikan panjang pesan (2,2-6 dtk), isi diperlakukan sebagai teks, dan terbaca pembaca layar.
+- **HP landscape** (`extra61.css`, tinggi <= 520px): menu bawah jadi rel kiri, mini player dan panel menyesuaikan, pemutar penuh jadi dua kolom (sampul kiri, kontrol kanan).
+- **Tablet:** layout sidebar (`web.css`, `extra44.js`) kini mulai 768px dan tinggi > 520px (sebelumnya 900px), jadi tablet potret memakai layout sidebar; HP landscape tidak lagi salah memakai layout PC.

@@ -245,6 +245,7 @@
       +SW.map(function(x){return'<button class="ac6'+(a.toLowerCase()==x[0]?' sel':'')+'" style="--c6:'+x[0]+'" aria-label="'+x[1]+'" onclick="accSet(\''+x[0]+'\')"></button>'}).join('')
       +'<button class="ac6 auto'+(a==='auto'?' sel':'')+'" aria-label="Otomatis dari sampul" onclick="accSet(\'auto\')"></button>';
     return'<div class="sec"><h3>Crossfade antar lagu</h3></div><div class="chips">'+ch+'</div>'
+      +'<div class="ft" onclick="cfgTg(\'gl\')"><div>Tanpa jeda antar lagu<br><small>Eksperimental. Lagu berikutnya mulai sedikit lebih awal. Untuk file perangkat dan stream langsung, bukan video YouTube. Tidak aktif bila Crossfade menyala.</small></div><i class="sw '+(cfg.gl?'on':'')+'"></i></div>'
       +'<div class="sec"><h3>Warna aksen</h3></div><div class="ac6row">'+sw+'</div><small style="display:block;margin:-2px 2px 8px">Bulat paling kanan: warna otomatis mengikuti sampul lagu.</small>'
       +'<div class="ft" onclick="hapTg()"><div>Getar halus<br><small>Getar singkat saat menekan tombol dan menggeser</small></div><i class="sw '+(cfg.hap!==false?'on':'')+'"></i></div>';
   }

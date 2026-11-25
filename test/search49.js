@@ -128,7 +128,7 @@ const dom = new JSDOM(html, {
   ok(d.getElementById('sp').classList.contains('on') && d.querySelectorAll('#x48at .rw').length === 2, 'halaman album iTunes: 2 lagu');
   const m0 = calls.music.length;
   w.eval("x48Pt(1)"); await wait(400);
-  ok(calls.music.length === m0 + 1 && /Ed Sheeran Perfect/.test(calls.music[m0]) && w.eval("(lists.x48pt||[]).length") === 1, 'ketuk lagu album -> dicari versi putarnya di YouTube');
+  ok(calls.music.length === m0 + 1 && /Ed Sheeran Perfect/.test(calls.music[m0]) && w.eval("(lists.x48al||[]).length") === 2, 'ketuk lagu album -> seluruh album masuk antrean, versi putar lagu yang diketuk dicari di YouTube');
   w.eval("csp0()");
 
   /* 4. Riwayat berisi artis */

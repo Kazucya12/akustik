@@ -18,7 +18,7 @@
   /* bilah navigasi, mini player, toast */
   LG+' .nav{border-radius:36px!important;height:70px!important;background:var(--gh),var(--g1)!important;border:1px solid var(--gb)!important;box-shadow:var(--gs)!important;-webkit-backdrop-filter:var(--gf)!important;backdrop-filter:var(--gf)!important}'+
   LG+' .nav button.a{background:rgba(255,255,255,.16);border-radius:24px;padding:7px 12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 14px rgba(0,0,0,.18);transform:none}'+
-  '@media (min-width:900px){'+LG+' #app .nav{height:auto!important;border-radius:0!important;border-width:0 1px 0 0!important;overflow:visible;box-shadow:inset -1px 0 0 var(--gb),10px 0 34px rgba(0,0,0,.28)!important}'+
+  '@media (min-width:768px) and (min-height:521px){'+LG+' #app .nav{height:auto!important;border-radius:0!important;border-width:0 1px 0 0!important;overflow:visible;box-shadow:inset -1px 0 0 var(--gb),10px 0 34px rgba(0,0,0,.28)!important}'+
   LG+' #app .nav button:not(.pbtn):hover{background:rgba(255,255,255,.12)}'+
   LG+' #app .nav button.a{padding:12px 16px;border-radius:14px;background:var(--c);box-shadow:inset 3px 0 0 var(--p)}'+
   LG+' #app .nav button.pbtn{border-radius:14px}}'+

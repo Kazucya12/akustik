@@ -1,0 +1,31 @@
+/* v4.45: toast + layout HP landscape. Layout sidebar (tablet/PC) ada di web.css; di sini hanya yang baru. */
+
+/* ---- toast ---- */
+#tst61{position:fixed;left:50%;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 148px);transform:translate(-50%,12px);max-width:min(88vw,420px);padding:10px 16px;border-radius:16px;background:rgba(20,22,44,.96);color:#fff;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 28px rgba(0,0,0,.35);font-size:13px;line-height:1.4;text-align:center;z-index:700;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .22s ease,transform .22s cubic-bezier(.2,.8,.2,1),visibility 0s .22s}
+#tst61.on{opacity:1;visibility:visible;transform:translate(-50%,0);transition-delay:0s}
+@media (prefers-reduced-motion:reduce){#tst61{transition:none}}
+@media (min-width:768px) and (min-height:521px){#tst61{left:calc(50% + var(--sw,248px)/2);bottom:104px}}
+
+/* ---- HP landscape (tinggi pendek): bilah menu jadi rel di kiri, pemutar penuh jadi dua kolom ---- */
+@media (orientation:landscape) and (max-height:520px){
+:root{--sw:calc(84px + env(safe-area-inset-left,0px))}
+#app{max-width:none;width:100%}
+#app .nav{left:0;right:auto;top:0;bottom:0;width:var(--sw);height:auto;border-radius:0!important;border-width:0 1px 0 0!important;flex-direction:column;justify-content:space-evenly;align-items:stretch;gap:0;padding:6px 6px max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));z-index:25}
+#app .nav:after{content:none}
+#app .nav button{padding:5px 2px;border-radius:12px;font-size:9.5px}
+#app .nav button.pbtn{align-self:center;width:44px;height:44px;padding:0}
+#v{padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 80px calc(var(--sw) + 14px)}
+#app.hmp #v{padding-bottom:80px}
+#mp{left:calc(var(--sw) + 10px);right:max(10px,env(safe-area-inset-right));bottom:8px;height:52px}
+.mv,#ins,#sb{left:calc(var(--sw) + 10px);right:max(10px,env(safe-area-inset-right));bottom:68px}
+.ov{left:var(--sw);padding:max(10px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 16px 18px}
+#tst61{left:calc(50% + var(--sw)/2);bottom:70px;max-width:min(70vw,420px)}
+/* pemutar penuh: sampul di kiri, kontrol di kanan (hanya saat mode Lagu/sampul) */
+#pl.ov:has(>.disc){display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr);column-gap:22px;align-content:start}
+#pl.ov:has(>.disc)>*{grid-column:2}
+#pl.ov:has(>.disc)>.hd{grid-column:1/-1}
+#pl.ov:has(>.disc)>.disc{grid-column:1;grid-row:2/span 12;align-self:center;justify-self:center;width:min(100%,calc(100dvh - 96px));margin:0}
+#pl .pt{font-size:18px;margin:0}
+#pl .pa{margin:2px 0 6px}
+#pl .ctl{margin:6px 0}
+}

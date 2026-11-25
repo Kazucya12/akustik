@@ -3,12 +3,15 @@
   var st=document.createElement('style');
   st.textContent='.x36a{width:104px;height:104px;border-radius:50%;margin:6px auto;background:linear-gradient(135deg,var(--p),var(--p2)) center/cover;display:grid;place-items:center;font-size:40px;font-weight:700;color:#fff}.x36h{font-size:13px;color:var(--mu);margin:14px 0 6px}.x36r.on{outline:2px solid var(--p2);border-radius:14px}.x36c{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.x36c .btn{flex:none;padding:9px 14px;font-size:13px}.x36b{margin:6px 0 10px;line-height:1.6;font-size:14px}';
   document.head.appendChild(st);
-  var PF=ls.get('pf36',{photo:'',bio:'',top:[]});if(!Array.isArray(PF.top))PF.top=[];
+  var PF=ls.get('pf36',{photo:'',bio:'',top:[]});
+  /* foto profil hanya boleh data:image base64 (masuk ke CSS url(...)); selain itu dibuang */
+  var okPh=function(p){return typeof p=='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(p)?p:''};
+  if(PF&&typeof PF=='object')PF.photo=okPh(PF.photo);if(!Array.isArray(PF.top))PF.top=[];
   var E=null;
   function cap(){var n=document.getElementById('x36n'),b=document.getElementById('x36b');if(n)E.name=n.value;if(b)E.bio=b.value}
   function cands(){var a=favs.map(rs).concat(hist.map(rs),sg()),seen={},o=[];a.forEach(function(t){if(t&&!t.radio&&!seen[t.id]){seen[t.id]=1;o.push(t)}});return o.slice(0,40)}
   function render(){
-    var h=shd('Edit profil')+'<div style="text-align:center"><div class="x36a"'+(E.photo?' style="background-image:url('+E.photo+')"':'')+'>'+(E.photo?'':esc((E.name||nm())[0]||'?'))+'</div>'+
+    var h=shd('Edit profil')+'<div style="text-align:center"><div class="x36a"'+(okPh(E.photo)?' style="background-image:url('+okPh(E.photo)+')"':'')+'>'+(E.photo?'':esc((E.name||nm())[0]||'?'))+'</div>'+
       '<div class="x36c"><label class="btn g">📷 '+(E.photo?'Ganti foto':'Pilih foto')+'<input type="file" accept="image/*" hidden onchange="x36p(this.files[0])"></label>'+(E.photo?'<button class="btn g" onclick="x36d()">Hapus foto</button>':'')+'</div></div>'+
       '<div class="x36h">Nama</div><input class="in" id="x36n" maxlength="30" placeholder="Nama panggilan" value="'+esc(E.name)+'">'+
       '<div class="x36h">Bio</div><textarea class="in" id="x36b" rows="3" maxlength="120" placeholder="Ceritakan seleramu, maks 120 karakter">'+esc(E.bio)+'</textarea>'+
@@ -31,7 +34,7 @@
 
   function apply(){try{
     [].forEach.call(document.querySelectorAll('.av'),function(a){
-      if(PF.photo){a.style.backgroundImage='url('+PF.photo+')';a.style.backgroundSize='cover';a.style.backgroundPosition='center';a.style.color='transparent'}
+      if(okPh(PF.photo)){a.style.backgroundImage='url('+PF.photo+')';a.style.backgroundSize='cover';a.style.backgroundPosition='center';a.style.color='transparent'}
       else if(a.style.backgroundImage){a.style.backgroundImage='';a.style.color=''}});
     var v=document.getElementById('v');if(!v)return;var h=v.querySelector('h1');
     if(!h||h.textContent!=='Profil'||v.querySelector('[data-x36]'))return;

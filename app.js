@@ -345,7 +345,8 @@ const okU=u=>/^https:\/\//i.test(u||'');
 // v4.30: bersihkan data dari luar (file cadangan, sinkron akun) sebelum disimpan. Lagu dengan alamat non-https dibuang
 // (mencegah javascript: lewat tombol unduh), cover hanya https atau data:image. Data lain dibiarkan apa adanya.
 const okImg=u=>okU(u)||/^data:image\//i.test(u||'')?u:'';
-function scrubTr(t){if(!t||typeof t!='object')return t;if(t.loc||t.yt)return t;if(t.url&&!okU(t.url))return null;if(t.img&&!okImg(t.img))t=Object.assign({},t,{img:''});return t}
+const sid=v=>String(v==null?'':v).replace(/['"`\\<>&$\x00-\x1f]/g,'_').slice(0,120);
+function scrubTr(t){if(t&&typeof t=='object'&&t.id!=null&&typeof t.id!='object'){const c=sid(t.id);if(c!==String(t.id))t=Object.assign({},t,{id:c})}if(!t||typeof t!='object')return t;if(t.loc||t.yt)return t;if(t.url&&!okU(t.url))return null;if(t.img&&!okImg(t.img))t=Object.assign({},t,{img:''});return t}
 function scrubData(d){const o=Object.assign({},d),A=Array.isArray;
 if(A(o.favs))o.favs=o.favs.map(scrubTr).filter(Boolean);
 if(A(o.hist))o.hist=o.hist.map(scrubTr).filter(Boolean);
@@ -353,7 +354,7 @@ if(A(o.pls))o.pls=o.pls.filter(p=>p&&typeof p=='object').map(p=>Object.assign({}
 if(A(o.fol))o.fol=o.fol.filter(x=>x&&typeof x=='object').map(x=>x.img?Object.assign({},x,{img:okImg(x.img)}):x);
 return o}
 function scrubBk(k,v){try{const n=k.slice(3),o=scrubData({[n]:JSON.parse(v)});return JSON.stringify(o[n])}catch(e){return v}}
-function cleanTr(x){if(!x||typeof x!='object'||x.id==null)return null;if(x.loc)return{id:String(x.id),loc:1};if(x.yt){const v=vidOf(x);return v&&/^[\w-]{11}$/.test(v)?mkV(v,x.title,x.artist):null}if(!okU(x.url))return null;return{id:String(x.id).slice(0,80),title:String(x.title||'Tanpa judul').slice(0,200),artist:String(x.artist||'Tidak diketahui').slice(0,100),img:okU(x.img)||/^data:image\//.test(x.img||'')?x.img:'',url:x.url,dl:x.dl,sn:x.sn,h:hh(x.title||''),...(x.radio?{radio:1}:{})}}
+function cleanTr(x){if(!x||typeof x!='object'||x.id==null)return null;if(x.loc)return{id:sid(x.id),loc:1};if(x.yt){const v=vidOf(x);return v&&/^[\w-]{11}$/.test(v)?mkV(v,x.title,x.artist):null}if(!okU(x.url))return null;return{id:sid(x.id).slice(0,80),title:String(x.title||'Tanpa judul').slice(0,200),artist:String(x.artist||'Tidak diketahui').slice(0,100),img:okU(x.img)||/^data:image\//.test(x.img||'')?x.img:'',url:x.url,dl:x.dl,sn:x.sn,h:hh(x.title||''),...(x.radio?{radio:1}:{})}}
 async function plImp(f){if(!f)return;try{const j=JSON.parse(await f.text());const n=String(j.n||j.name||'Playlist impor').slice(0,60),tr=(Array.isArray(j.tr)?j.tr:[]).map(cleanTr).filter(Boolean);if(!tr.length){toast('File playlist tidak berisi lagu yang valid');return}const p={n,tr};if(/^data:image\//.test(j.img||''))p.img=j.img;pls.push(p);ls.set('pls',pls);lt='pl';go('library');toast('Playlist diimpor: '+tr.length+' lagu')}catch(e){toast('File playlist tidak valid')}}
 function plShare(i){const p=pls[i];if(!p)return;const a=p.tr.map(rs).filter(t=>t&&!t.loc&&(t.yt||okU(t.url)));if(!a.length){toast('Hanya lagu online atau video yang bisa dibagikan lewat tautan');return}
 const raw=JSON.stringify({n:p.n,t:a.map(t=>[t.id,t.title,t.artist,t.url||'',okU(t.img)?t.img:'',t.yt?vidOf(t):'',t.radio?1:0])}),by=new TextEncoder().encode(raw);let s='';by.forEach(c=>s+=String.fromCharCode(c));const enc=btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');

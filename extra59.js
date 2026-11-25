@@ -6,6 +6,8 @@
    v4.53: tampilan lebih jelas (versi lama -> baru, ukuran, catatan rilis berpoin, langkah Siapkan/Unduh/Pasang,
      progres MB, petunjuk izin bernomor, lencana status di baris Pengaturan) dan animasi halus saat dialog
      dibuka, ditutup, dan berganti isi (memeriksa -> hasil). Mode hemat / "kurangi gerakan" mematikan animasi.
+   v4.53 juga: pembaruan isi aplikasi (service worker) yang dulu muncul sebagai banner "Versi baru tersedia" di atas layar
+     sekarang masuk ke fitur ini (dialog + lencana BARU di Pengaturan), dan ikut diperiksa saat cek manual.
    Tidak aktif di browser/PWA atau di APK lama yang belum punya fungsi native pembaruan.
    Dimuat SEBELUM extra57.js (pembungkus setR terakhir). */
 (function(){
@@ -13,7 +15,7 @@
   var N=window.LoopifyNative;
   if(!N||typeof N.checkUpdate!=='function'||typeof N.installUpdate!=='function')return;
   var KEY='x59',cur={code:0,name:''},info=null,checking=0,manual=0,working=0,last=0,at=0;
-  var pct=0,ph=0,dis='x59Close',closing=0,closeT=0,swapT=0;
+  var pct=0,ph=0,dis='x59Close',closing=0,closeT=0,swapT=0,web=null,webAsked=0,wman=0;
   try{var vv=String(N.appVersion()).split('|');cur.code=parseInt(vv[0],10)||0;cur.name=vv[1]||''}catch(e){}
 
   function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -144,7 +146,7 @@
       hint:'Pilih Nanti: pengingat muncul lagi dalam 12 jam.',dismiss:'x59Later'});
   }
   function checkingModal(){
-    modal({icon:'spin',title:'Memeriksa pembaruan',text:'Mencari versi terbaru di server rilis…',
+    modal({icon:'spin',title:'Memeriksa pembaruan',text:'Memeriksa versi aplikasi dan isi aplikasi…',
       btns:[['Tutup','x59Close()',0]]});
   }
   function upToDate(r){
@@ -163,6 +165,53 @@
     if($m()||working)return false;
     return!(sn&&sn.c===r.code&&Date.now()-sn.t<12*3600*1000);
   }
+
+  /* ---------- pembaruan isi aplikasi (service worker) ---------- */
+  function askWeb(){
+    modal({icon:'up',title:'Pembaruan isi aplikasi',
+      text:'Tampilan dan fitur Loopify punya versi baru. Muat ulang untuk memakainya; musik yang sedang diputar akan berhenti sebentar.',
+      chip:'Tanpa unduh APK',
+      btns:[['Nanti','x59Close()',0],['Muat ulang sekarang','x59Web()',1]],
+      hint:'Pilih Nanti: lencana BARU tetap ada di Pengaturan > Pembaruan aplikasi.'});
+  }
+  function webCheck(cb){
+    var sw=navigator.serviceWorker,done=0,t;
+    function fin(){if(done)return;done=1;clearTimeout(t);wman=0;refreshRow();cb()}
+    wman=1;t=setTimeout(fin,6000);
+    try{
+      sw.getRegistration().then(function(r){
+        if(!r){fin();return}
+        if(r.waiting&&sw.controller){web=r;fin();return}
+        r.update().then(function(){
+          if(r.waiting&&sw.controller){web=r;fin();return}
+          var w=r.installing;
+          if(!w){fin();return}
+          w.addEventListener('statechange',function(){
+            if(w.state==='installed'&&sw.controller)web=r;
+            if(w.state==='installed'||w.state==='redundant')fin();
+          });
+        }).catch(fin);
+      }).catch(fin);
+    }catch(e){fin()}
+  }
+  /* menggantikan banner lama di app.js: dipanggil saat ada service worker baru yang menunggu */
+  window.updShow=function(reg){
+    web=reg||web;refreshRow();
+    if(wman||webAsked||$m()||working)return;
+    webAsked=1;askWeb();
+  };
+  window.x59Web=function(){
+    if(working)return;
+    working=1;
+    modal({icon:'spin',title:'Menerapkan pembaruan',text:'Aplikasi akan dimuat ulang sebentar lagi…'});
+    var r=web,d=0;
+    function go(){if(d)return;d=1;location.reload()}
+    try{
+      navigator.serviceWorker.addEventListener('controllerchange',go);
+      if(r&&r.waiting)r.waiting.postMessage('skip');else go();
+    }catch(e){go()}
+    setTimeout(go,5000);
+  };
 
   window.x59Close=function(){working=0;manual=0;close()};
   window.x59Later=function(){var o=S();o.sn={c:info?info.code:0,t:Date.now()};ls.set(KEY,o);working=0;close()};
@@ -224,20 +273,27 @@
     }
     info=r;at=Date.now();refreshRow();
     if(r.newer){if(man||canPrompt(r))ask(r)}
-    else if(man)upToDate(r);
+    else if(man){
+      if(!navigator.serviceWorker||typeof navigator.serviceWorker.getRegistration!=='function'){upToDate(r);return}
+      webCheck(function(){
+        if(!$m()||closing)return;
+        if(web)askWeb();else upToDate(r);
+      });
+    }
   };
 
   /* ---------- baris di Pengaturan > Lainnya ---------- */
   function rowHtml(){
     var t,b='';
     if(checking){t='Memeriksa pembaruan…';b='<i class="x59sp"></i>'}
+    else if(web){t='Isi aplikasi punya versi baru · ketuk untuk memuat ulang';b='<em class="x59bd">BARU</em>'}
     else if(info&&info.newer){t='Versi '+E(info.name)+' siap dipasang · ketuk untuk memperbarui';b='<em class="x59bd">BARU</em>'}
     else if(info&&at){t='Versi '+E(verLabel())+' · sudah terbaru · dicek '+E(clock(at));b='<em class="x59bd ok">\u2713</em>'}
     else t='Versi '+E(verLabel())+' · ketuk untuk memeriksa';
     return'<span>⬆</span><div>Pembaruan aplikasi<br><small>'+t+'</small></div>'+b;
   }
   function refreshRow(){var d=document.querySelector('[data-x59]');if(d)d.innerHTML=rowHtml()}
-  window.x59Row=function(){if(info&&info.newer)ask(info);else check(1)};
+  window.x59Row=function(){if(web)askWeb();else if(info&&info.newer)ask(info);else check(1)};
   function addRow(){
     var sp=document.getElementById('sp');if(!sp||sp.querySelector('[data-x59]'))return;
     var rows=sp.querySelectorAll('.ft'),ref=null,i;

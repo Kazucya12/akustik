@@ -8,7 +8,7 @@
 // /api/artist?asearch=nama                -> [{ id, name, artist, img, n, year }]   (cari album lewat iTunes Search, tanpa API key & tanpa kuota YouTube)
 // /api/artist?aid=123                    -> { album: {...}|null, tracks: [{ n, title, artist }] }   (isi album iTunes; tanpa alamat putar)
 // Selain dua mode iTunes di atas, hanya YouTube (butuh YOUTUBE_API_KEY). Permintaan src=au lama dijawab kosong.
-const UA = 'Loopify/4.43';
+const UA = 'Loopify/4.44';
 const RMX = /\b(remix|mix|edit|bootleg|flip|rework|vip|mashup|slowed|sped up|nightcore)\b/i;
 
 async function jget(url, opt = {}, ms = 8000) {

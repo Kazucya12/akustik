@@ -139,3 +139,10 @@ Client Secret hanya digunakan oleh fungsi server `/api/musicapi`; jangan pernah 
 ## Variabel tambahan
 - `JIOSAAVN_API_URL`: alamat backend JioSaavn milikmu.
 - `DEV_EMAILS`: email (pisahkan koma) yang mendapat lencana developer.
+
+## v4.44 - Mobil, bagikan, pintasan, tanpa jeda
+- **Android Auto / Bluetooth mobil / asisten suara:** `MusicService` kini juga `MediaBrowserService`. Mobil bisa menelusuri Lanjutkan, Acak Favorit, Favorit, dan Terakhir diputar (dikirim halaman lewat `LoopifyNative.setLibrary`). Perintah masuk lewat antrean `MainActivity.putCmd` dan diambil halaman lewat `takeCmd()` / `loopifyPoll()` (`extra60.js`). Android Auto hanya menampilkan APK non-Play bila "Sumber tidak dikenal" dinyalakan di pengaturan pengembang Android Auto.
+- **Bagikan / buka tautan:** bagikan teks atau tautan YouTube, YouTube Music, Spotify (playlist/album) ke Loopify; tautan video langsung diputar, playlist membuka layar Impor, teks biasa jadi pencarian.
+- **Pintasan ikon (tahan ikon):** Acak Favorit, Lanjutkan, Cari.
+- **Tanpa jeda antar lagu (eksperimental):** Pengaturan, untuk file perangkat dan stream langsung (bukan YouTube). Mati bila Crossfade menyala.
+- `MusicService` diekspor untuk mobil; perintah start dari aplikasi lain diabaikan (kunci acak per instalasi, `MusicService.key`).

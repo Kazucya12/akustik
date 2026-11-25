@@ -4,3 +4,10 @@
 .vercel
 node_modules
 .DS_Store
+# Android: hasil build / file yang dibuat workflow
+android/.gradle/
+android/app/build/
+android/app/loopify.jks
+android/app/src/main/assets/www/
+android/app/src/main/res/drawable-nodpi/
+android/app/src/main/res/mipmap-anydpi/ic_launcher_*.xml

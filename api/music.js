@@ -1,7 +1,7 @@
 // /api/music?src=radio|custom&q=...  (&trending=1 &cc= &tag=)
 // Mengembalikan array: { id, title, artist, img, url }
 // Sumber musik online selain Radio sudah dihapus. Pencarian lagu memakai YouTube lewat /api/yt-music.
-const UA = 'MidnightAcoustic/4.12';
+const UA = 'Loopify/4.43';
 const RB = ['https://de1.api.radio-browser.info', 'https://nl1.api.radio-browser.info', 'https://at1.api.radio-browser.info'];
 const REMOVED = ['all', 'audius', 'jamendo', 'archive']; // permintaan lama dijawab daftar kosong, bukan error
 

@@ -1,10 +1,109 @@
-/* v4.52: dialog pembaruan aplikasi (pasangan extra59.js) */
-.x59m{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,5,24,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.x59c{width:100%;max-width:340px;border:1px solid var(--b);border-radius:20px;background:var(--bg);box-shadow:var(--sh);padding:20px;color:var(--tx)}
-.x59c h3{margin:0 0 8px;font-size:17px}
-.x59c p{margin:0 0 12px;color:var(--mu);font-size:14px;line-height:1.45}
-.x59n{max-height:120px;overflow:auto;white-space:pre-wrap;margin:0 0 12px;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--mu);font-size:13px}
-.x59p{height:6px;margin:4px 0 12px;border-radius:3px;background:var(--b);overflow:hidden}
-.x59p i{display:block;width:0;height:100%;background:var(--p);transition:width .2s}
-.x59b{display:flex;gap:8px;justify-content:flex-end}
+/* v4.53: dialog pembaruan aplikasi (pasangan extra59.js) - tampilan jelas + animasi buka/tutup halus */
+
+/* lapisan gelap: memudar masuk/keluar */
+.x59m{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,5,24,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .28s ease}
+.x59m.in{opacity:1}
+.x59m.out{opacity:0;transition:opacity .24s ease .04s}
+
+/* kartu: naik + membesar sedikit saat buka, turun saat tutup */
+.x59c{position:relative;width:100%;max-width:340px;max-height:calc(100vh - 40px);overflow:auto;border:1px solid var(--b);border-radius:24px;background:var(--bg);box-shadow:var(--sh),0 24px 60px rgba(0,0,0,.35);padding:22px 20px 18px;color:var(--tx);text-align:center;opacity:0;transform:translateY(28px) scale(.92);transition:transform .42s cubic-bezier(.2,.9,.25,1.12),opacity .28s ease}
+.x59c:before{content:"";position:absolute;left:0;right:0;top:0;height:120px;background:radial-gradient(120% 90% at 50% -10%,rgba(124,108,255,.24),transparent 70%);pointer-events:none}
+.x59m.in .x59c{opacity:1;transform:none}
+.x59m.out .x59c{opacity:0;transform:translateY(18px) scale(.96);transition:transform .24s cubic-bezier(.4,0,1,1),opacity .2s ease}
+
+/* isi: tinggi menyesuaikan halus saat ganti keadaan (memeriksa -> hasil) */
+.x59w{position:relative;transition:height .34s cubic-bezier(.2,.8,.2,1),opacity .15s ease}
+.x59w.sw{opacity:0}
+.x59m.in .x59w>*{animation:x59u .45s cubic-bezier(.2,.8,.2,1) both}
+.x59m.in .x59w>:nth-child(2){animation-delay:.04s}
+.x59m.in .x59w>:nth-child(3){animation-delay:.08s}
+.x59m.in .x59w>:nth-child(4){animation-delay:.12s}
+.x59m.in .x59w>:nth-child(5){animation-delay:.16s}
+.x59m.in .x59w>:nth-child(n+6){animation-delay:.2s}
+@keyframes x59u{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ikon status */
+.x59ic{position:relative;width:60px;height:60px;margin:0 auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--p2);background:rgba(124,108,255,.16)}
+.x59ic:after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid currentColor;opacity:.18}
+.x59ic svg{width:28px;height:28px}
+.x59ic.t-ok{color:#3ddc97;background:rgba(61,220,151,.15)}
+.x59ic.t-err{color:#ff6b81;background:rgba(255,107,129,.15)}
+.x59up{animation:x59bob 1.6s ease-in-out infinite}
+.x59dn{animation:x59dn 1.1s ease-in-out infinite}
+.x59ck path{stroke-dasharray:1;stroke-dashoffset:1;animation:x59dr .5s .15s ease forwards}
+.x59ic.t-ok:after{animation:x59po .5s ease both}
+.x59er{animation:x59sh .5s ease both}
+@keyframes x59bob{0%,100%{transform:translateY(2px)}50%{transform:translateY(-3px)}}
+@keyframes x59dn{0%{transform:translateY(-3px);opacity:.5}50%{opacity:1}100%{transform:translateY(3px);opacity:.5}}
+@keyframes x59dr{to{stroke-dashoffset:0}}
+@keyframes x59po{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:.18}}
+@keyframes x59sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* spinner (dialog + baris Pengaturan) */
+.x59sp{display:inline-block;flex:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(128,138,200,.35);border-top-color:var(--p2);animation:x59rot .8s linear infinite}
+.x59sp.x59big{width:30px;height:30px;border-width:3px}
+@keyframes x59rot{to{transform:rotate(360deg)}}
+
+/* teks */
+.x59c h3{margin:0 0 8px;font-size:18px;font-weight:800}
+.x59c p{margin:0 0 14px;color:var(--mu);font-size:14px;line-height:1.5}
+
+/* versi lama -> baru */
+.x59v{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px 0 8px}
+.x59v>div{flex:1;padding:10px 8px;border-radius:14px;background:rgba(128,138,200,.12)}
+.x59v small{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}
+.x59v b{font-size:15px}
+.x59v .nw{background:rgba(124,108,255,.2);box-shadow:inset 0 0 0 1px rgba(154,140,255,.5)}
+.x59v .nw b{color:var(--p2)}
+.x59ar{flex:none;width:20px;height:20px;color:var(--mu)}
+.x59sz,.x59ch{margin:0 auto 14px;font-size:12px;color:var(--mu)}
+.x59ch{display:inline-block;padding:5px 12px;border-radius:12px;background:rgba(128,138,200,.14)}
+
+/* catatan rilis */
+.x59n{max-height:132px;overflow:auto;margin:0 0 14px;padding:10px 12px;border-radius:14px;background:rgba(128,138,200,.12);color:var(--mu);font-size:13px;text-align:left;-webkit-overflow-scrolling:touch}
+.x59nh{margin-bottom:6px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--tx)}
+.x59n ul{margin:0;padding:0;list-style:none}
+.x59n li{position:relative;margin:3px 0;padding-left:14px;line-height:1.4}
+.x59n li:before{content:"";position:absolute;left:2px;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--p2)}
+.x59n li.h{margin-top:8px;padding-left:0;font-weight:700;color:var(--tx)}
+.x59n li.h:before{display:none}
+
+/* petunjuk izin bernomor */
+.x59l{margin:0 0 14px;padding:0;list-style:none;counter-reset:x59;text-align:left}
+.x59l li{position:relative;margin:8px 0;padding-left:34px;min-height:24px;font-size:13px;line-height:1.45;color:var(--mu);counter-increment:x59}
+.x59l li:before{content:counter(x59);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:rgba(124,108,255,.2);color:var(--p2);font-weight:800;font-size:12px;line-height:24px;text-align:center}
+
+/* langkah Siapkan / Unduh / Pasang */
+.x59z{display:flex;margin:0 0 14px;font-size:11px;color:var(--mu)}
+.x59z span{position:relative;flex:1;padding-top:20px;transition:color .3s}
+.x59z span:before{content:"";position:absolute;top:0;left:50%;width:12px;height:12px;margin-left:-6px;box-sizing:border-box;border-radius:50%;border:2px solid rgba(128,138,200,.45);background:var(--bg);transition:background .3s,border-color .3s}
+.x59z span:not(:last-child):after{content:"";position:absolute;top:5px;left:calc(50% + 11px);right:calc(-50% + 11px);height:2px;border-radius:2px;background:rgba(128,138,200,.3);transition:background .4s}
+.x59z .d,.x59z .a{color:var(--tx)}
+.x59z .d:before{background:var(--p);border-color:var(--p)}
+.x59z .d:after{background:var(--p)}
+.x59z .a:before{border-color:var(--p);animation:x59ring 1.4s ease-out infinite}
+@keyframes x59ring{0%{box-shadow:0 0 0 0 rgba(124,108,255,.55)}100%{box-shadow:0 0 0 8px rgba(124,108,255,0)}}
+
+/* progres unduhan */
+.x59pr{display:flex;justify-content:space-between;gap:8px;margin:0 0 6px;font-size:12px;color:var(--mu);text-align:left}
+.x59pr b{color:var(--tx)}
+.x59p{height:8px;margin:0 0 14px;border-radius:4px;background:rgba(128,138,200,.25);overflow:hidden}
+.x59p i{display:block;width:0;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--p),var(--p2));transition:width .35s ease}
+.x59p i.ind{width:40%!important;animation:x59ind 1.2s ease-in-out infinite}
+@keyframes x59ind{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
+
+/* tombol dan catatan kecil */
+.x59b{position:relative;display:flex;gap:8px;justify-content:center}
 .x59b .btn{flex:1}
+.x59h{margin-top:10px;font-size:11px;color:var(--mu)}
+
+/* baris di Pengaturan */
+.x59bd{flex:none;padding:3px 9px;border-radius:10px;background:var(--p);color:#fff;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.06em;animation:x59pu 1.8s ease-in-out infinite}
+.x59bd.ok{background:rgba(61,220,151,.18);color:#3ddc97;animation:none}
+@keyframes x59pu{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+@media (prefers-reduced-motion:reduce){
+  .x59c{transform:none!important}
+  .x59m *,.x59m *:before,.x59m *:after,.x59bd{animation:none!important}
+  .x59p i.ind{width:40%}
+}

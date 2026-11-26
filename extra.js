@@ -232,3 +232,15 @@ window.plCv=i=>{
     if(!(e.target&&e.target.closest&&e.target.closest('.srch')))hide();
   },true);
 })();
+
+/* ---------- Gambar sampul cadangan: kalau gambar gagal dimuat, tampilkan kotak gradasi dengan ikon not (bukan ikon gambar pecah) ---------- */
+(function(){
+  var FB='data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#2a2f7a'/><stop offset='1' stop-color='#6d5dfc'/></linearGradient></defs><rect width='100' height='100' fill='url(#g)'/><path d='M40 70V32l26-6v36' fill='none' stroke='rgba(255,255,255,.75)' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/><circle cx='34' cy='70' r='7' fill='rgba(255,255,255,.75)'/><circle cx='60' cy='62' r='7' fill='rgba(255,255,255,.75)'/></svg>");
+  document.addEventListener('error',function(e){
+    var im=e.target;
+    if(!im||im.tagName!=='IMG'||im.getAttribute('data-fb'))return;
+    var s=im.getAttribute('src')||'';
+    if(!s||s.indexOf('data:')===0)return;
+    im.setAttribute('data-fb','1');im.src=FB;
+  },true);
+})();

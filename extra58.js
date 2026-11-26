@@ -7,10 +7,10 @@
 (function(){
   'use strict';
   var GROUPS=[['akt','Aktivitas'],['musik','Musik & Suara'],['akun','Akun & Data']];
-  var MAP={goStat:'akt',rekap32:'akt',goStreak32:'akt',goChal43:'akt',goBadge43:'akt',
+  var MAP={goHist:'akt',goKolase34:'akt',goStat:'akt',rekap32:'akt',goStreak32:'akt',goChal43:'akt',goBadge43:'akt',
     goOff41:'musik',goEq:'musik',goFocus33:'musik',
     lgOpen:'akun',lgOut:'akun',goBk:'akun',impOpen:'akun'};
-  var ORDER=['goStat','rekap32','goStreak32','goChal43','goBadge43','goOff41','goEq','goFocus33','lgOpen','lgOut','goBk','impOpen'];
+  var ORDER=['goHist','goKolase34','goStat','rekap32','goStreak32','goChal43','goBadge43','goOff41','goEq','goFocus33','lgOpen','lgOut','goBk','impOpen'];
   var TABS=['Playlist','Album','Artis','Lagu','Unduhan','Video'];
 
   function kids(e){return Array.prototype.slice.call(e.children||[])}
@@ -19,8 +19,8 @@
   function has(e,c){return(' '+cls(e)+' ').indexOf(' '+c+' ')>=0}
   function txt(e){return(e.textContent||'').trim()}
   function fn(e){var o=e.getAttribute?e.getAttribute('onclick'):'',m=/^\s*(\w+)\(/.exec(o||'');return m?m[1]:''}
-  function state(){var o=ls.get('x58',{});return(o&&typeof o==='object')?o:{}}
-  function isOpen(k){var o=state();return o[k]===undefined?0:!!o[k]}
+  var OPEN={}; /* tidak disimpan: grup tertutup lagi setelah pindah halaman */
+  function isOpen(k){return !!OPEN[k]}
   function title(A,t){for(var i=0;i<A.length;i++)if(A[i].tagName==='H1'&&txt(A[i])===t)return A[i];return null}
   function small(e){var A=all(e);for(var i=0;i<A.length;i++)if(A[i].tagName==='SMALL')return txt(A[i]);return''}
   function sameList(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true}
@@ -70,7 +70,9 @@
     GROUPS.forEach(function(g){
       var want=rows.filter(function(r){return MAP[fn(r)]===g[0]}).sort(function(a,b){return ORDER.indexOf(fn(a))-ORDER.indexOf(fn(b))});
       var box=boxes[g[0]],body=boxParts(box).body;
-      if(!sameList(kids(body),want)){want.forEach(function(r){body.appendChild(r)});changed=true}
+      /* Bandingkan hanya baris yang dikenal: elemen lain di dalam grup tidak boleh memicu pemindahan berulang tanpa henti. */
+      var now=kids(body).filter(function(r){return want.indexOf(r)>=0});
+      if(!sameList(now,want)){want.forEach(function(r){body.appendChild(r)});changed=true}
       var show=want.length?'':'none';if(box.style.display!==show)box.style.display=show;
       setSum(box,sumProfil(g[0],want));
     });
@@ -126,15 +128,25 @@
       var on=!has(box,'on');
       if(on)box.className+=' on';else box.className=cls(box).replace(/(^|\s)on(?=\s|$)/g,'');
       var b=boxParts(box).head;if(b)b.setAttribute('aria-expanded',on?'true':'false');
-      var o=state();o[k]=on?1:0;ls.set('x58',o);
+      OPEN[k]=on;
     }catch(e){}
   };
 
+  /* Dicek langsung (tanpa mengubah tampilan) supaya pindah halaman secepat apa pun tetap menutup grup. */
+  function forget(v){
+    var A=all(v);
+    if(!title(A,'Profil'))OPEN.akt=OPEN.musik=OPEN.akun=false;
+    if(!title(A,'Library'))OPEN.f=false;
+  }
   var tm;
   function run(){
+    var v1=document.getElementById('v');if(v1)forget(v1);
     clearTimeout(tm);
     tm=setTimeout(function(){
-      try{var v=document.getElementById('v');if(!v)return;profil(v);library(v)}catch(e){console.error('[loopify] x58',e)}
+      try{
+        var v=document.getElementById('v');if(!v)return;
+        profil(v);library(v);
+      }catch(e){console.error('[loopify] x58',e)}
     },120);
   }
   var v0=document.getElementById('v');

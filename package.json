@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "node build.js",
-    "test": "node test/smoke.js && node test/search48.js && node test/search49.js && node test/native60.js && node test/ui61.js"
+    "test": "node test/smoke.js && node test/search48.js && node test/search49.js && node test/native60.js && node test/ui61.js && node test/lyric62.js"
   },
   "devDependencies": {
     "terser": "^5.31.0",

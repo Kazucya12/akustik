@@ -8,7 +8,7 @@
 (function(){
   'use strict';
   function on(){return cfg.dz63!==false}
-  var CAT={},RAW={},NOISE=/\b(cover|live|remix|acoustic|akustik|karaoke|instrumental|sped up|slowed|nightcore|reverb|8d|lofi|lo-fi|tribute|reaction|piano version)\b/i;
+  var CAT={},RAW={},LIST={},NOISE=/\b(cover|live|remix|acoustic|akustik|karaoke|instrumental|sped up|slowed|nightcore|reverb|8d|lofi|lo-fi|tribute|reaction|piano version)\b/i;
 
   /* ---------- teks ---------- */
   function nrm(s){return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\p{L}\p{N}]+/gu,' ').trim()}
@@ -21,7 +21,22 @@
     x.forEach(function(w){if(m[w])n++;u[w]=1});
     return n/Object.keys(u).length;
   }
-  function key(t,a){return nrm(cleanT(t))+'|'+nrm(String(a||'').split(/,|&|\bfeat\b/i)[0])}
+  /* nama artis dinormalkan: "Tulus Official", "Tulus - Topic", "Tulus & Band", "Tulus x Raisa" -> "tulus" */
+  function artistN(a){return nrm(String(a||'').replace(/\s*-\s*Topic$/i,'').split(/,|&|\bfeat\b|\bft\b|\bx\b/i)[0].replace(/\b(official|topic|vevo|channel|records?|entertainment)\b/ig,' '))}
+  function key(t,a){return nrm(cleanT(t))+'|'+artistN(a)}
+  /* lagu yang sama? judul hampir sama (>=0,8) dan artis cocok; kalau judul hampir persis (>=0,9) dan pencarian menyebut nama artisnya,
+     artis yang beda/cuma nama channel diabaikan (upload ulang) */
+  function isDup(t,c,q){
+    var ts=sim(cleanT(t.title),cleanT(c.title));
+    if(ts<.8)return false;
+    if(sim(artistN(t.artist),artistN(c.artist))>=.5)return true;
+    if(ts>=.9&&q){
+      var qt=toks(q),ca=toks(artistN(c.artist)).filter(function(w){return w.length>=3});
+      if(ca.length&&ca.some(function(w){return qt.indexOf(w)>=0}))return true;
+    }
+    return false;
+  }
+  function dupIn(list,t,q){for(var i=0;i<list.length;i++){if(isDup(t,list[i],q))return true}return false}
 
   /* ---------- katalog ---------- */
   function mk(x){
@@ -41,12 +56,18 @@
     var _sr=srch;
     srch=async function(s){
       if(!on()||cfg.src==='radio')return _sr(s);
-      var p=cat(s),ie=null;
+      var p=cat(s),ie=null,k=String(s).trim().toLowerCase();
       var inner=Promise.resolve().then(function(){return _sr(s)}).catch(function(e){ie=e;return[]});
-      var a=await p,b=await inner;
-      if(!a.length){if(ie)throw ie;return b}
-      var seen={};a.forEach(function(t){seen[key(t.title,t.artist)]=1});
-      return a.concat((b||[]).filter(function(t){return t&&!seen[key(t.title,t.artist)]})).slice(0,25);
+      var all=LIST[k]=Promise.all([p,inner]).then(function(r){
+        var a=r[0],b=r[1];
+        if(!a.length)return b||[];
+        var seen={};
+        return a.concat((b||[]).filter(function(t){return t&&!seen[key(t.title,t.artist)]&&!dupIn(a,t,s)})).slice(0,25);
+      });
+      var ks=Object.keys(LIST);if(ks.length>40)delete LIST[ks[0]];
+      var out=await all;
+      if(!out.length&&ie)throw ie;
+      return out;
     };
   }
   /* hasil video YouTube di halaman pencarian: buang duplikat lagu katalog dan cover/live/remix yang tidak diminta */
@@ -56,17 +77,15 @@
       var r=await _ys(s,o,m);
       try{
         if(!on()||m!=2||typeof lq!='string'||String(s).trim()!==lq.trim()||cfg.src==='radio')return r;
-        var c=await cat(s);
+        var kk=String(s).trim().toLowerCase();
+        var c=await (LIST[kk]||cat(s)).catch(function(){return[]});   /* gabungan Deezer + JioSaavn untuk kata kunci ini */
         if(c.length<3)return r;
-        var have={};c.forEach(function(t){have[key(t.title,t.artist)]=t});
         var asked=NOISE.test(s);
         var out=(r||[]).filter(function(v){
           if(!v)return false;
           if(v.se)return true;                                   /* track dari album/video panjang: biarkan */
-          if(!asked&&NOISE.test(v.title))return false;
-          if(have[key(v.title,v.artist)])return false;
-          for(var k=0;k<c.length;k++){if(sim(cleanT(v.title),cleanT(c[k].title))>=.8&&sim(v.artist,c[k].artist)>=.5)return false}
-          return true;
+          if(NOISE.test(v.title))return asked;                   /* cover/live/remix: dibuang kecuali memang diminta di pencarian */
+          return !dupIn(c,v,s);
         });
         return out.slice(0,8);
       }catch(e){return r}
@@ -112,5 +131,5 @@
       return _rr(t);
     };
   }
-  window.__dz63={score:score,pickBest:pickBest,key:key,sim:sim,mk:mk};
+  window.__dz63={score:score,pickBest:pickBest,key:key,sim:sim,mk:mk,isDup:isDup,artistN:artistN};
 })();

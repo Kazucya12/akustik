@@ -77,3 +77,9 @@
 .x48rc small{display:block;font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .x48n{width:26px;flex:none;text-align:center;font-size:13px;font-weight:700;color:var(--mu)}
 #x48 .rw small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+
+/* ---- v4.5.7: navbar bawah lebih pekat supaya teks di belakangnya tidak tembus (blur sering tidak jalan di WebView) ---- */
+.nav{background:color-mix(in srgb,var(--ov,var(--bg)) 94%,transparent)}
+
+/* ---- v4.5.7: halaman Cari: hentikan animasi gradasi latar (hemat baterai, scroll lebih mulus di HP menengah) ---- */
+#app:has(#v.x48) .orb{animation:none!important;will-change:auto}

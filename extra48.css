@@ -15,7 +15,7 @@
 
 /* ---- chip filter (menempel di atas saat digulir) ---- */
 #x48{min-height:4px}
-#x48f{position:sticky;top:0;z-index:5;margin:10px -4px 4px;padding:8px 4px;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#x48f{position:sticky;top:0;z-index:5;margin:6px -16px 2px;padding:10px 16px 8px;background:linear-gradient(var(--bg) 72%,transparent)}
 #x48f .chip{padding:8px 18px;font-size:13px;font-weight:600;background:var(--c);border:1px solid var(--b);color:var(--tx)}
 #x48f .chip.a{background:var(--g,linear-gradient(135deg,#8b7bff,#5a46f0));border-color:transparent;color:#fff}
 .x48so{margin:2px 0 8px}

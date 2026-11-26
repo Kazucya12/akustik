@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/jiosaavn.js": { "maxDuration": 60 }
+  },
   "buildCommand": "node build.js",
   "outputDirectory": ".",
   "headers": [

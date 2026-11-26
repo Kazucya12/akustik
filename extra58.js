@@ -20,7 +20,7 @@
   function txt(e){return(e.textContent||'').trim()}
   function fn(e){var o=e.getAttribute?e.getAttribute('onclick'):'',m=/^\s*(\w+)\(/.exec(o||'');return m?m[1]:''}
   function state(){var o=ls.get('x58',{});return(o&&typeof o==='object')?o:{}}
-  function isOpen(k){var o=state();return o[k]===undefined?(k==='akt'?1:0):!!o[k]}
+  function isOpen(k){var o=state();return o[k]===undefined?0:!!o[k]}
   function title(A,t){for(var i=0;i<A.length;i++)if(A[i].tagName==='H1'&&txt(A[i])===t)return A[i];return null}
   function small(e){var A=all(e);for(var i=0;i<A.length;i++)if(A[i].tagName==='SMALL')return txt(A[i]);return''}
   function sameList(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true}

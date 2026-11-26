@@ -179,12 +179,12 @@ window.plCv=i=>{
 /* ---------- Saran pencarian saat mengetik (ala YouTube/Spotify): koleksi sendiri + saran online gratis ---------- */
 (function(){
   var st=document.createElement('style');
-  st.textContent='.srch{position:relative}#x24{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:60;max-height:58vh;overflow:auto;border-radius:16px;background:var(--bg);border:1px solid var(--b);box-shadow:0 12px 32px rgba(0,0,0,.35)}#x24 .x24r{display:flex;align-items:center;gap:10px;padding:11px 14px;font-size:14px;color:var(--tx);cursor:pointer}#x24 .x24r img{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none}#x24 .x24r b{display:block;font-weight:600}#x24 .x24r small{display:block;color:var(--mu);font-size:11px}#x24 .x24r span{flex:1;min-width:0}';
+  st.textContent='.srch{position:relative}#x24{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:60;max-height:46vh;overflow:auto;border-radius:18px;padding:6px;background:var(--ov,var(--bg));border:1px solid var(--b);box-shadow:0 16px 40px rgba(0,0,0,.45);-webkit-overflow-scrolling:touch}#x24 .x24s{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;font-size:14px;color:var(--tx);cursor:pointer;min-width:0}#x24 .x24s:active{background:var(--c)}#x24 .x24s img{width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none}#x24 .x24s>div{min-width:0}#x24 .x24s b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#x24 .x24s small{display:block;color:var(--mu);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#x24 .x24s i{font-style:normal;width:38px;flex:none;text-align:center;font-size:16px;opacity:.7}#x24 .x24s span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#v.x48 .srch{z-index:30}';
   document.head.appendChild(st);
-  var cache={},ctl=null,tm=null,cq='';
+  var cache={},ctl=null,tm=null,cq='',hq='';
   function box(){var s=document.querySelector('.srch');if(!s)return null;var b=s.querySelector('#x24');if(!b){b=document.createElement('div');b.id='x24';s.appendChild(b)}return b}
   function hide(){var b=document.getElementById('x24');if(b)b.remove()}
-  window.x24H=hide;
+  window.x24H=function(){hq=cq;hide()};
   function loc(q){
     var k=q.toLowerCase(),seen={},out=[];
     [].concat(songs||[],hist.map(rs),favs.map(rs)).forEach(function(t){
@@ -196,11 +196,12 @@ window.plCv=i=>{
   }
   function paint(q,rem){
     var L=loc(q),R=(rem||[]).filter(function(s){return s.toLowerCase()!=q.toLowerCase()}).slice(0,8);
+    if(hq===q)return;
     if(!L.length&&!R.length){hide();return}
     var b=box();if(!b)return;
     lists.x24=L;window.x24S=R;
-    b.innerHTML=L.map(function(t,i){return'<div class="x24r" onclick="x24P('+i+')"><img src="'+esc(cov(t))+'" alt=""><div><b>'+esc(t.title)+'</b><small>'+esc(t.artist||'')+' · di koleksimu</small></div></div>'}).join('')+
-      R.map(function(s,i){return'<div class="x24r" onclick="x24G('+i+')">🔎 <span>'+esc(s)+'</span></div>'}).join('');
+    b.innerHTML=L.map(function(t,i){return'<div class="x24s" onclick="x24P('+i+')"><img src="'+esc(cov(t))+'" alt=""><div><b>'+esc(t.title)+'</b><small>'+esc(t.artist||'')+' · di koleksimu</small></div></div>'}).join('')+
+      R.map(function(s,i){return'<div class="x24s" onclick="x24G('+i+')"><i>🔎</i><span>'+esc(s)+'</span></div>'}).join('');
   }
   window.x24G=function(i){var s=(window.x24S||[])[i];if(!s)return;clearTimeout(dt);hide();qs(s)};
   window.x24P=function(i){hide();P('x24',i)};
@@ -214,7 +215,7 @@ window.plCv=i=>{
   }
   document.addEventListener('input',function(e){
     var t=e.target;if(!t||t.id!='qi')return;
-    var q=t.value.trim();cq=q;clearTimeout(tm);
+    var q=t.value.trim();cq=q;hq='';clearTimeout(tm);
     if(!q){hide();return}
     paint(q,cache[q]);
     tm=setTimeout(function(){ask(q)},150);
@@ -222,6 +223,9 @@ window.plCv=i=>{
   document.addEventListener('keydown',function(e){
     var t=e.target;if(!t||t.id!='qi'||e.key!='Enter')return;
     clearTimeout(dt);hide();t.blur();var q=t.value.trim();if(q)qs(q);
+  },true);
+  document.addEventListener('scroll',function(e){
+    var g=e.target;if(g&&g.id=='v')hide();
   },true);
   document.addEventListener('click',function(e){
     if(!document.getElementById('x24'))return;

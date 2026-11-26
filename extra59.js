@@ -161,7 +161,7 @@
   }
   function checkFail(m){
     modal({icon:'err',tone:'t-err',title:'Tidak bisa memeriksa',
-      text:String(m||'Terjadi kesalahan').replace(/[.\s]+$/,'')+'. Pastikan internet aktif, lalu coba lagi.',
+      text:/membatasi/i.test(String(m))?'GitHub sedang membatasi permintaan dari jaringan ini. Tunggu beberapa menit, lalu coba lagi.':String(m||'Terjadi kesalahan').replace(/[.\s]+$/,'')+'. Pastikan internet aktif, lalu coba lagi.',
       btns:[['Tutup','x59Close()',0],['Coba lagi','x59Re()',1]]});
   }
   function canPrompt(r){

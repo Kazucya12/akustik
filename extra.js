@@ -152,7 +152,7 @@ window.plCv=i=>{
   const _P0=P;
   P=function(k,i){
     const t=lists[k]&&lists[k][i];
-    if(k!='sv'||!t||!t.yt)return _P0(k,i);
+    if(!(k=='sv'||k=='x48y'||k=='x48lw')||!t||!t.yt)return _P0(k,i);
     if(t.alb&&t.ss!=null){   // lagu hasil pecahan album penuh: antrean = lagu-lagu album itu, urut nomor, mulai dari yang diketuk
       const sib=lists[k].filter(x=>x&&x.yt&&x.alb===t.alb&&x.vid===t.vid).sort((a,b)=>(a.tn||0)-(b.tn||0));
       const at=sib.indexOf(t);
@@ -160,16 +160,36 @@ window.plCv=i=>{
     }
     lists.sv1=[t];          // putar lagu pilihan dulu, lagu terkait menyusul di antrean
     _P0('sv1',0);
-    fill(t);
+    fill(t,k);
   };
-  async function fill(t){
+  async function fill(t,k){
     try{
-      const base=GEN.test(String(t.artist||'').trim())?t.title:t.artist;
-      const r=await ytSearch(String(base||'').trim()+' lagu');
-      if(cur!==t)return;      // lagu sudah diganti sebelum saran selesai dimuat
-      const seen=new Set([norm(t.title)]);
-      const rel=r.filter(x=>{if(!x||x.id==t.id||BAD.test(x.title))return false;const n=norm(x.title);if(!n||seen.has(n))return false;seen.add(n);return true}).slice(0,20);
-      if(!rel.length)return;
+      const art=GEN.test(String(t.artist||'').trim())?'':String(t.artist||'').trim();
+      const nt=norm(t.title),na=norm(art);
+      /* buang lagu yang judulnya sama / turunan dari judul yang diketuk ("Noah", "Noah (Live)", dst.), karena itu bukan lagu terkait */
+      const sameTitle=x=>{const n=norm(x.title);return !n||n===nt||(nt.length>=3&&(n.startsWith(nt+' ')||n.endsWith(' '+nt)))};
+      const seen=new Set([nt]);
+      const take=(arr,max)=>{const o=[];(arr||[]).forEach(x=>{if(o.length>=max||!x||!(x.yt||x.url)||x.id==t.id||BAD.test(x.title)||sameTitle(x))return;const n=norm(x.title);if(seen.has(n))return;seen.add(n);o.push(x)});return o};
+      const kw=String(typeof lq=='string'?lq:'').trim();
+      /* 1. suasana/kata kunci yang sama: lagu lain dari hasil pencarian itu (mis. "galau" -> lagu galau lainnya) */
+      let kwl=take(lists[k]||[],10);
+      if(kwl.length<10&&kw&&norm(kw)!==na&&norm(kw)!==nt){try{kwl=kwl.concat(take(await ytSearch(kw),10-kwl.length))}catch(e){}}
+      /* 2. lagu lain dari artis yang sama */
+      let ar=[];
+      if(art){for(const s of [art+' lagu',art]){let r=[];try{r=await ytSearch(s)}catch(e){}ar=ar.concat(take(r,8-ar.length));if(ar.length>=8)break}}
+      else if(!kwl.length){let r=[];try{r=await ytSearch(nt+' lagu')}catch(e){}ar=take(r,8)}
+      if(na)ar=ar.filter(x=>norm(x.artist)===na).concat(ar.filter(x=>norm(x.artist)!==na));
+      /* 3. masih kurang: lagu dari artis yang paling sering muncul di riwayat putar & favorit */
+      let hs=[];
+      if(kwl.length+ar.length<12){
+        const cnt={};
+        [].concat(hist||[],(favs||[]).map(rs)).forEach(x=>{const a=x&&String(x.artist||'').trim();if(a&&!GEN.test(a)&&norm(a)!==na)cnt[a]=(cnt[a]||0)+1});
+        for(const a of Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]).slice(0,2)){let r=[];try{r=await ytSearch(a+' lagu')}catch(e){}hs=hs.concat(take(r,4))}
+      }
+      const live=t.yt?vcur:cur;
+      if(live&&live.id!==t.id)return;      // lagu sudah diganti sebelum saran selesai dimuat
+      const rel=[...kwl,...ar,...hs].slice(0,20);
+      if(!rel.length){toast('Belum ada lagu terkait. Buka Antrean lalu ketuk ✨ Mirip lagu ini');return}
       q=[t,...rel];qi=0;vq=[t,...rel];vi=0;
       try{rp()}catch(e){}
     }catch(e){}

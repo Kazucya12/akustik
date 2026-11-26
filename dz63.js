@@ -72,13 +72,15 @@ async function clientTest() {
       return Promise.reject(new Error('offline'));
     },
   };
-  ctx.srch = async () => [{ id: 'j9', title: 'Shape Of You', artist: 'Ed Sheeran', jio: 1 }, { id: 'j8', title: 'Lagu Lokal', artist: 'Band X', jio: 1 }];
-  ctx.ytSearch = async (s) => [
+  ctx.jioList = [{ id: 'j9', title: 'Shape Of You', artist: 'Ed Sheeran', jio: 1 }, { id: 'j8', title: 'Lagu Lokal', artist: 'Band X', jio: 1 }];
+  ctx.ytList = [
     { id: 'y1', title: 'Perfect', artist: 'Ed Sheeran' },                    // duplikat katalog
     { id: 'y2', title: 'Perfect (Cover)', artist: 'Anak SMA' },               // cover tak diminta
     { id: 'y3', title: 'Lagu Yang Hanya Ada Di YouTube', artist: 'Indie Band' },
     { id: 'y4', title: 'Album Penuh', artist: 'A', se: 100, ss: 0 },
   ];
+  ctx.srch = async () => ctx.jioList;
+  ctx.ytSearch = async () => ctx.ytList;
   ctx.resolveRec = async () => { ctx.fellBack = true; return false; };
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(root, 'extra63.js'), 'utf8'), ctx);
@@ -113,6 +115,20 @@ async function clientTest() {
   ok(score(items[2], tt) > score(items[1], tt) + 1.5, 'skor: durasi pas mengalahkan durasi beda 2,5 menit');
   ok(pickBest([items[0]], tt) === null, 'cover piano tidak lolos meski durasinya pas');
   ok(key('Perfect (feat. X)', 'Ed Sheeran, Y') === key('Perfect', 'Ed Sheeran'), 'kunci duplikat mengabaikan (feat.) dan artis tambahan');
+  /* pencocokan lebih ketat (v4.63b) */
+  const { isDup, artistN } = ctx.window.__dz63;
+  ok(['Tulus Official', 'Tulus - Topic', 'Tulus & Band', 'Tulus x Raisa', 'TULUS'].every((x) => artistN(x) === 'tulus'), 'nama artis dinormalkan (Official, Topic, &, x)');
+  const cEd = { title: 'Perfect', artist: 'Ed Sheeran' };
+  ok(isDup({ title: 'Perfect', artist: '7clouds' }, cEd, 'ed sheeran perfect') === true, 'upload ulang oleh channel lain dianggap duplikat kalau pencarian menyebut artisnya');
+  ok(isDup({ title: 'Perfect', artist: 'Fifth Harmony' }, cEd, 'perfect') === false, 'judul umum tanpa nama artis di pencarian: artis berbeda tidak dibuang');
+  ok(isDup({ title: 'Perfect Strangers', artist: 'Deep Purple' }, cEd, 'ed sheeran perfect') === false, 'judul berbeda tidak dianggap duplikat');
+  ctx.cfg.dz63 = true;
+  ctx.lq = 'band x'; ctx.jioList = [{ id: 'j8', title: 'Lagu Lokal', artist: 'Band X', jio: 1 }, { id: 'j7', title: 'Thinking Out Loud (From "Film")', artist: 'Ed Sheeran Official', jio: 1 }];
+  const m2 = await ctx.srch('band x');
+  ok(m2.length === 4 && m2.filter((t) => /thinking out loud/i.test(t.title)).length === 1, 'JioSaavn dengan tulisan artis/judul beda ("Official", "(From ...)") tetap digabung dengan Deezer');
+  ctx.ytList = [{ id: 'z1', title: 'Lagu Lokal', artist: 'Band X Official' }, { id: 'z2', title: 'Lagu Lain Lagi', artist: 'Band Y' }];
+  const y2 = await ctx.ytSearch('band x', '', 2);
+  ok(y2.length === 1 && y2[0].id === 'z2', 'YouTube yang menggandakan lagu JioSaavn (bukan hanya Deezer) juga dibuang');
   ctx.cfg.dz63 = false;
   const off = await ctx.srch('ed sheeran');
   ok(off.length === 2 && !off[0].dz, 'cfg.dz63=false: perilaku lama sepenuhnya');

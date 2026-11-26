@@ -485,6 +485,8 @@
   window.x48Al=function(i){openAl((window.x48A||[])[i])};
 
   /* ---------- Interaksi ---------- */
+  /* tekan Enter = cari sekarang (ditangani extra.js); batalkan pencarian tertunda supaya tidak dobel */
+  document.addEventListener('keydown',function(e){var t=e.target;if(t&&t.id=='qi'&&e.key=='Enter')clearTimeout(ft)},true);
   document.addEventListener('input',function(e){
     var t=e.target;if(!t||t.id!='qi')return;
     syncX();
@@ -498,7 +500,7 @@
       var i=Q('#qi');if(!i||i.value.trim()!==q)return;
       try{if(window.x24H)window.x24H()}catch(e){}
       window.doSearch(q);
-    },380);
+    },600);
   },true);
 
   /* ketukan pada hasil dicatat ke riwayat (artis/lagu/album/playlist) tanpa menghentikan aksi aslinya */

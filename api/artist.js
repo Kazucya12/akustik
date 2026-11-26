@@ -240,9 +240,40 @@ async function itunesAlbum(as, aid, res) {
   }
 }
 
+// ---- v4.63: katalog lagu dari Deezer (gratis, tanpa kunci, 50 permintaan/5 detik) untuk daftar hasil yang rapi seperti Spotify. ----
+// /api/artist?dsearch=kata -> [{ id, title, artist, album, img, d }]   (d = durasi detik; tanpa alamat putar, aplikasi mencari versi YouTube-nya saat diputar)
+const dzKey = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9À-￿]+/g, ' ').trim();   // versi (Live), (Remix) ikut dihitung: itu lagu yang berbeda
+async function deezerSearch(q, res) {
+  try {
+    const j = await jget('https://api.deezer.com/search?limit=40&q=' + encodeURIComponent(q), {}, 4500);
+    const seen = new Set(), out = [];
+    for (const x of Array.isArray(j.data) ? j.data : []) {
+      if (!x || x.type !== 'track' || !x.id || !x.artist || !x.title_short) continue;
+      const ver = clip(x.title_version, 40);
+      const title = clip(x.title_short + (ver ? ' ' + ver : ''), 160);
+      const k = dzKey(title) + '|' + dzKey(x.artist.name);
+      if (seen.has(k)) continue;                 // lagu yang sama di album/kompilasi lain
+      seen.add(k);
+      out.push({
+        id: String(x.id), title, artist: clip(x.artist.name, 100),
+        album: clip(x.album && x.album.title, 120), img: httpsOnly(x.album && (x.album.cover_medium || x.album.cover)),
+        d: x.duration > 0 ? x.duration : 0,
+      });
+      if (out.length >= 25) break;
+    }
+    res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
+    res.status(200).json(out);
+  } catch (e) {
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).json([]);                    // katalog gagal: aplikasi memakai hasil YouTube seperti biasa
+  }
+}
+
 module.exports = async (req, res) => {
   if (!(await require('./_rl')(req, res, 'ar', 60, 60))) return;
   const u = new URL(req.url, 'http://x').searchParams;
+  const ds = clip(u.get('dsearch'), 100);
+  if (ds) { await deezerSearch(ds, res); return; }
   const q = clip(u.get('q'), 100), id = clip(u.get('id'), 60), src = u.get('src') === 'yt' ? 'yt' : 'au';
   const name = clip(u.get('name'), 100);
   const n = Math.min(30, Math.max(1, parseInt(u.get('n'), 10) || 8));

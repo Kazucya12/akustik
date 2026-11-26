@@ -196,6 +196,8 @@ module.exports = async (req, res) => {
     const out = list.map((x) => {
       const n = tidy(dec(x.snippet.title), dec(x.snippet.channelTitle));
       const r = { id: x.id.videoId, title: n.title.slice(0, 200), artist: n.artist.slice(0, 100) };
+      if (dur && dur[x.id.videoId]) r.d = dur[x.id.videoId];                           // v4.63: durasi (detik), untuk mencocokkan dengan katalog
+      if (/-\s*Topic\s*$/i.test(dec(x.snippet.channelTitle))) r.tp = 1;               // channel "Artis - Topic" = audio resmi dari label
       if (x._tracks) r.tracks = x._tracks;
       return r;
     });

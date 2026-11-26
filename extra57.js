@@ -1,7 +1,8 @@
 /* Loopify v4.50 - Pengaturan dirapikan jadi 4 grup yang bisa dilipat: Tampilan, Pemutar & Suara, Notifikasi & Lirik, Lainnya.
    Hanya memindahkan baris yang sudah dibuat modul lain (semua tombol dan sakelar tetap sama), jadi tidak mengubah fungsi apa pun.
    Dimuat paling akhir (setelah extra56.js) karena modul-modul itu menyisipkan baris ke Pengaturan lewat pembungkus setR.
-   Status buka/tutup tiap grup diingat di ls 'x57'. Kalau ada yang gagal, Pengaturan tampil seperti sebelumnya. */
+   Semua grup tertutup tiap Pengaturan dibuka; yang dibuka
+   pengguna hanya diingat selama panel masih tampil (supaya tidak menutup sendiri saat sakelar ditekan). Kalau ada yang gagal, Pengaturan tampil seperti sebelumnya. */
 (function(){
   'use strict';
   var G=[['tampil','Tampilan'],['pemutar','Pemutar & Suara'],['notif','Notifikasi & Lirik'],['lain','Lainnya']];
@@ -63,7 +64,7 @@
     return a.join(' \u00B7 ');
   }
 
-  function openState(){var o=ls.get('x57',{});return(o&&typeof o==='object')?o:{}}
+  var OPEN={};
 
   function build(p,open){
     var frag=document.createDocumentFragment();
@@ -96,18 +97,19 @@
       var on=!box.classList.contains('on');
       box.classList.toggle('on',on);
       var b=box.querySelector('.x57h');if(b)b.setAttribute('aria-expanded',on?'true':'false');
-      var o=openState();o[k]=on?1:0;ls.set('x57',o);
+      OPEN[k]=on;
     }catch(e){}
   };
 
   var _s=window.setR;
   window.setR=function(){
     var sp0=document.getElementById('sp'),wasG=!!(sp0&&sp0.querySelector('.x57g')),y=sp0?sp0.scrollTop:0;
+    if(!wasG||!sp0.classList.contains('on'))OPEN={}; /* dibuka dari awal */
     var r=_s.apply(this,arguments);
     try{
       var sp=document.getElementById('sp');
       if(!sp||sp.querySelector('.x57g')||!sp.querySelector('[onclick^="cfgTg("]'))return r;
-      var p=plan(sp),frag=build(p,openState());
+      var p=plan(sp),frag=build(p,OPEN);
       p.drop.forEach(function(e){if(e.parentNode)e.parentNode.removeChild(e)});
       sp.appendChild(frag);
       if(wasG)sp.scrollTop=y;

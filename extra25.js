@@ -71,7 +71,7 @@
         '<div class="x25h" id="x25h"><div class="x25bg" style="background-image:url(\''+img(a).replace(/'/g,'%27')+'\')"></div>'+
           '<div class="x25ph"><img src="'+img(a)+'" alt="" data-n="'+E(a.name)+'" onerror="x24E&&x24E(this)"></div>'+
           '<h1>'+E(a.name)+'</h1>'+
-          '<small>'+(a.subs?fmtN(a.subs)+' subscriber · ':'')+'YouTube'+'</small></div>'+
+          '</div>'+
         '<div class="x25ac"><button class="x25play" id="x25play" onclick="x25Play()" aria-label="Putar">▶</button>'+
           '<button class="x25ic" onclick="x25Shuf()" aria-label="Acak">⤮</button>'+
           '<button class="x25fb" id="x25fb"></button>'+
@@ -127,7 +127,7 @@
     var n=S.more?10:5,show=L.slice(0,n);
     lists.x25s=show;
     el.innerHTML='<div class="sec"><h3>Populer</h3></div><div class="x25ol">'+show.map(function(t,i){
-      return'<div class="x25p" onclick="P(\'x25p\','+i+')"><span class="x25n">'+(i+1)+'</span><img src="'+E(t.img)+'" alt=""><div><b>'+E(t.title)+'</b><small>'+(t.v?fmtN(t.v)+' kali ditonton':'')+'</small></div><button class="x25mo" onclick="event.stopPropagation();x25Q('+i+')" aria-label="Tambah ke antrean">＋</button></div>';
+      return'<div class="x25p" onclick="P(\'x25p\','+i+')"><span class="x25n">'+(i+1)+'</span><img src="'+E(t.img)+'" alt=""><div><b>'+E(t.title)+'</b></div><button class="x25mo" onclick="event.stopPropagation();x25Q('+i+')" aria-label="Tambah ke antrean">＋</button></div>';
     }).join('')+'</div>'+(L.length>5?'<button class="x25lm" onclick="x25More()">'+(S.more?'Lihat lebih sedikit':'Lihat lainnya')+'</button>':'');
   }
   function disco(){

@@ -41,3 +41,12 @@ body,#app{background:var(--bg)}
 .wr-c{background:var(--c);color:var(--tx);border:1px solid var(--b)}
 .wr-c small{color:var(--mu)}
 .wr-p span{background:var(--ak-soft);color:var(--ak)}
+
+/* 10. Skeleton loading (Trending): blok abu berkilau menggantikan teks "Memuat…". */
+.x66sk{pointer-events:none}
+.x66sk i,.x66sk b,.x66sk small{display:block;border-radius:10px;background:var(--b);background-image:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);background-size:200% 100%;background-repeat:no-repeat;animation:x66sh 1.4s ease-in-out infinite}
+.x66sk i{width:112px;height:112px;border-radius:18px}
+.x66sk b{height:11px;width:84%;margin-top:8px}
+.x66sk small{height:9px;width:56%;margin-top:6px}
+@keyframes x66sh{0%{background-position:-100% 0}100%{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.x66sk i,.x66sk b,.x66sk small{animation:none}}

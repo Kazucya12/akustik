@@ -140,6 +140,49 @@ async function ytFind(w){
   if(t){try{localStorage.setItem(k,JSON.stringify({vid:t.vid,title:t.title,artist:t.artist}))}catch(e){}}
   return t||null;
 }
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const ytMsg=(f,n)=>f=='quota'?'Kuota pencarian YouTube hari ini habis, jadi sisa lagu belum dicari. Yang sudah ketemu tetap tersimpan. Kuota reset sekitar jam 15.00 WIB, lalu ketuk "Coba cari lagi".':f=='key'?'YOUTUBE_API_KEY belum diatur di Vercel, jadi pencarian YouTube tidak jalan.':f=='404'?'Endpoint pencarian YouTube tidak ditemukan di server (/api/yt-music).':n?n+' lagu gagal dicari karena server sibuk atau koneksi putus. Ketuk "Coba cari lagi".':'';
+/* Cari versi YouTube untuk indeks `idx`. out[k]: objek video = ketemu, null = memang tidak ada, undefined = gagal/belum dicari.
+   429 batas per menit: tunggu lalu ulangi. Error lain: ulangi sampai 3x. Kuota habis / key kosong / endpoint hilang: berhenti dan kembalikan alasannya. */
+async function ytBatch(items,idx,out,onP){
+  let j=0,d=0,fatal='';
+  const one=async k=>{
+    for(let t=0;t<3&&!fatal;t++){
+      try{out[k]=await ytFind(items[k]);return}
+      catch(e){
+        const s=e&&e.status,c=e&&e.code;
+        if(s==501){fatal='key';return}
+        if(s==404){fatal='404';return}
+        if(s==429&&c=='quota'){fatal='quota';return}
+        if(t<2)await sleep(s==429?4000*(t+1):1200*(t+1));
+      }
+    }
+  };
+  const w=async()=>{while(j<idx.length&&!fatal){const k=idx[j++];await one(k);d++;if(onP)onP(d,idx.length)}};
+  await Promise.all([w(),w(),w()]);
+  return fatal;
+}
+let LAST=null;
+const impProg=(t,p)=>{const e=$('#ip');if(e)e.innerHTML=`<small>${esc(t)}</small>${p!=null?`<div class="ipb"><i style="width:${Math.round(p)}%"></i></div>`:''}`};
+function impCard(){
+  const L=LAST,e=$('#ip');if(!e||!L)return;
+  const it=L.items;let m=0,v=0;const nf=[],fl=[];
+  it.forEach((w,k)=>{
+    if(L.res[k])m++;
+    else if(L.from=='youtube'&&w.id)v++;
+    else if(L.ytf[k])v++;
+    else if(L.miss.indexOf(k)>=0&&L.ytf[k]===undefined)fl.push(k);
+    else nf.push(k);
+  });
+  const lb=k=>it[k].title+(it[k].artist?' - '+it[k].artist:'');
+  const note=ytMsg(L.fatal,fl.length);
+  e.innerHTML='<div class="pcard"><b>'+esc(L.name)+'</b><br><small>'+m+' lagu cocok'+(v?', '+v+' dipakai sebagai video YouTube':'')+(nf.length?', '+nf.length+' tidak ditemukan':'')+(fl.length?', '+fl.length+' belum berhasil dicari':'')+'</small>'
+    +(note?'<small style="display:block;margin-top:8px">'+esc(note)+'</small>':'')
+    +(nf.length?'<small style="display:block;margin-top:8px;opacity:.8">Tidak ditemukan: '+nf.slice(0,6).map(k=>esc(lb(k))).join('; ')+(nf.length>6?'…':'')+'</small>':'')
+    +'</div>'
+    +(fl.length?'<button class="btn g" style="margin-top:10px" onclick="impRetry()">↻ Coba cari lagi ('+fl.length+' lagu)</button>':'')
+    +'<button class="btn" style="margin-top:10px" onclick="openPl('+L.pi+')">Buka Playlist</button>';
+}
 let busy=0;
 window.impRun=async function(){
   if(busy)return;
@@ -168,25 +211,41 @@ window.impRun=async function(){
     await Promise.all([worker(),worker(),worker(),worker()]);
     const ytf=new Array(items.length);
     const miss=[];items.forEach((w,k)=>{if(!res[k]&&!(from=='youtube'&&w.id))miss.push(k)});
-    if(miss.length){
-      const cap=miss.slice(0,40);let j=0,d2=0,stop=0;
-      const w2=async()=>{while(j<cap.length&&!stop){const k=cap[j++];try{ytf[k]=await ytFind(items[k])}catch(e){if(e&&(e.status==501||e.status==429||e.status==404))stop=1}d2++;prog('Mencari versi YouTube '+d2+' dari '+cap.length+'…',d2/cap.length*100)}};
-      await Promise.all([w2(),w2()]);
-    }
-    const tr=[],seen=new Set(),skipped=[];let m=0,v=0;
+    const fatal=await ytBatch(items,miss,ytf,(d,n)=>prog('Mencari versi YouTube '+d+' dari '+n+'…',d/n*100));
+    const tr=[],seen=new Set();
     items.forEach((w,k)=>{
       let t=res[k];
-      if(t)m++;else if(from=='youtube'&&w.id){t=mkV(w.id,w.rt,w.ra);v++}else if(ytf[k]){t=ytf[k];v++}
-      if(!t){skipped.push(w.title+(w.artist?' - '+w.artist:''));return}
-      if(seen.has(t.id))return;seen.add(t.id);tr.push(svt(t));
+      if(!t&&from=='youtube'&&w.id)t=mkV(w.id,w.rt,w.ra);else if(!t)t=ytf[k];
+      if(!t||seen.has(t.id))return;seen.add(t.id);tr.push(svt(t));
     });
-    if(!tr.length){prog('Tidak ada lagu yang cocok di sumber yang tersedia. Coba sumber lain atau daftar manual.');return}
+    if(!tr.length){
+      const nfl=miss.filter(k=>ytf[k]===undefined).length;
+      prog(ytMsg(fatal,nfl)||'Tidak ada lagu yang cocok di sumber yang tersedia. Coba sumber lain atau daftar manual.');return;
+    }
     pls.push({n:name.slice(0,60),tr});ls.set('pls',pls);const pi=pls.length-1;
     prog('',null);
-    const e=$('#ip');
-    if(e)e.innerHTML=`<div class="pcard"><b>${esc(name.slice(0,60))}</b><br><small>${m} lagu cocok${v?', '+v+' dipakai sebagai video YouTube':''}${skipped.length?', '+skipped.length+' dilewati':''}</small>${skipped.length?`<small style="display:block;margin-top:8px;opacity:.8">Dilewati: ${skipped.slice(0,6).map(esc).join('; ')}${skipped.length>6?'…':''}</small>`:''}</div><button class="btn" style="margin-top:10px" onclick="openPl(${pi})">Buka Playlist</button>`;
+    LAST={items,res,ytf,miss,from,name:name.slice(0,60),pi,fatal};
+    impCard();
     toast('Playlist diimpor: '+tr.length+' lagu');
   }catch(e){prog('Gagal mengimpor. Periksa koneksi lalu coba lagi.')}
   finally{busy=0;const b2=$('#imb');if(b2)b2.disabled=false}
+};
+window.impRetry=async function(){
+  const L=LAST;if(!L||busy)return;
+  const idx=L.miss.filter(k=>L.ytf[k]===undefined);
+  if(!idx.length)return;
+  busy=1;
+  try{
+    L.fatal=await ytBatch(L.items,idx,L.ytf,(d,n)=>impProg('Mencari lagi '+d+' dari '+n+'…',d/n*100));
+    const p=pls[L.pi];
+    if(p&&p.n==L.name){
+      const have=new Set(p.tr.map(x=>x.id));let add=0;
+      idx.forEach(k=>{const t=L.ytf[k];if(t&&!have.has(t.id)){have.add(t.id);p.tr.push(svt(t));add++}});
+      ls.set('pls',pls);
+      toast(add?add+' lagu ditambahkan ke playlist':'Belum ada lagu baru yang ketemu');
+    }
+    impCard();
+  }catch(e){impProg('Gagal mencari lagi. Periksa koneksi lalu coba lagi.')}
+  finally{busy=0}
 };
 })();

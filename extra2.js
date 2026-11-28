@@ -133,12 +133,19 @@ window.impOpen=function(){
 const ytKey=w=>'impyt:'+clean(w.title+' '+w.artist);
 async function ytFind(w){
   const k=ytKey(w);
-  try{const c=JSON.parse(localStorage.getItem(k)||'null');if(c&&c.vid)return mkV(c.vid,c.title,c.artist)}catch(e){}
+  try{const c=JSON.parse(localStorage.getItem(k)||'null');if(c&&c.vid){const v=mkV(c.vid,c.title,c.artist);if(c.low)v.low=1;return v}}catch(e){}
   const q=((w.title+' '+w.artist).trim()).slice(0,90);
   const a=await ytSearch(q);
-  const t=a&&a[0];
-  if(t){try{localStorage.setItem(k,JSON.stringify({vid:t.vid,title:t.title,artist:t.artist}))}catch(e){}}
-  return t||null;
+  if(!a||!a.length)return null;
+  /* pilih hasil yang paling mirip dengan judul+artis dari daftar (5 teratas); kalau tidak ada yang cukup mirip, pakai hasil pertama dan tandai "mungkin kurang cocok" */
+  let best=null,bs=-1;
+  a.slice(0,5).forEach(c=>{if(!c)return;const sc=score(w,c);if(sc>bs){bs=sc;best=c}});
+  const low=!best;
+  const t=best||a[0];
+  if(!t)return null;
+  if(low)t.low=1;
+  try{localStorage.setItem(k,JSON.stringify({vid:t.vid,title:t.title,artist:t.artist,low:low?1:0}))}catch(e){}
+  return t;
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const ytMsg=(f,n)=>f=='quota'?'Kuota pencarian YouTube hari ini habis, jadi sisa lagu belum dicari. Yang sudah ketemu tetap tersimpan. Kuota reset sekitar jam 15.00 WIB, lalu ketuk "Coba cari lagi".':f=='key'?'YOUTUBE_API_KEY belum diatur di Vercel, jadi pencarian YouTube tidak jalan.':f=='404'?'Endpoint pencarian YouTube tidak ditemukan di server (/api/yt-music).':n?n+' lagu gagal dicari karena server sibuk atau koneksi putus. Ketuk "Coba cari lagi".':'';
@@ -176,8 +183,10 @@ function impCard(){
   });
   const lb=k=>it[k].title+(it[k].artist?' - '+it[k].artist:'');
   const note=ytMsg(L.fatal,fl.length);
+  const lw=it.map((_,k)=>k).filter(k=>!L.res[k]&&L.ytf[k]&&L.ytf[k].low);
   e.innerHTML='<div class="pcard"><b>'+esc(L.name)+'</b><br><small>'+m+' lagu cocok'+(v?', '+v+' dipakai sebagai video YouTube':'')+(nf.length?', '+nf.length+' tidak ditemukan':'')+(fl.length?', '+fl.length+' belum berhasil dicari':'')+'</small>'
     +(note?'<small style="display:block;margin-top:8px">'+esc(note)+'</small>':'')
+    +(lw.length?'<small style="display:block;margin-top:8px;opacity:.8">Mungkin kurang cocok ('+lw.length+'), cek dulu: '+lw.slice(0,5).map(k=>esc(lb(k))).join('; ')+(lw.length>5?'…':'')+'</small>':'')
     +(nf.length?'<small style="display:block;margin-top:8px;opacity:.8">Tidak ditemukan: '+nf.slice(0,6).map(k=>esc(lb(k))).join('; ')+(nf.length>6?'…':'')+'</small>':'')
     +'</div>'
     +(fl.length?'<button class="btn g" style="margin-top:10px" onclick="impRetry()">↻ Coba cari lagi ('+fl.length+' lagu)</button>':'')

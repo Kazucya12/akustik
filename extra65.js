@@ -15,11 +15,13 @@
     gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
     heart:'<path d="M20.8 5.6a5 5 0 00-7.1 0L12 7.3l-1.7-1.7a5 5 0 00-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 000-7.1z" fill="currentColor"/>',
     shuffle:'<path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
-    trend:'<path d="M7 17L17 7M8 7h9v9"/>'
+    trend:'<path d="M7 17L17 7M8 7h9v9"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>',
+    check:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>'
   };
   var BTN={'▶':'play','🚗':'car','😴':'moon','🏅':'award','🖼':'image','✎':'pencil'};
   var SPI={'♥':'heart','⤮':'shuffle','↗':'trend','▶':'play'};
-  var IB={'☀':'sun','🌙':'moon','⚙':'gear'};
+  var IB={'☀':'sun','🌙':'moon','⚙':'gear','🚗':'car','👤':'user','☑':'check'};
   var EM='(?:[\\u{1F000}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{2B50}])\\uFE0F?(?:\\u200D[\\u{1F000}-\\u{1FAFF}\\u2640\\u2642\\u2695-\\u2708]\\uFE0F?)*';
   var RE_ALL=new RegExp(EM+'\\s*','gu');
   var RE_LEAD=new RegExp('^\\s*(▶|'+EM+')\\s*','u');
@@ -60,21 +62,24 @@
   function fixThumb(img){
     var s=img.getAttribute('src')||'';
     if(s.indexOf('data:image/svg+xml')!==0||s.indexOf('M40%2070V32')<0)return;
-    var row=img.closest('.rw')||img.parentElement,b=row&&row.querySelector('b'),t=((b&&b.textContent)||img.alt||'').trim();
+    var par=img.parentElement,b=par&&par.querySelector('.pt,b,strong,h2,h3'),t=((b&&b.textContent)||img.alt||'').trim();
+    if(!t&&img.closest('.disc')){var pt=document.querySelector('#pl .pt');if(pt)t=pt.textContent.trim()}
+    if(!t){try{if(typeof cur!=='undefined'&&cur&&cur.title)t=String(cur.title)}catch(e){}}
     var ch=(t.match(/[A-Za-z0-9]/)||['\u266A'])[0].toUpperCase(),h=0,i;
     for(i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))%360;
-    img.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl('+h+',16%,22%)"/><text x="50" y="50" dy=".35em" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="44" fill="hsl('+h+',28%,78%)">'+ch+'</text></svg>');
+    img.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl('+h+',16%,22%)"/><text x="50" y="50" dy=".35em" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="36" fill="hsl('+h+',28%,78%)">'+ch+'</text></svg>');
   }
   function scan(root){
-    var q=(root||document).querySelectorAll('.btn,.chip,.sp-i,.ib,.obe,.rw img'),i,e;
+    var q=(root||document).querySelectorAll('.btn,.chip,.sp-i,.ib,.obe,img[src^="data:image/svg+xml"],.ov button,.ov span,.ov i,.hd button,.wr-c b'),i,e;
     for(i=0;i<q.length;i++){
       e=q[i];
       if(e.tagName==='IMG')fixThumb(e);
+      else if(e.tagName==='B'&&e.parentElement&&e.parentElement.classList.contains('wr-c')){if(e.textContent.trim()==='Loopify Wrapped')e.textContent='Rekap Dengar'}
       else if(e.classList.contains('obe'))fixObe(e);
       else if(e.classList.contains('sp-i'))fixIcon(e,SPI,20);
-      else if(e.classList.contains('ib'))fixIcon(e,IB,20);
+      else if(e.classList.contains('ib')||(!e.children.length&&IB[e.textContent.trim()]))fixIcon(e,IB,20);
       else if(e.classList.contains('chip'))fixChip(e);
-      else fixBtn(e);
+      else if(e.classList.contains('btn'))fixBtn(e);
     }
   }
   var pend=0;

@@ -1,0 +1,51 @@
+/* Loopify v4.54 - tampilan lebih tenang: satu warna aksen (var(--p)), tanpa gradasi/glow/kaca, tanpa emoji sebagai ikon.
+   Hanya menimpa gaya lama (file ini dimuat paling akhir). Hapus berkas ini dari build.js untuk kembali ke tampilan lama. */
+html[data-t=dark]:not(.am):not(.nu){--bg:#0d0d11;--ov:#0d0d11;--mu:#a3a3b0;--c:rgba(255,255,255,.06);--b:rgba(255,255,255,.09);--nv:#14141a;--sh:none;--tx:#f1f1f4;--on:#17120f}
+html{--on:#17120f}
+html body .orb{display:none!important}
+
+/* tombol: aksen solid, tanpa gradasi dan glow */
+html body .btn,html body .pbtn{background:var(--p)!important;color:var(--on)!important;box-shadow:none!important;border:0!important}
+html body .btn:before,html body .btn:after,html body .pbtn:before,html body .pbtn:after{display:none!important}
+html body .btn{border-radius:999px!important}
+html body .btn.g{background:var(--c)!important;color:var(--tx)!important;border:1px solid var(--b)!important}
+html body .nav button.pbtn{color:var(--on)!important}
+html body .chip.a{background:var(--p)!important;color:var(--on)!important;border-color:transparent!important}
+
+/* kartu: permukaan datar, tanpa kaca */
+html body .pcard,html body .sp-t,html body .x33g,html body .wr-c,html body .chip:not(.a){background:var(--c)!important;border:1px solid var(--b)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;color:var(--tx)!important}
+html body .pcard:before,html body .pcard:after,html body .sp-t:before,html body .sp-t:after{display:none!important}
+html body .nav{background:var(--nv)!important;border:1px solid var(--b)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body .hero{background:var(--c)!important;border:1px solid var(--b)!important;box-shadow:none!important;color:var(--tx)!important}
+html body .hero h1{color:var(--tx)!important}html body .hero small{color:var(--mu)!important}
+
+/* pintasan beranda: satu gaya */
+html body .sp-i,html body .sp-i.l,html body .sp-i.r,html body .sp-i.g{background:rgba(255,255,255,.07)!important;color:var(--p)!important;box-shadow:none!important}
+html body .sp-i svg{display:block;margin:auto}
+
+/* genre: kartu netral dengan satu garis aksen, tanpa gambar emoji */
+html body .x16c{background:var(--c)!important;border:1px solid var(--b)!important;color:var(--tx)!important;box-shadow:none!important;height:60px!important;display:flex;align-items:center}
+html body .x16c:before,html body .x16c:after{display:none!important}
+html body .x16c .x48e,html body .x33g .e,html body .wr-e{display:none!important}
+html body .wr-p span{background:rgba(255,255,255,.07)!important;color:var(--tx)!important}
+
+/* ikon garis pengganti emoji */
+.x65i{display:inline-block;vertical-align:-3px;margin-right:7px;flex:none}
+.ib .x65i,.sp-i .x65i{margin:0;vertical-align:middle}
+html body .obe{font-size:0!important;line-height:0}
+.x65logo{width:84px;height:84px;border-radius:22px;display:block;margin:0 auto}
+
+/* onboarding, avatar, tombol header, navigasi: tanpa gradasi */
+html body #ob{background:var(--bg)!important;background-image:none!important}
+html body .obe{background:transparent!important;box-shadow:none!important}
+html body .hd .ib.g{background:var(--c)!important;border:1px solid var(--b)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;color:var(--tx)!important}
+html body .av:not([style*="url"]){background:var(--p)!important;color:var(--on)!important;box-shadow:none!important;border:0!important}
+html body .nav{background-image:none!important}
+html body .nav:before,html body .nav:after,html body .x33g:before,html body .x33g:after,html body .wr-c:before,html body .wr-c:after{display:none!important}
+/* banner ini menimpa --b lewat gaya inline (kuning), jadi garisnya pakai warna tetap */
+html body .x33g{border:1px solid rgba(128,128,128,.22)!important;border-image:none!important}
+
+/* profil: tombol aksi ringkas (dua sebaris, satu di bawahnya), bukan tiga tombol selebar layar */
+html body .x36c[data-x39b]{display:flex!important;gap:8px}
+html body .x36c[data-x39b] .btn.g{flex:1;width:auto!important}
+html body .x36c .btn.g{padding:10px 8px!important;font-size:13px!important;white-space:nowrap}

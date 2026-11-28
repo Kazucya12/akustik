@@ -1,0 +1,21 @@
+# Pemantau harian: memanggil situs yang sudah live (pencarian YouTube dan impor Spotify).
+# Impor Spotify dan pencarian cadangan YouTube membaca halaman web, jadi bisa rusak sewaktu-waktu kalau format berubah.
+# Kalau ada yang gagal, workflow ini ditandai gagal dan GitHub mengirim email ke pemilik repo.
+# Ganti BASE kalau alamat situsmu berbeda. Opsional: simpan link playlist Spotify publik di Settings > Secrets > HEALTH_SPOTIFY_URL.
+name: Health
+on:
+  schedule:
+    - cron: '17 1 * * *'   # tiap hari 08.17 WIB
+  workflow_dispatch:
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node test/health.js
+        env:
+          BASE: https://loopify1.vercel.app
+          HEALTH_SPOTIFY_URL: ${{ secrets.HEALTH_SPOTIFY_URL }}

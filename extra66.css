@@ -1,0 +1,43 @@
+/* Loopify v4.66 - rapikan tampilan: satu aksen (coral), tanpa gradasi dan bola buram, kontras tombol cukup.
+   Dimuat PALING AKHIR di build.js. Untuk membatalkan: hapus 'extra66.css' dari daftar CSS di build.js lalu node build.js. */
+
+/* Aksen tunggal. Tema terang: coral gelap supaya teks putih di tombol terbaca (rasio > 4.5). Tema gelap: coral terang + teks gelap. */
+:root{--ak:#ff8a5b;--ak-tx:#1c0f0a;--ak-soft:rgba(255,138,91,.14)}
+[data-t=light]{--ak:#c8481f;--ak-tx:#fff;--ak-soft:rgba(200,72,31,.10)}
+
+/* 1. Hapus bola gradasi buram di latar: latar polos. */
+.orb{display:none!important}
+body,#app{background:var(--bg)}
+
+/* 2. Tombol utama: satu warna solid, tanpa kilau gradasi dan bayangan berwarna. */
+.btn:not(.g){background:var(--ak);color:var(--ak-tx);box-shadow:none}
+.btn:not(.g):after{display:none}
+.btn:not(.g):active{filter:brightness(.92)}
+.chip.a{background:var(--ak);color:var(--ak-tx);border-color:transparent}
+.pbtn{background:var(--ak)!important;color:var(--ak-tx)!important;box-shadow:none!important}
+
+/* 3. Empat pintasan Beranda: satu permukaan netral, ikon beraksen (bukan ungu/oranye/hijau/biru). */
+.sp-t .sp-i,.sp-t .sp-i.l,.sp-t .sp-i.r,.sp-t .sp-i.g{background:var(--ak-soft);color:var(--ak)}
+
+/* 4. Banner mood: kartu netral, bukan gradasi berwarna. Tombol di dalamnya jadi kontras. */
+.x33g{background:var(--c)!important;color:var(--tx)!important;border:1px solid var(--b)}
+.x33g small{color:var(--mu)!important}
+
+/* 5. Logo onboarding: icon-192.png punya sudut hitam tidak transparan; bulatkan supaya tidak tampil sebagai kotak hitam. */
+.x65logo{border-radius:22%;overflow:hidden;display:block;margin:0 auto}
+
+/* 6. Layar onboarding punya gradasi latar sendiri (#ob): polos juga. */
+#ob{background:var(--bg)!important}
+
+/* 7. Ikon di dalam tombol utama ikut warna teks tombol. */
+.btn:not(.g) svg,.btn:not(.g) .x65i{color:var(--ak-tx)!important}
+
+/* 8. Kartu genre di Cari: permukaan netral (warna inline per genre ditimpa), bukan 14 gradasi berbeda. */
+.x16c,#v.x48 .x16c{background:var(--c)!important;color:var(--tx);border:1px solid var(--b);box-shadow:none}
+.x16c:after,#v.x48 .x16c:after{display:none}
+#v.x48 .x16c .x48e{filter:none;transform:none;font-size:34px}
+
+/* 9. Kartu Loopify Wrapped di Profil: kartu netral dengan chip beraksen. */
+.wr-c{background:var(--c);color:var(--tx);border:1px solid var(--b)}
+.wr-c small{color:var(--mu)}
+.wr-p span{background:var(--ak-soft);color:var(--ak)}

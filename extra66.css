@@ -50,3 +50,21 @@ body,#app{background:var(--bg)}
 .x66sk small{height:9px;width:56%;margin-top:6px}
 @keyframes x66sh{0%{background-position:-100% 0}100%{background-position:200% 0}}
 @media (prefers-reduced-motion:reduce){.x66sk i,.x66sk b,.x66sk small{animation:none}}
+
+/* 11. Layar tumpuk (Pengaturan, Video, dll.): latar polos. Pemutar penuh (#pl) tetap memakai warna sampul lagu. */
+.ov:not(#pl){background:var(--ov)!important}
+
+/* 12. Variabel gradasi tema (--g) jadi warna aksen solid; tema khusus (mis. hijau) tetap menang karena lebih spesifik. */
+:root,[data-t=light]{--g:var(--ak)}
+.seg b.a,.sw.on{background:var(--ak);color:var(--ak-tx)}
+#x48f .chip.a{background:var(--ak);color:var(--ak-tx)}
+
+/* 13. Hasil pencarian: kartu Hasil teratas netral, tombol play solid. */
+.x48t{background:var(--c)!important;box-shadow:none}
+.x48p{background:var(--ak)!important;color:var(--ak-tx)!important;box-shadow:none}
+
+/* 14. Splash: tanpa cahaya gradasi di belakang logo. */
+#splash:before{display:none!important}
+
+/* 15. Beranda: "Lanjutkan" cukup satu (kartu di bawah); kotak pintasannya disembunyikan supaya grid tetap genap. */
+.sp-t[onclick="resume()"]{display:none}
